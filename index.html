@@ -791,23 +791,17 @@ async function submitForm() {
   };
 
   try {
-    // Send to n8n
     await fetch(N8N_WEBHOOK, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: { events: [{
-        type: 'message',
-        source: { type: 'user', userId: state.userId, groupId: state.groupId },
-        message: { type: 'text', text: `[LIFF_FORM] ${JSON.stringify(payload)}` },
-        replyToken: '',
-        timestamp: Date.now(),
-      }], destination: state.userId, liff_data: payload } })
+      body: JSON.stringify({ liff_data: payload })
     });
   } catch(e) {
-    console.log('Submit error (non-critical):', e);
+    console.log('Submit:', e);
   }
 
-  // Show success
+  // แสดงผลสำเร็จทันทีโดยไม่รอ response
   document.getElementById('overlay-loading').classList.add('hidden');
   document.getElementById('ticket-badge').textContent = ticketId;
   document.getElementById('overlay-success').classList.remove('hidden');
