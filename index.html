@@ -770,8 +770,7 @@ async function submitForm() {
   document.getElementById('overlay-loading').classList.remove('hidden');
 const now = new Date();
 const pad = n => String(n).padStart(3,'0');
-const utc = new Date(now.getTime() + (0 * 60000)); // UTC+0
-const ticketId = 'TK-' + Date.now();
+const ticketId = `TK-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
   const payload = {
     source: 'liff_form',
