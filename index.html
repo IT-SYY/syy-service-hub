@@ -768,11 +768,7 @@ function buildSummary() {
 // ===================== SUBMIT =====================
 async function submitForm() {
   document.getElementById('overlay-loading').classList.remove('hidden');
-const now = new Date();
-const pad = n => String(n).padStart(3,'0');
-const utc = new Date(now.getTime() + (0 * 60000)); // UTC+0
-const ticketId = `TK-${utc.getUTCFullYear()}${pad(utc.getUTCMonth()+1)}${pad(utc.getUTCDate())}-${pad(utc.getUTCHours())}${pad(utc.getUTCMinutes())}${pad(utc.getUTCSeconds())}`;
-
+const ticketId = 'TK-' + Date.now();
   const payload = {
     source: 'liff_form',
     ticket_id: ticketId,
