@@ -571,11 +571,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.displayName = profile.displayName;
       state.pictureUrl  = profile.pictureUrl || '';
       const ctx = liff.getContext();
-      if (ctx && ctx.groupId) state.groupId = ctx.groupId;
-      // รับ groupId จาก URL parameter ถ้า LIFF context ไม่มี
+if (ctx && ctx.groupId) state.groupId = ctx.groupId;
+// รับ groupId จาก URL parameter
 const urlParams = new URLSearchParams(window.location.search);
 const urlGroupId = urlParams.get('groupId');
 if (urlGroupId && !state.groupId) {
+  state.groupId = urlGroupId;
+}
+// ถ้ามีทั้งคู่ ให้ URL parameter override เสมอ
+if (urlGroupId) {
   state.groupId = urlGroupId;
 }
       const chip   = document.getElementById('user-chip');
