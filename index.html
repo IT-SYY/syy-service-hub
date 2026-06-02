@@ -572,6 +572,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.pictureUrl  = profile.pictureUrl || '';
       const ctx = liff.getContext();
       if (ctx && ctx.groupId) state.groupId = ctx.groupId;
+      // รับ groupId จาก URL parameter ถ้า LIFF context ไม่มี
+const urlParams = new URLSearchParams(window.location.search);
+const urlGroupId = urlParams.get('groupId');
+if (urlGroupId && !state.groupId) {
+  state.groupId = urlGroupId;
+}
       const chip   = document.getElementById('user-chip');
       const avatar = document.getElementById('user-avatar');
       const name   = document.getElementById('user-name');
@@ -756,6 +762,7 @@ async function submitForm() {
     userId:      state.userId,
     displayName: state.displayName,
     groupId:     state.groupId,
+    reporter_group_id:  state.groupId,
     timestamp:   timestamp,
     photoCount:  state.photos.length,
   };
