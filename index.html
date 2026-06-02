@@ -19,7 +19,7 @@
     --text-muted: #6B7280;
     --border: #E5E7EB;
     --white: #FFFFFF;
-    --radius: 14px;ฟ
+    --radius: 14px;
     --shadow: 0 4px 24px rgba(0,0,0,0.08);
   }
 
@@ -33,6 +33,7 @@
     padding-bottom: 40px;
   }
 
+  /* HEADER */
   .header {
     background: linear-gradient(135deg, #06C755 0%, #04903C 100%);
     padding: 20px 20px 28px;
@@ -71,6 +72,7 @@
   .header h1 { font-size: 22px; font-weight: 700; color: white; line-height: 1.3; }
   .header p  { font-size: 13px; color: rgba(255,255,255,0.85); margin-top: 4px; }
 
+  /* USER CHIP */
   .user-chip {
     display: flex; align-items: center; gap: 10px;
     background: rgba(255,255,255,0.2);
@@ -86,6 +88,7 @@
   .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .user-name { font-size: 13px; color: white; font-weight: 500; }
 
+  /* STEPS */
   .steps-bar {
     display: flex; align-items: center;
     padding: 16px 20px;
@@ -117,8 +120,10 @@
   }
   .step-line.done { background: var(--green); }
 
+  /* CONTENT */
   .content { padding: 16px 16px 0; }
 
+  /* CARD */
   .card {
     background: white; border-radius: var(--radius);
     box-shadow: var(--shadow); padding: 20px;
@@ -136,6 +141,7 @@
     font-size: 12px; font-weight: 700; flex-shrink: 0;
   }
 
+  /* TEAM GRID */
   .team-grid {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -165,6 +171,7 @@
   .team-name-en { font-size: 11px; color: var(--text-muted); }
   .team-desc    { font-size: 10px; color: var(--text-muted); }
 
+  /* CATEGORY */
   .cat-list { display: flex; flex-wrap: wrap; gap: 8px; }
   .cat-btn {
     border: 1.5px solid var(--border); border-radius: 20px;
@@ -177,6 +184,7 @@
     background: var(--green); color: white;
   }
 
+  /* FORM FIELDS */
   .field { margin-bottom: 16px; }
   .field label {
     display: block; font-size: 13px; font-weight: 600;
@@ -198,6 +206,7 @@
   .field textarea { min-height: 100px; resize: vertical; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
+  /* PHOTO UPLOAD */
   .photo-area {
     border: 2px dashed var(--border); border-radius: 12px;
     padding: 24px 16px; text-align: center;
@@ -226,6 +235,7 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+  /* PRIORITY */
   .priority-row { display: flex; gap: 8px; }
   .pri-btn {
     flex: 1; padding: 10px 6px; border-radius: 10px;
@@ -242,6 +252,7 @@
   .pri-btn.med  .pri-label  { color: #F59E0B; }
   .pri-btn.high .pri-label  { color: #E24B4A; }
 
+  /* SUMMARY */
   .summary-card {
     background: var(--green-light);
     border: 1.5px solid var(--green-mid);
@@ -257,6 +268,7 @@
   .summary-label { color: var(--text-muted); min-width: 100px; flex-shrink: 0; }
   .summary-value { color: var(--navy); font-weight: 600; }
 
+  /* NAV BUTTONS */
   .nav-row {
     display: flex; gap: 10px;
     padding: 16px;
@@ -284,6 +296,7 @@
   .btn-next:active { transform: scale(0.98); }
   .btn-next:disabled { background: var(--border); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
 
+  /* LOADING / SUCCESS */
   .overlay {
     position: fixed; inset: 0; z-index: 100;
     background: rgba(10,22,40,0.7);
@@ -311,15 +324,26 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* PAGE VISIBILITY */
   .page { display: none; }
   .page.active { display: block; }
+
+  /* REQUIRED MARK */
   .req { color: #E24B4A; margin-left: 2px; }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    letter-spacing: 1px; text-transform: uppercase;
+    margin: 6px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
 </style>
 </head>
 <body>
 
 <!-- LOADING OVERLAY -->
-<div class="overlay hidden" id="overlay-loading">
+<div class="overlay" id="overlay-loading">
   <div class="overlay-box">
     <div class="spinner"></div>
     <div class="overlay-title">กำลังส่งข้อมูล...</div>
@@ -493,12 +517,12 @@
         <option value="">เลือก...</option>
         <option>Front Office</option>
         <option>Housekeeping</option>
-        <option>F&amp;B</option>
+        <option>F&B</option>
         <option>Security</option>
         <option>Spa</option>
         <option>IT</option>
         <option>Engineering</option>
-        <option>Landscape &amp; Garden</option>
+        <option>Landscape & Garden</option>
         <option>Environment</option>
         <option>Main Kitchen</option>
         <option>Management</option>
@@ -532,7 +556,7 @@
 <script>
 // ===================== CONFIG =====================
 const LIFF_ID = '2010241158-ll8R9q4T';
-const N8N_WEBHOOK = 'https://syy-service-hub.app.n8n.cloud/webhook/liff-form';
+const N8N_WEBHOOK = 'https://syy-service-hub.app.n8n.cloud/webhook/line-webhook';
 
 // ===================== STATE =====================
 let state = {
@@ -562,6 +586,7 @@ const categories = {
 
 // ===================== LIFF INIT =====================
 document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('overlay-loading').classList.add('hidden');
   try {
     await liff.init({ liffId: LIFF_ID });
     state.liffReady = true;
@@ -570,8 +595,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.userId      = profile.userId;
       state.displayName = profile.displayName;
       state.pictureUrl  = profile.pictureUrl || '';
+      // Get group context
       const ctx = liff.getContext();
       if (ctx && ctx.groupId) state.groupId = ctx.groupId;
+      // Show user chip
       const chip   = document.getElementById('user-chip');
       const avatar = document.getElementById('user-avatar');
       const name   = document.getElementById('user-name');
@@ -587,6 +614,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (e) {
     console.log('LIFF init error:', e);
+    // Allow testing outside LINE
     state.userId = 'test-user-' + Date.now();
     state.displayName = 'Test User';
   }
@@ -598,6 +626,7 @@ function selectTeam(name, code) {
   document.getElementById('team-' + name).classList.add('selected');
   state.team = name;
   state.teamCode = code;
+  // Load categories
   renderCategories(code);
 }
 
@@ -669,6 +698,7 @@ function goToStep(n) {
 
 function updateStepUI() {
   const n = state.step;
+  // Step dots
   for (let i = 1; i <= 4; i++) {
     const dot = document.getElementById('dot-' + i);
     const lbl = document.getElementById('lbl-' + i);
@@ -678,9 +708,12 @@ function updateStepUI() {
     else if (i === n) { dot.classList.add('active'); dot.textContent = i; lbl.classList.add('active'); }
     else { dot.textContent = i; }
   }
+  // Step lines
   for (let i = 1; i <= 3; i++) {
-    document.getElementById('line-' + i).classList.toggle('done', i < n);
+    const line = document.getElementById('line-' + i);
+    line.classList.toggle('done', i < n);
   }
+  // Buttons
   document.getElementById('btn-back').style.display = n > 1 ? 'block' : 'none';
   const btnNext = document.getElementById('btn-next');
   if (n === 4) {
@@ -735,43 +768,46 @@ function buildSummary() {
 // ===================== SUBMIT =====================
 async function submitForm() {
   document.getElementById('overlay-loading').classList.remove('hidden');
-
-  // สร้าง Ticket ID และเวลาไทย UTC+7
-  const ticketId = 'TK-' + Date.now();
   const now = new Date();
-  const thaiTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-  const timestamp = thaiTime.toISOString().replace('Z', '+07:00');
+  const pad = n => String(n).padStart(3,'0');
+  const ticketId = `TK-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
   const payload = {
-    source:      'liff_form',
-    ticket_id:   ticketId,
-    team:        state.team,
-    team_code:   state.teamCode,
-    category:    state.category,
-    priority:    state.priority,
-    building:    state.building,
-    room:        state.room,
+    source: 'liff_form',
+    ticket_id: ticketId,
+    team: state.team,
+    team_code: state.teamCode,
+    category: state.category,
+    priority: state.priority,
+    building: state.building,
+    room: state.room,
     description: state.description,
-    department:  state.department,
-    userId:      state.userId,
+    department: state.department,
+    userId: state.userId,
     displayName: state.displayName,
-    groupId:     state.groupId,
-    timestamp:   timestamp,
-    photoCount:  state.photos.length,
+    groupId: state.groupId,
+    timestamp: now.toISOString(),
+    photoCount: state.photos.length,
   };
 
   try {
+    // Send to n8n
     await fetch(N8N_WEBHOOK, {
       method: 'POST',
-      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ liff_data: payload })
+      body: JSON.stringify({ body: { events: [{
+        type: 'message',
+        source: { type: 'user', userId: state.userId, groupId: state.groupId },
+        message: { type: 'text', text: `[LIFF_FORM] ${JSON.stringify(payload)}` },
+        replyToken: '',
+        timestamp: Date.now(),
+      }], destination: state.userId, liff_data: payload } })
     });
   } catch(e) {
-    console.log('Submit error:', e);
+    console.log('Submit error (non-critical):', e);
   }
 
-  // แสดงผลสำเร็จทันทีโดยไม่รอ response
+  // Show success
   document.getElementById('overlay-loading').classList.add('hidden');
   document.getElementById('ticket-badge').textContent = ticketId;
   document.getElementById('overlay-success').classList.remove('hidden');
