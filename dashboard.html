@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYY Service Hub — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg: #F0F2F5;
+  --bg2: #FFFFFF;
+  --bg3: #F8F9FA;
+  --border: #E2E8F0;
+  --green: #10B981;
+  --green2: #059669;
+  --green-dim: rgba(16,185,129,0.12);
+  --blue: #3B82F6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --orange: #F59E0B;
+  --orange-dim: rgba(245,158,11,0.12);
+  --red: #EF4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --purple: #8B5CF6;
+  --text: #1E293B;
+  --text2: #64748B;
+  --text3: #94A3B8;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Prompt', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 240px;
+  background: #1E293B;
+  border-right: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--green);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.logo-text { font-size: 15px; font-weight: 700; color: #F1F5F9; }
+.logo-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748B;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 8px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #94A3B8;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+
+.nav-item:hover { background: #334155; color: #F1F5F9; }
+
+.nav-item.active {
+  background: rgba(16,185,129,0.2);
+  color: #10B981;
+  border-color: rgba(16,185,129,0.3);
+}
+
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* TEAM FILTER */
+.team-filter {
+  padding: 16px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.team-select {
+  width: 100%;
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  color: #F1F5F9;
+  font-family: 'Prompt', sans-serif;
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* MAIN */
+.main {
+  margin-left: 240px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOPBAR */
+.topbar {
+  height: 50px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  width: 240px;
+}
+
+.topbar-search input {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+
+.topbar-search input::placeholder { color: var(--text2); }
+
+.live-dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+.live-text { font-size: 12px; color: var(--green); font-weight: 500; }
+
+.btn-refresh {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-family: 'Prompt', sans-serif;
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-refresh:hover { border-color: var(--green); color: var(--green); }
+
+/* CONTENT */
+.content { padding: 16px; }
+
+/* KPI GRID */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.kpi-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+
+.kpi-card:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.kpi-card.all::before { background: var(--blue); }
+.kpi-card.pending::before { background: var(--orange); }
+.kpi-card.inprogress::before { background: var(--blue); }
+.kpi-card.done::before { background: var(--green); }
+
+.kpi-icon {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.kpi-num {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.kpi-card.all .kpi-num { color: var(--blue); }
+.kpi-card.pending .kpi-num { color: var(--orange); }
+.kpi-card.inprogress .kpi-num { color: var(--blue); }
+.kpi-card.done .kpi-num { color: var(--green); }
+
+.kpi-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+
+.kpi-sub {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.kpi-badge {
+  position: absolute;
+  top: 16px; right: 16px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.kpi-card.all .kpi-badge { background: var(--blue-dim); color: var(--blue); }
+.kpi-card.pending .kpi-badge { background: var(--orange-dim); color: var(--orange); }
+.kpi-card.inprogress .kpi-badge { background: var(--blue-dim); color: var(--blue); }
+.kpi-card.done .kpi-badge { background: var(--green-dim); color: var(--green); }
+
+/* CHARTS ROW */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.chart-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  box-shadow: var(--shadow);
+}
+
+.chart-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-title span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+/* TABLE */
+.table-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.table-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-title {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.chip {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid #E2E8F0;
+  color: #64748B;
+  background: #F8FAFC;
+  transition: all 0.15s;
+}
+
+.chip:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.chip.active { background: var(--green); border-color: var(--green); color: #FFFFFF; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+
+.table-wrap { overflow: auto; max-height: 320px; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 7px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  cursor: pointer;
+}
+
+tbody tr:hover { background: #F8FAFC; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr.new-row { animation: highlight 3s ease-out; }
+
+@keyframes highlight {
+  0% { background: rgba(6,199,85,0.15); }
+  100% { background: transparent; }
+}
+
+td {
+  padding: 8px 12px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.ticket-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--blue);
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-pending { background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; }
+.status-in_progress { background: #DBEAFE; color: #2563EB; border: 1px solid #BFDBFE; }
+.status-done { background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0; }
+
+.priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.priority-high { background: var(--red-dim); color: var(--red); }
+.priority-med { background: var(--orange-dim); color: var(--orange); }
+.priority-low { background: var(--green-dim); color: var(--green); }
+
+.btn-assign {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  border: none;
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-family: 'Prompt', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+}
+
+.btn-assign:hover {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.5);
+  transform: translateY(-1px);
+}
+
+.btn-view {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  color: #475569;
+  font-family: 'Prompt', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: 4px;
+}
+
+.btn-view:hover { background: #E2E8F0; border-color: #CBD5E1; color: var(--text); }
+
+/* BOTTOM ROW */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* TECHNICIAN LIST */
+.tech-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+
+.tech-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #F8FAFC;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tech-item:hover { border-color: var(--green); background: var(--green-dim); }
+
+.tech-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.tech-info { flex: 1; min-width: 0; }
+.tech-name { font-size: 12px; font-weight: 600; }
+.tech-role { font-size: 10px; color: var(--text2); }
+
+.tech-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.tech-tasks {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--orange);
+  font-weight: 600;
+}
+
+.tech-done {
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.tech-status {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tech-status.online { background: var(--green); }
+.tech-status.busy { background: var(--orange); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  padding: 28px;
+  width: 480px;
+  max-width: 90vw;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal-field { margin-bottom: 16px; }
+
+.modal-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.modal-select, .modal-textarea {
+  width: 100%;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.modal-select:focus, .modal-textarea:focus { border-color: var(--green); }
+.modal-textarea { resize: vertical; min-height: 80px; }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-confirm {
+  flex: 2;
+  padding: 10px;
+  background: linear-gradient(135deg, #10B981, #059669);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.4);
+}
+
+.btn-confirm:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 12px rgba(16,185,129,0.5); }
+
+/* DETAIL MODAL */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-item { }
+.detail-item-label { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+.detail-item-value { font-size: 13px; font-weight: 500; }
+
+.timeline { margin-top: 16px; }
+.timeline-title { font-size: 12px; color: var(--text2); font-weight: 600; margin-bottom: 10px; }
+
+.timeline-item {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 12px;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 16px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+
+.timeline-item:last-child::before { display: none; }
+
+.timeline-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.timeline-content { }
+.timeline-action { font-size: 11px; font-weight: 600; }
+.timeline-time { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+/* NEW BADGE */
+.new-badge {
+  display: inline-block;
+  background: var(--red);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--bg2);
+  border: 1px solid var(--green);
+  border-radius: 10px;
+  padding: 14px 18px;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  transform: translateX(120%);
+  transition: transform 0.3s ease;
+  max-width: 320px;
+}
+
+.toast.show { transform: translateX(0); }
+.toast-icon { font-size: 18px; }
+
+/* EMPTY */
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text3);
+}
+
+.empty-icon { font-size: 32px; margin-bottom: 8px; }
+.empty-text { font-size: 13px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F0F2F5; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ===== RESPONSIVE ===== */
+
+/* Large Desktop (1400px+) */
+@media (min-width: 1400px) {
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+  .charts-row { grid-template-columns: 1fr 1fr 1fr; }
+  .bottom-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* Medium Desktop (1024px - 1399px) */
+@media (max-width: 1399px) {
+  .sidebar { width: 200px; }
+  .main { margin-left: 200px; }
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .charts-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .charts-row .chart-card:last-child { grid-column: 1 / -1; }
+  .content { padding: 16px; }
+  .kpi-num { font-size: 28px; }
+}
+
+/* Small Desktop / Tablet Landscape (768px - 1023px) */
+@media (max-width: 1023px) {
+  .sidebar {
+    width: 60px;
+    overflow: hidden;
+  }
+  .sidebar-logo { padding: 16px 10px; justify-content: center; }
+  .logo-text, .logo-sub { display: none; }
+  .nav-label { display: none; }
+  .nav-item { justify-content: center; padding: 10px; }
+  .nav-item span:not(.nav-icon) { display: none; }
+  .nav-badge { position: absolute; top: 4px; right: 4px; }
+  .nav-item { position: relative; }
+  .team-filter { display: none; }
+
+  .main { margin-left: 60px; }
+  .topbar-title { font-size: 14px; }
+  .topbar-search { width: 180px; }
+
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .charts-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .charts-row .chart-card:last-child { grid-column: 1 / -1; }
+  .bottom-row { grid-template-columns: 1fr; }
+  .content { padding: 12px; }
+  .kpi-num { font-size: 26px; }
+  .kpi-card { padding: 16px; }
+}
+
+/* Tablet Portrait (600px - 767px) */
+@media (max-width: 767px) {
+  .sidebar { width: 0; display: none; }
+  .main { margin-left: 0; }
+
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar-search { width: 140px; }
+  .topbar-title { font-size: 13px; }
+
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .charts-row { grid-template-columns: 1fr; gap: 8px; }
+  .bottom-row { grid-template-columns: 1fr; gap: 8px; }
+  .content { padding: 10px; }
+
+  .kpi-num { font-size: 24px; }
+  .kpi-card { padding: 14px; }
+  .kpi-icon { font-size: 20px; margin-bottom: 8px; }
+
+  .filter-chips { display: none; }
+  .table-header { flex-wrap: wrap; gap: 8px; }
+
+  /* Hide less important columns on mobile */
+  thead th:nth-child(7),
+  thead th:nth-child(8),
+  tbody td:nth-child(7),
+  tbody td:nth-child(8) { display: none; }
+
+  .modal { padding: 20px; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+/* Mobile (< 600px) */
+@media (max-width: 599px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .kpi-num { font-size: 22px; }
+  .kpi-card { padding: 12px; }
+  .kpi-badge { display: none; }
+
+  .topbar-search { display: none; }
+  .live-text { display: none; }
+
+  /* Show only essential columns */
+  thead th:nth-child(n+5):not(:nth-child(9)),
+  tbody td:nth-child(n+5):not(:nth-child(9)) { display: none; }
+
+  thead th:nth-child(10),
+  tbody td:nth-child(10) { display: none; }
+}
+
+/* Sidebar hover expand on medium screen */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .sidebar:hover {
+    width: 200px;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+  .sidebar:hover .logo-text,
+  .sidebar:hover .logo-sub,
+  .sidebar:hover .nav-label { display: block; }
+  .sidebar:hover .nav-item { justify-content: flex-start; }
+  .sidebar:hover .nav-item span:not(.nav-icon) { display: inline; }
+  .sidebar:hover .team-filter { display: block; }
+  .sidebar { transition: width 0.2s ease; overflow: hidden; }
+}
+
+/* Hamburger menu button for mobile */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+@media (max-width: 767px) {
+  .hamburger { display: block; }
+  .sidebar.open {
+    display: flex;
+    width: 240px;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.7);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">🔧</div>
+      <div>
+        <div class="logo-text">SYY Service Hub</div>
+        <div class="logo-sub">Santhiya Collection</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" onclick="setPage('dashboard')">
+      <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="setPage('tickets')">
+      <span class="nav-icon">🎫</span> Tickets
+      <span class="nav-badge" id="pending-badge">0</span>
+    </div>
+
+    <div class="nav-label" style="margin-top:8px">Management</div>
+    <div class="nav-item" onclick="setPage('technicians')">
+      <span class="nav-icon">👥</span> ทีมช่าง
+    </div>
+    <div class="nav-item" onclick="setPage('history')">
+      <span class="nav-icon">📋</span> ประวัติงาน
+    </div>
+  </div>
+
+  <div class="team-filter">
+    <div style="font-size:11px;color:#64748B;margin-bottom:6px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองตามทีม</div>
+    <select class="team-select" id="team-filter" onchange="filterByTeam()">
+      <option value="all">ทุกทีม</option>
+      <option value="IT Support">IT Support</option>
+      <option value="Engineering">Engineering</option>
+      <option value="Landscape & Garden">Landscape & Garden</option>
+      <option value="Environment">Environment</option>
+    </select>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-title" id="page-title">Dashboard Overview</div>
+    <div class="topbar-search">
+      <span>🔍</span>
+      <input type="text" placeholder="ค้นหา Ticket..." id="search-input" oninput="searchTickets()">
+    </div>
+    <div class="live-dot"></div>
+    <span class="live-text">Live</span>
+    <button class="btn-refresh" onclick="loadData()">↻ Refresh</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="page-content">
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card all" onclick="filterChip('all')">
+        <div class="kpi-badge">Total</div>
+        <div class="kpi-icon">🎫</div>
+        <div class="kpi-num" id="kpi-all">0</div>
+        <div class="kpi-label">งานทั้งหมด</div>
+        <div class="kpi-sub" id="kpi-all-sub">All Tickets</div>
+      </div>
+      <div class="kpi-card pending" onclick="filterChip('pending')">
+        <div class="kpi-badge">Pending</div>
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-num" id="kpi-pending">0</div>
+        <div class="kpi-label">รอดำเนินการ</div>
+        <div class="kpi-sub">Waiting</div>
+      </div>
+      <div class="kpi-card inprogress" onclick="filterChip('in_progress')">
+        <div class="kpi-badge">Active</div>
+        <div class="kpi-icon">🔄</div>
+        <div class="kpi-num" id="kpi-inprogress">0</div>
+        <div class="kpi-label">กำลังดำเนินการ</div>
+        <div class="kpi-sub">In Progress</div>
+      </div>
+      <div class="kpi-card done" onclick="filterChip('done')">
+        <div class="kpi-badge">Done</div>
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-num" id="kpi-done">0</div>
+        <div class="kpi-label">เสร็จสิ้น</div>
+        <div class="kpi-sub">Completed</div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title"><span></span> สถานะงาน</div>
+        <canvas id="chart-status" height="140"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span></span> งานตามประเภท</div>
+        <canvas id="chart-category" height="140"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span></span> งานรายวัน (7 วัน)</div>
+        <canvas id="chart-daily" height="140"></canvas>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">รายการ Ticket ทั้งหมด</div>
+        <div class="filter-chips">
+          <div class="chip active" onclick="filterChip('all')" id="chip-all">ทั้งหมด</div>
+          <div class="chip" onclick="filterChip('pending')" id="chip-pending">รอดำเนินการ</div>
+          <div class="chip" onclick="filterChip('in_progress')" id="chip-inprogress">กำลังซ่อม</div>
+          <div class="chip" onclick="filterChip('done')" id="chip-done">เสร็จแล้ว</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>วันที่แจ้ง</th>
+              <th>ทีม</th>
+              <th>ประเภท</th>
+              <th>สถานที่</th>
+              <th>รายละเอียด</th>
+              <th>ผู้แจ้ง</th>
+              <th>ความเร่งด่วน</th>
+              <th>สถานะ</th>
+              <th>ดำเนินการ</th>
+            </tr>
+          </thead>
+          <tbody id="ticket-table-body">
+            <tr>
+              <td colspan="10">
+                <div class="empty">
+                  <div class="empty-icon">⏳</div>
+                  <div class="empty-text">กำลังโหลดข้อมูล...</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="bottom-row">
+      <!-- TEAM STATUS -->
+      <div class="chart-card">
+        <div class="chart-title"><span></span> สถานะทีม IT Support</div>
+        <div class="tech-list" id="tech-list">
+          <div class="empty">
+            <div class="empty-icon">👥</div>
+            <div class="empty-text">ไม่มีข้อมูลสมาชิก</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT ACTIVITY -->
+      <div class="chart-card">
+        <div class="chart-title"><span></span> กิจกรรมล่าสุด</div>
+        <div class="timeline" id="activity-timeline">
+          <div class="empty">
+            <div class="empty-icon">📋</div>
+            <div class="empty-text">ยังไม่มีกิจกรรม</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal">
+    <div class="modal-title">
+      มอบหมายงาน
+      <button class="modal-close" onclick="closeModal('assign-modal')">×</button>
+    </div>
+    <div id="assign-ticket-info" style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text2)"></div>
+    <div class="modal-field">
+      <label class="modal-label">เลือกสมาชิกที่มอบหมาย</label>
+      <select class="modal-select" id="assign-member">
+        <option value="">-- เลือกสมาชิก --</option>
+        <option>Chana — IT Manager</option>
+        <option>Farid — IT Project Supervisor</option>
+        <option>Radthaphol — IT Supervisor</option>
+        <option>Pongsakorn — IT Officer</option>
+        <option>Nianas — IT Officer</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">หมายเหตุ (ถ้ามี)</label>
+      <textarea class="modal-textarea" id="assign-note" placeholder="เช่น กุญแจห้องอยู่ที่ Reception..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('assign-modal')">ยกเลิก</button>
+      <button class="btn-confirm" onclick="confirmAssign()">✅ ยืนยันมอบหมาย</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">
+      รายละเอียด Ticket
+      <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
+    </div>
+    <div id="detail-content"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn-cancel" onclick="closeModal('detail-modal')">ปิด</button>
+      <button class="btn-confirm" onclick="closeModal('detail-modal'); openAssign(currentTicket)">มอบหมายงาน</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon">✅</span>
+  <span id="toast-text">สำเร็จ</span>
+</div>
+
+<script>
+// ===== CONFIG =====
+const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
+const API_KEY = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
+const BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
+
+// ===== MOCK DATA (ใช้ระหว่างทดสอบ) =====
+const MOCK_TICKETS = [
+  { ticket_id: 'TK-1780379612261', created_at: '03/06/2026 12:26:28', department: 'IT Support', reported_by: 'T*M', category: 'Wi-Fi', location: 'Pool Villa', room: '1201', description: 'อินเทอร์เน็ตใช้ไม่ได้', priority: 'med', status: 'in_progress', assigned_to: 'Chana' },
+  { ticket_id: 'TK-1780377988322', created_at: '03/06/2026 12:11:16', department: 'IT Support', reported_by: 'T*M', category: 'คอมพิวเตอร์', location: 'Lobby', room: 'CTR', description: 'คอมพิวเตอร์เปิดไม่ติด', priority: 'high', status: 'pending', assigned_to: '' },
+  { ticket_id: 'TK-1780376331817', created_at: '03/06/2026 11:58:51', department: 'IT Support', reported_by: 'T*M', category: 'CCTV', location: 'Main Building', room: '101', description: 'กล้องวงจรปิดออฟไลน์', priority: 'high', status: 'pending', assigned_to: '' },
+  { ticket_id: 'TK-1780372704862', created_at: '02/06/2026 03:58:24', department: 'IT Support', reported_by: 'T*M', category: 'Wi-Fi', location: 'Pool Villa', room: '502', description: 'ไวไฟช้ามาก', priority: 'low', status: 'done', assigned_to: 'Pongsakorn' },
+  { ticket_id: 'TK-1780461112895', created_at: '03/06/2026 09:49:20', department: 'IT Support', reported_by: 'T*M', category: 'Hardware', location: 'Main Building', room: 'Office', description: 'Printer ไม่ทำงาน', priority: 'low', status: 'done', assigned_to: 'Nianas' },
+];
+
+const MOCK_MEMBERS = [
+  { name: 'Chana', role: 'IT Manager', tasks: 1, done: 12, status: 'busy' },
+  { name: 'Farid', role: 'IT Supervisor', tasks: 0, done: 8, status: 'online' },
+  { name: 'Radthaphol', role: 'IT Supervisor', tasks: 0, done: 15, status: 'online' },
+  { name: 'Pongsakorn', role: 'IT Officer', tasks: 2, done: 20, status: 'busy' },
+  { name: 'Nianas', role: 'IT Officer', tasks: 1, done: 18, status: 'busy' },
+];
+
+// ===== STATE =====
+let allTickets = [];
+let filteredTickets = [];
+let currentFilter = 'all';
+let currentTeam = 'all';
+let currentTicket = null;
+let charts = {};
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  setInterval(loadData, 60000); // Auto refresh ทุก 60 วินาที
+});
+
+async function loadData() {
+  try {
+    const range = 'TICKETS!A2:Y100';
+    const url = `${BASE_URL}/${encodeURIComponent(range)}?key=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.values) {
+      allTickets = [];
+      renderAll();
+      return;
+    }
+
+    allTickets = data.values.map(row => ({
+      ticket_id:         row[0]  || '',
+      created_at:        row[1]  || '',
+      department:        row[2]  || '',
+      reported_by:       row[3]  || '',
+      category:          row[4]  || '',
+      location:          row[5]  || '',
+      room:              row[6]  || '',
+      description:       row[7]  || '',
+      priority:          row[8]  || 'low',
+      status:            row[9]  || 'pending',
+      assigned_to:       row[10] || '',
+      assigned_at:       row[11] || '',
+      resolved_at:       row[12] || '',
+      reporter_group_id: row[18] || '',
+      team:              row[19] || '',
+      building:          row[20] || '',
+      userId:            row[21] || '',
+      displayName:       row[22] || '',
+    })).filter(t => t.ticket_id);
+
+    renderAll();
+    showToast(`โหลดข้อมูลสำเร็จ ${allTickets.length} Ticket`);
+  } catch(e) {
+    console.error('Load error:', e);
+    showToast('โหลดข้อมูลล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ');
+  }
+}
+
+function renderAll() {
+  applyFilters();
+  renderKPI();
+  renderCharts();
+  renderTable();
+  renderTechList();
+  renderTimeline();
+  updateBadge();
+}
+
+// ===== FILTERS =====
+function applyFilters() {
+  filteredTickets = allTickets.filter(t => {
+    const teamMatch = currentTeam === 'all' || t.department === currentTeam;
+    const statusMatch = currentFilter === 'all' || t.status === currentFilter;
+    const searchVal = document.getElementById('search-input')?.value.toLowerCase() || '';
+    const searchMatch = !searchVal ||
+      t.ticket_id.toLowerCase().includes(searchVal) ||
+      t.description.toLowerCase().includes(searchVal) ||
+      t.category.toLowerCase().includes(searchVal) ||
+      t.location.toLowerCase().includes(searchVal);
+    return teamMatch && statusMatch && searchMatch;
+  });
+}
+
+function filterChip(status) {
+  currentFilter = status;
+  ['all','pending','inprogress','done'].forEach(c => {
+    document.getElementById('chip-' + c)?.classList.remove('active');
+  });
+  const id = status === 'in_progress' ? 'inprogress' : status;
+  document.getElementById('chip-' + id)?.classList.add('active');
+  renderAll();
+}
+
+function filterByTeam() {
+  currentTeam = document.getElementById('team-filter').value;
+  renderAll();
+}
+
+function searchTickets() {
+  renderAll();
+}
+
+// ===== KPI =====
+function renderKPI() {
+  const base = allTickets.filter(t => currentTeam === 'all' || t.department === currentTeam);
+  document.getElementById('kpi-all').textContent = base.length;
+  document.getElementById('kpi-pending').textContent = base.filter(t => t.status === 'pending').length;
+  document.getElementById('kpi-inprogress').textContent = base.filter(t => t.status === 'in_progress').length;
+  document.getElementById('kpi-done').textContent = base.filter(t => t.status === 'done').length;
+  const today = new Date().toLocaleDateString('en-GB').split('/').reverse().join('/').substring(0,10);
+  const todayStr = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('kpi-all-sub').textContent = `อัปเดต: ${new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}`; 
+}
+
+function updateBadge() {
+  const pending = allTickets.filter(t => t.status === 'pending').length;
+  document.getElementById('pending-badge').textContent = pending;
+}
+
+// ===== CHARTS =====
+function renderCharts() {
+  renderStatusChart();
+  renderCategoryChart();
+  renderDailyChart();
+}
+
+function renderStatusChart() {
+  const base = allTickets.filter(t => currentTeam === 'all' || t.department === currentTeam);
+  const data = {
+    pending: base.filter(t => t.status === 'pending').length,
+    in_progress: base.filter(t => t.status === 'in_progress').length,
+    done: base.filter(t => t.status === 'done').length,
+  };
+
+  if (charts.status) charts.status.destroy();
+  const ctx = document.getElementById('chart-status').getContext('2d');
+  charts.status = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['รอดำเนินการ', 'กำลังซ่อม', 'เสร็จแล้ว'],
+      datasets: [{
+        data: [data.pending, data.in_progress, data.done],
+        backgroundColor: ['#F59E0B', '#1F6FEB', '#06C755'],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#8B949E', font: { family: 'Prompt', size: 11 }, padding: 12 } }
+      },
+      cutout: '65%'
+    }
+  });
+}
+
+function renderCategoryChart() {
+  const base = allTickets.filter(t => currentTeam === 'all' || t.department === currentTeam);
+  const cats = {};
+  base.forEach(t => { cats[t.category] = (cats[t.category] || 0) + 1; });
+  const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+  if (charts.category) charts.category.destroy();
+  const ctx = document.getElementById('chart-category').getContext('2d');
+  charts.category = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(([k]) => k),
+      datasets: [{
+        data: sorted.map(([, v]) => v),
+        backgroundColor: 'rgba(6,199,85,0.3)',
+        borderColor: '#06C755',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8B949E', font: { family: 'Prompt', size: 10 } }, grid: { color: '#21262D' } },
+        y: { ticks: { color: '#8B949E', stepSize: 1 }, grid: { color: '#21262D' } }
+      }
+    }
+  });
+}
+
+function renderDailyChart() {
+  const days = [];
+  const counts = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    days.push(label);
+    counts.push(Math.floor(Math.random() * 5) + 1);
+  }
+
+  if (charts.daily) charts.daily.destroy();
+  const ctx = document.getElementById('chart-daily').getContext('2d');
+  charts.daily = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [{
+        data: counts,
+        borderColor: '#1F6FEB',
+        backgroundColor: 'rgba(31,111,235,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#1F6FEB',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8B949E', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#21262D' } },
+        y: { ticks: { color: '#8B949E', stepSize: 1 }, grid: { color: '#21262D' } }
+      }
+    }
+  });
+}
+
+// ===== TABLE =====
+function renderTable() {
+  const tbody = document.getElementById('ticket-table-body');
+
+  if (filteredTickets.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">ไม่พบข้อมูล</div></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filteredTickets.map(t => `
+    <tr onclick="openDetail('${t.ticket_id}')">
+      <td><span class="ticket-id">${t.ticket_id.substring(0,18)}...</span></td>
+      <td style="font-size:12px;color:var(--text2)">${t.created_at}</td>
+      <td style="font-size:12px">${t.department}</td>
+      <td style="font-size:12px">${t.category}</td>
+      <td style="font-size:12px">${t.location} ${t.room ? 'ห้อง '+t.room : ''}</td>
+      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.description}</td>
+      <td style="font-size:12px">${t.reported_by}</td>
+      <td>
+        <span class="priority-badge priority-${t.priority === 'high' ? 'high' : t.priority === 'med' ? 'med' : 'low'}">
+          ${t.priority === 'high' ? '🔴 ฉุกเฉิน' : t.priority === 'med' ? '🟡 เร่งด่วน' : '🟢 ปกติ'}
+        </span>
+      </td>
+      <td>
+        <span class="status-badge status-${t.status}">
+          ${t.status === 'pending' ? '⏳ รอ' : t.status === 'in_progress' ? '🔄 กำลังซ่อม' : '✅ เสร็จ'}
+        </span>
+      </td>
+      <td onclick="event.stopPropagation()">
+        ${t.status !== 'done' ? `<button class="btn-assign" onclick="openAssign('${t.ticket_id}')">มอบหมาย</button>` : ''}
+        <button class="btn-view" onclick="openDetail('${t.ticket_id}')">ดู</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ===== TECH LIST =====
+function renderTechList() {
+  const list = document.getElementById('tech-list');
+  const members = [
+    { name: 'Chana', role: 'IT Manager' },
+    { name: 'Farid', role: 'IT Project Supervisor' },
+    { name: 'Radthaphol', role: 'IT Supervisor' },
+    { name: 'Pongsakorn', role: 'IT Officer' },
+    { name: 'Nianas', role: 'IT Officer' },
+  ];
+
+  list.innerHTML = members.map(m => {
+    const active = allTickets.filter(t =>
+      t.assigned_to && t.assigned_to.includes(m.name) && t.status === 'in_progress'
+    ).length;
+    const done = allTickets.filter(t =>
+      t.assigned_to && t.assigned_to.includes(m.name) && t.status === 'done'
+    ).length;
+    const status = active > 0 ? 'busy' : 'online';
+    return `
+    <div class="tech-item">
+      <div class="tech-avatar">${m.name.charAt(0)}</div>
+      <div class="tech-info">
+        <div class="tech-name">${m.name}</div>
+        <div class="tech-role">${m.role}</div>
+      </div>
+      <div class="tech-stats">
+        <div class="tech-tasks">${active} งาน</div>
+        <div class="tech-done">เสร็จ ${done} งาน</div>
+      </div>
+      <div class="tech-status ${status}"></div>
+    </div>`;
+  }).join('');
+}
+
+// ===== TIMELINE =====
+function renderTimeline() {
+  const timeline = document.getElementById('activity-timeline');
+  const recent = [...allTickets].reverse().slice(0, 6);
+  if (recent.length === 0) {
+    timeline.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มีกิจกรรม</div></div>';
+    return;
+  }
+  timeline.innerHTML = recent.map(t => `
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background:${t.status === 'done' ? 'var(--green)' : t.status === 'in_progress' ? 'var(--blue)' : 'var(--orange)'}"></div>
+      <div class="timeline-content">
+        <div class="timeline-action">${t.status === 'done' ? '✅ ปิดงาน' : t.status === 'in_progress' ? '🔄 รับงาน' : '📝 แจ้งงานใหม่'} — ${t.category || 'ไม่ระบุ'}</div>
+        <div class="timeline-time">${(t.ticket_id||'').substring(0,22)} · ${t.created_at}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== MODALS =====
+function openAssign(ticketId) {
+  currentTicket = ticketId;
+  const t = allTickets.find(x => x.ticket_id === ticketId);
+  if (!t) return;
+  document.getElementById('assign-ticket-info').innerHTML = `
+    <strong>${t.ticket_id}</strong><br>
+    ${t.category} · ${t.location} ห้อง ${t.room}<br>
+    ${t.description}
+  `;
+  document.getElementById('assign-modal').classList.add('show');
+}
+
+function openDetail(ticketId) {
+  currentTicket = ticketId;
+  const t = allTickets.find(x => x.ticket_id === ticketId);
+  if (!t) return;
+
+  document.getElementById('detail-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span class="ticket-id" style="font-size:14px">${t.ticket_id}</span>
+      <span class="status-badge status-${t.status}">${t.status === 'pending' ? '⏳ รอดำเนินการ' : t.status === 'in_progress' ? '🔄 กำลังซ่อม' : '✅ เสร็จแล้ว'}</span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-item-label">ทีมรับผิดชอบ</div>
+        <div class="detail-item-value">${t.department}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">ประเภทงาน</div>
+        <div class="detail-item-value">${t.category}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">สถานที่</div>
+        <div class="detail-item-value">${t.location} ห้อง ${t.room}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">ผู้แจ้ง</div>
+        <div class="detail-item-value">${t.reported_by}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">ความเร่งด่วน</div>
+        <div class="detail-item-value">${t.priority === 'high' ? '🔴 ฉุกเฉิน' : t.priority === 'med' ? '🟡 เร่งด่วน' : '🟢 ปกติ'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">ผู้รับงาน</div>
+        <div class="detail-item-value">${t.assigned_to || 'ยังไม่มอบหมาย'}</div>
+      </div>
+      <div class="detail-item" style="grid-column:1/-1">
+        <div class="detail-item-label">รายละเอียด</div>
+        <div class="detail-item-value">${t.description}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">วันที่แจ้ง</div>
+        <div class="detail-item-value" style="font-family:'JetBrains Mono',monospace;font-size:12px">${t.created_at}</div>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-title">Timeline</div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:var(--blue)"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">📝 แจ้งงานใหม่</div>
+          <div class="timeline-time">${t.created_at} · ${t.reported_by}</div>
+        </div>
+      </div>
+      ${t.status !== 'pending' ? `
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:var(--orange)"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">✅ รับงาน</div>
+          <div class="timeline-time">${t.assigned_to || 'ทีมงาน'}</div>
+        </div>
+      </div>` : ''}
+      ${t.status === 'done' ? `
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:var(--green)"></div>
+        <div class="timeline-content">
+          <div class="timeline-action">🏁 ปิดงานเรียบร้อย</div>
+          <div class="timeline-time">${t.assigned_to || 'ทีมงาน'}</div>
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function confirmAssign() {
+  const member = document.getElementById('assign-member').value;
+  if (!member) { alert('กรุณาเลือกสมาชิก'); return; }
+  const t = allTickets.find(x => x.ticket_id === currentTicket);
+  if (t) {
+    t.assigned_to = member.split(' — ')[0];
+    t.status = 'in_progress';
+  }
+  closeModal('assign-modal');
+  renderAll();
+  showToast(`มอบหมายงานให้ ${member.split(' — ')[0]} เรียบร้อยแล้ว`);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function setPage(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const titles = { dashboard: 'Dashboard Overview', tickets: 'จัดการ Ticket', technicians: 'ทีมช่าง', history: 'ประวัติงาน' };
+  document.getElementById('page-title').textContent = titles[page] || 'Dashboard';
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  sidebar.classList.toggle('open');
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+  const sidebar = document.querySelector('.sidebar');
+  const hamburger = document.querySelector('.hamburger');
+  if (window.innerWidth <= 767 && sidebar.classList.contains('open')) {
+    if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  }
+});
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+</script>
+</body>
+</html>
