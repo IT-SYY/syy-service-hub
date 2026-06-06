@@ -486,6 +486,7 @@ td { padding:7px 10px; font-size:11px; vertical-align:middle; }
 <script>
 // ===== CONFIG =====
 const SHEET_ID  = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWYOKI8VopQjCTDgQyhvWdOQFYzigNfdvOquT3igH8lrGkMnm_KPYZ7aW1HIHwG3qkPw/exec';
 const API_KEY   = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
 const BASE_URL  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
 const WRITE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
@@ -791,7 +792,7 @@ function openDetail(ticketId) {
 
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
-// ===== CONFIRM ASSIGN — อัปเดต Google Sheets จริง =====
+// ===== CONFIRM ASSIGN — ผ่าน Apps Script =====
 async function confirmAssign() {
   const member = document.getElementById('assign-member').value;
   const note   = document.getElementById('assign-note').value;
@@ -803,38 +804,32 @@ async function confirmAssign() {
   const t = allTickets.find(x => x.ticket_id === currentTicketId);
   if (!t) { btn.disabled=false; btn.textContent='✅ ยืนยันมอบหมาย'; return; }
 
-  const rowNum = rowIndexMap[currentTicketId];
-  if (!rowNum) { showToast('ไม่พบแถวใน Sheets','❌'); btn.disabled=false; btn.textContent='✅ ยืนยันมอบหมาย'; return; }
-
   // เวลาไทย
   const now = new Date();
   const thai = new Date(now.getTime() + 7*60*60*1000);
   const ts = `${String(thai.getUTCDate()).padStart(2,'0')}/${String(thai.getUTCMonth()+1).padStart(2,'0')}/${thai.getUTCFullYear()} ${String(thai.getUTCHours()).padStart(2,'0')}:${String(thai.getUTCMinutes()).padStart(2,'0')}:${String(thai.getUTCSeconds()).padStart(2,'0')}`;
 
   try {
-    // อัปเดต status(J), assigned_to(K), assigned_at(L), notes(R)
-    const updates = [
-      { range: `TICKETS!J${rowNum}`, values: [['in_progress']] },
-      { range: `TICKETS!K${rowNum}`, values: [[member]] },
-      { range: `TICKETS!L${rowNum}`, values: [[ts]] },
-    ];
-    if (note) updates.push({ range: `TICKETS!R${rowNum}`, values: [[note]] });
-
-    const res = await fetch(`${WRITE_URL}/values:batchUpdate?key=${API_KEY}`, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ valueInputOption:'RAW', data: updates })
+      body: JSON.stringify({
+        action:      'assign',
+        ticket_id:   currentTicketId,
+        assigned_to: member,
+        assigned_at: ts,
+        notes:       note || '',
+      })
     });
 
-    if (res.ok) {
+    const result = await res.json();
+    if (result.success) {
       t.status = 'in_progress'; t.assigned_to = member; t.assigned_at = ts;
       if (note) t.notes = note;
       closeModal('assign-modal');
       renderAll();
-      showToast(`มอบหมายงานให้ ${member} เรียบร้อย ✅`,'🎉');
+      showToast(`มอบหมายงานให้ ${member} เรียบร้อย`,'🎉');
     } else {
-      const err = await res.json();
-      showToast('บันทึกไม่สำเร็จ: '+err.error?.message,'❌');
+      showToast('บันทึกไม่สำเร็จ: '+(result.error||'unknown'),'❌');
     }
   } catch(e) {
     showToast('เกิดข้อผิดพลาด: '+e.message,'❌');
@@ -843,7 +838,7 @@ async function confirmAssign() {
   btn.disabled=false; btn.textContent='✅ ยืนยันมอบหมาย';
 }
 
-// ===== CONFIRM DONE — อัปเดต Google Sheets จริง =====
+// ===== CONFIRM DONE — ผ่าน Apps Script =====
 async function confirmDone() {
   const note = document.getElementById('done-note').value;
   const btn  = document.getElementById('btn-confirm-done');
@@ -852,35 +847,30 @@ async function confirmDone() {
   const t = allTickets.find(x => x.ticket_id === currentTicketId);
   if (!t) { btn.disabled=false; btn.textContent='✅ ยืนยันปิดงาน'; return; }
 
-  const rowNum = rowIndexMap[currentTicketId];
-  if (!rowNum) { showToast('ไม่พบแถวใน Sheets','❌'); btn.disabled=false; btn.textContent='✅ ยืนยันปิดงาน'; return; }
-
   const now = new Date();
   const thai = new Date(now.getTime() + 7*60*60*1000);
   const ts = `${String(thai.getUTCDate()).padStart(2,'0')}/${String(thai.getUTCMonth()+1).padStart(2,'0')}/${thai.getUTCFullYear()} ${String(thai.getUTCHours()).padStart(2,'0')}:${String(thai.getUTCMinutes()).padStart(2,'0')}:${String(thai.getUTCSeconds()).padStart(2,'0')}`;
 
   try {
-    const updates = [
-      { range: `TICKETS!J${rowNum}`, values: [['done']] },
-      { range: `TICKETS!M${rowNum}`, values: [[ts]] },
-    ];
-    if (note) updates.push({ range: `TICKETS!R${rowNum}`, values: [[note]] });
-
-    const res = await fetch(`${WRITE_URL}/values:batchUpdate?key=${API_KEY}`, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ valueInputOption:'RAW', data: updates })
+      body: JSON.stringify({
+        action:      'done',
+        ticket_id:   currentTicketId,
+        resolved_at: ts,
+        notes:       note || '',
+      })
     });
 
-    if (res.ok) {
+    const result = await res.json();
+    if (result.success) {
       t.status = 'done'; t.resolved_at = ts;
       if (note) t.notes = note;
       closeModal('done-modal');
       renderAll();
-      showToast(`ปิดงาน ${currentTicketId} เรียบร้อย ✅`,'🎉');
+      showToast(`ปิดงาน ${currentTicketId} เรียบร้อย`,'🎉');
     } else {
-      const err = await res.json();
-      showToast('บันทึกไม่สำเร็จ: '+err.error?.message,'❌');
+      showToast('บันทึกไม่สำเร็จ: '+(result.error||'unknown'),'❌');
     }
   } catch(e) {
     showToast('เกิดข้อผิดพลาด: '+e.message,'❌');
