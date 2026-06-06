@@ -595,6 +595,25 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- ACCEPT/REJECT MODAL -->
+<div class="modal-overlay" id="accept-modal">
+  <div class="modal">
+    <div class="modal-title">⚡ รับหรือปฏิเสธงาน<button class="modal-close" onclick="closeModal('accept-modal')">×</button></div>
+    <div class="ticket-info-box" id="accept-info"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn-confirm" style="flex:1;background:linear-gradient(135deg,#10B981,#059669)" onclick="confirmAccept()">✅ รับงาน</button>
+      <button class="btn-confirm" style="flex:1;background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="showRejectForm()">❌ ปฏิเสธ</button>
+    </div>
+    <div id="reject-form" style="display:none;margin-top:12px">
+      <div class="modal-field">
+        <label class="modal-label">เหตุผลที่ปฏิเสธ *</label>
+        <textarea class="modal-textarea" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ, ติดงานอื่นอยู่..."></textarea>
+      </div>
+      <button class="btn-confirm" style="width:100%;background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="confirmReject()">❌ ยืนยันปฏิเสธ</button>
+    </div>
+  </div>
+</div>
+
 <!-- DETAIL MODAL -->
 <div class="modal-overlay" id="detail-modal">
   <div class="modal" style="width:540px">
@@ -740,7 +759,7 @@ function getFiltered(){
   const base=getBase();
   const s=(document.getElementById('search-input')?.value||'').toLowerCase();
   return base.filter(t=>{
-    const sm=currentFilter==='all'||t.status===currentFilter;
+    const sm=currentFilter==='all'||(currentFilter==='in_progress'&&(t.status==='in_progress'||t.status==='assigned'))||t.status===currentFilter;
     const qm=!s||t.ticket_id.toLowerCase().includes(s)||t.description.toLowerCase().includes(s)||
       t.category.toLowerCase().includes(s)||(t.building||t.location).toLowerCase().includes(s)||
       t.assigned_to.toLowerCase().includes(s)||t.room.toLowerCase().includes(s);
@@ -762,7 +781,7 @@ function renderKPI(){
   const b=getBase();
   document.getElementById('kpi-all').textContent=b.length;
   document.getElementById('kpi-pending').textContent=b.filter(t=>t.status==='pending').length;
-  document.getElementById('kpi-inprogress').textContent=b.filter(t=>t.status==='in_progress').length;
+  document.getElementById('kpi-inprogress').textContent=b.filter(t=>t.status==='in_progress'||t.status==='assigned').length;
   document.getElementById('kpi-done').textContent=b.filter(t=>t.status==='done').length;
 }
 
@@ -780,9 +799,9 @@ function renderCharts(){
   if(charts.status) charts.status.destroy();
   charts.status=new Chart(document.getElementById('chart-status').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['รอดำเนินการ','กำลังซ่อม','เสร็จแล้ว'],
-      datasets:[{data:[b.filter(t=>t.status==='pending').length,b.filter(t=>t.status==='in_progress').length,b.filter(t=>t.status==='done').length],
-      backgroundColor:['#F59E0B','#8B5CF6','#10B981'],borderWidth:0,hoverOffset:4}]},
+    data:{labels:['รอดำเนินการ','มอบหมายแล้ว','กำลังซ่อม','เสร็จแล้ว'],
+      datasets:[{data:[b.filter(t=>t.status==='pending').length,b.filter(t=>t.status==='assigned').length,b.filter(t=>t.status==='in_progress').length,b.filter(t=>t.status==='done').length],
+      backgroundColor:['#F59E0B','#8B5CF6','#3B82F6','#10B981'],borderWidth:0,hoverOffset:4}]},
     options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10},padding:8}}},cutout:'68%'}
   });
   // Bar Category
@@ -828,11 +847,12 @@ function makeRow(t, extraCols=false){
     <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px" title="${t.description}">${sd||'—'}</td>
     <td style="font-size:10px">${t.displayName||t.reported_by||'—'}</td>
     <td><span class="priority-badge priority-${pc}">${pl}</span></td>
-    <td><span class="status-badge status-${t.status}">${t.status==='pending'?'⏳ รอ':t.status==='in_progress'?'🔄 กำลังซ่อม':'✅ เสร็จ'}</span></td>
+    <td><span class="status-badge status-${t.status}">${t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมายแล้ว':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='rejected'?'❌ ปฏิเสธ':'✅ เสร็จ'}</span></td>
     <td style="font-size:10px;color:var(--text2)">${t.assigned_to||'—'}</td>
     ${extra}
     <td onclick="event.stopPropagation()" style="white-space:nowrap">
-      ${t.status!=='done'?`<button class="btn-assign" onclick="openAssign('${t.ticket_id}')">มอบหมาย</button>`:''}
+      ${(t.status==='pending'||t.status==='rejected')?`<button class="btn-assign" onclick="openAssign('${t.ticket_id}')">มอบหมาย</button>`:''}
+      ${t.status==='assigned'?`<button class="btn-assign" onclick="openAccept('${t.ticket_id}')">รับ/ปฏิเสธ</button>`:''}
       ${t.status==='in_progress'?`<button class="btn-done" onclick="openDone('${t.ticket_id}')">ปิดงาน</button>`:''}
       <button class="btn-view" onclick="openDetail('${t.ticket_id}')">ดู</button>
     </td>
@@ -1030,7 +1050,7 @@ function openDetail(id){
   document.getElementById('detail-content').innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
       <span class="ticket-id" style="font-size:12px">${t.ticket_id}</span>
-      <span class="status-badge status-${t.status}">${t.status==='pending'?'⏳ รอ':t.status==='in_progress'?'🔄 กำลังซ่อม':'✅ เสร็จ'}</span>
+      <span class="status-badge status-${t.status}">${t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมายแล้ว':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='rejected'?'❌ ปฏิเสธ':'✅ เสร็จ'}</span>
       <span class="priority-badge priority-${t.priority==='high'?'high':t.priority==='med'?'med':'low'}">${t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ'}</span>
     </div>
     <div class="detail-grid">
@@ -1044,11 +1064,66 @@ function openDetail(id){
       <div><div class="detail-item-label">เสร็จงานเมื่อ</div><div class="detail-item-value" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
       <div style="grid-column:1/-1"><div class="detail-item-label">รายละเอียด</div><div class="detail-item-value">${t.description||'—'}</div></div>
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-item-label">หมายเหตุ</div><div class="detail-item-value">${t.notes}</div></div>`:''}
+      ${t.accepted_at?`<div><div class="detail-item-label">✅ รับงานเมื่อ</div><div class="detail-item-value" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at}</div></div>`:''}
+      ${t.response_min?`<div><div class="detail-item-label">⏱ เวลารับงาน</div><div class="detail-item-value" style="color:var(--blue)">${t.response_min} นาที</div></div>`:''}
+      ${t.completion_min?`<div><div class="detail-item-label">⏱ เวลาปิดงาน</div><div class="detail-item-value" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
+      ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-item-label" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at}</div><div class="detail-item-value" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
     </div>`;
   document.getElementById('detail-modal').classList.add('show');
 }
 
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+// ===== ACCEPT / REJECT =====
+function openAccept(id){
+  currentId=id;
+  const t=allTickets.find(x=>x.ticket_id===id);
+  if(!t) return;
+  document.getElementById('accept-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">มอบหมายให้: ${t.assigned_to||'—'} เมื่อ ${t.assigned_at||'—'}</span>`;
+  document.getElementById('reject-form').style.display='none';
+  document.getElementById('reject-reason').value='';
+  document.getElementById('accept-modal').classList.add('show');
+}
+
+function showRejectForm(){
+  document.getElementById('reject-form').style.display='block';
+}
+
+async function confirmAccept(){
+  const t=allTickets.find(x=>x.ticket_id===currentId);
+  if(!t) return;
+  const ts=getThaiTime();
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts})});
+    const r=await res.json();
+    if(r.success){
+      t.status='in_progress';t.accepted_at=ts;
+      closeModal('accept-modal');renderAll();
+      showToast(`รับงาน ${currentId} เรียบร้อย`,'✅','success');
+    }else showToast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
+  }catch(e){showToast('Error: '+e.message,'❌','error');}
+}
+
+async function confirmReject(){
+  const reason=document.getElementById('reject-reason').value.trim();
+  if(!reason){showToast('กรุณาระบุเหตุผล','⚠️','info');return;}
+  const t=allTickets.find(x=>x.ticket_id===currentId);
+  if(!t) return;
+  const ts=getThaiTime();
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      action:'reject',ticket_id:currentId,rejected_at:ts,
+      rejected_by:t.assigned_to,reject_reason:reason
+    })});
+    const r=await res.json();
+    if(r.success){
+      t.status='pending';t.assigned_to='';t.assigned_at='';
+      t.rejected_at=ts;t.reject_reason=reason;
+      closeModal('accept-modal');renderAll();
+      showToast(`ปฏิเสธงาน ${currentId} — กรุณามอบหมายใหม่`,'⚠️','info');
+    }else showToast('บันทึกไม่สำเร็จ','❌','error');
+  }catch(e){showToast('Error: '+e.message,'❌','error');}
+}
 
 // ===== CONFIRM ASSIGN =====
 function getThaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600*1000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
