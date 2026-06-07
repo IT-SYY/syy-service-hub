@@ -828,6 +828,7 @@ function mkCard(t){
   const pri=t.priority==='high'?{l:'🔴 ฉุกเฉิน',c:'#EF4444'}:t.priority==='med'?{l:'🟡 เร่งด่วน',c:'#F59E0B'}:{l:'🟢 ปกติ',c:'#10B981'};
   const ts=t.created_at?t.created_at.substring(0,16):'';
   const assignee=t.assigned_to?`👤 ${t.assigned_to}`:'👤 ยังไม่มอบหมาย';
+  const ratingHtml=t.rating&&parseInt(t.rating)>0?'<span style="font-size:11px;color:#F59E0B">'+('★'.repeat(parseInt(t.rating)))+'</span>':'';
 
   let btns='';
   if(t.status==='pending'||t.status==='rejected'){
