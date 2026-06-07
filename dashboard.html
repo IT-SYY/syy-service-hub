@@ -439,26 +439,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
           <canvas id="chart-daily" height="105"></canvas>
         </div>
       </div>
-      <div class="table-card">
-        <div class="table-header">
-          <div class="table-title">Ticket ล่าสุด</div>
-          <div class="filter-chips">
-            <div class="chip active" onclick="filterStatus('all')" id="chip-all">ทั้งหมด</div>
-            <div class="chip" onclick="filterStatus('pending')" id="chip-pending">⏳ รอดำเนินการ</div>
-            <div class="chip" onclick="filterStatus('in_progress')" id="chip-inprogress">🔄 กำลังซ่อม</div>
-            <div class="chip" onclick="filterStatus('done')" id="chip-done">✅ เสร็จ</div>
-          </div>
-        </div>
-        <div class="table-wrap"><table>
-          <thead><tr>
-            <th>Ticket ID</th><th>วันที่</th><th>ทีม</th><th>ประเภท</th><th>สถานที่</th>
-            <th>รายละเอียด</th><th>ผู้แจ้ง</th><th>ความเร่งด่วน</th><th>สถานะ</th><th>ผู้รับงาน</th><th>ดำเนินการ</th>
-          </tr></thead>
-          <tbody id="ticket-table-body">
-            <tr><td colspan="11"><div class="loading"><div class="spinner"></div><span style="font-size:12px;color:var(--text2)">กำลังโหลด...</span></div></td></tr>
-          </tbody>
-        </table></div>
-      </div>
+      
       <div class="bottom-row">
         <div class="chart-card">
           <div class="chart-header"><div class="chart-title"><div class="chart-title-dot"></div>สถานะทีม</div></div>
@@ -911,42 +892,6 @@ function renderCharts(){
   });
 }
 
-// ===== TABLE ROW =====
-function makeRow(t, extraCols=false){
-  const pl=t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ';
-  const pc=t.priority==='high'?'high':t.priority==='med'?'med':'low';
-  const sid=t.ticket_id.length>18?t.ticket_id.substring(0,18)+'…':t.ticket_id;
-  const sd=t.description.length>28?t.description.substring(0,28)+'…':t.description;
-  const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
-  const newBadge=t._new?'<span class="new-row-badge">NEW</span>':'';
-  const extra=extraCols?`<td style="font-size:10px;color:var(--text2)">${t.assigned_at||'—'}</td><td style="font-size:10px;color:var(--text2)">${t.resolved_at||'—'}</td><td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.notes}">${t.notes||'—'}</td>`:'';
-  return `<tr class="${t._new?'row-new':''}" onclick="openDetail('${t.ticket_id}')">
-    <td><span class="ticket-id">${sid}</span>${newBadge}</td>
-    <td style="color:var(--text2);white-space:nowrap;font-size:10px">${t.created_at.substring(0,16)}</td>
-    <td style="font-size:10px">${t.team||t.department||'—'}</td>
-    <td style="font-size:10px">${t.category||'—'}</td>
-    <td style="font-size:10px;white-space:nowrap">${loc||'—'}</td>
-    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px" title="${t.description}">${sd||'—'}</td>
-    <td style="font-size:10px">${t.displayName||t.reported_by||'—'}</td>
-    <td><span class="priority-badge priority-${pc}">${pl}</span></td>
-    <td><span class="status-badge status-${t.status}">${t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมายแล้ว':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='rejected'?'❌ ปฏิเสธ':'✅ เสร็จ'}</span></td>
-    <td style="font-size:10px;color:var(--text2)">${t.assigned_to||'—'}</td>
-    ${extra}
-    <td onclick="event.stopPropagation()" style="white-space:nowrap">
-      ${(t.status==='pending'||t.status==='rejected')?`<button class="btn-assign" onclick="openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`:''}
-      ${t.status==='assigned'?`<button class="btn-assign" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 6px rgba(139,92,246,0.4)" onclick="openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`:''}
-      ${t.status==='in_progress'?`<button class="btn-done" onclick="openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`:''}
-      <button class="btn-view" onclick="openDetail('${t.ticket_id}')">ดู</button>
-    </td>
-  </tr>`;
-}
-
-function renderDashboardTable(){
-  const tb=document.getElementById('ticket-table-body');
-  const data=getFiltered();
-  if(!data.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">ไม่พบข้อมูล</div></div></td></tr>`;return;}
-  tb.innerHTML=data.map(t=>makeRow(t)).join('');
-}
 
 // ===== TICKETS PAGE =====
 function renderTicketsPage(){
