@@ -307,6 +307,15 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 }
 @media(max-width:480px){.kpi-num{font-size:22px;}.topbar-search{display:none;}}
 
+/* ===== RATING STARS ===== */
+.stars { display:inline-flex; gap:1px; }
+.star { font-size:13px; line-height:1; }
+.star.filled { color:#F59E0B; }
+.star.empty { color:#E2E8F0; }
+.rating-avg { font-size:11px; font-weight:700; color:#F59E0B; font-family:'JetBrains Mono',monospace; }
+.rating-count { font-size:10px; color:var(--text3); }
+.rating-badge { display:inline-flex; align-items:center; gap:4px; background:#FEF3C7; border:1px solid #FDE68A; border-radius:20px; padding:2px 8px; }
+
 /* ===== PRINT STYLES ===== */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -549,7 +558,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
         <select class="fsel" id="h-cat" onchange="renderHistory()"><option value="all">ทุกประเภท</option></select>
       </div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Ticket ID</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th><th>รายละเอียด</th><th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th></tr></thead>
+        <thead><tr><th>Ticket ID</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th><th>รายละเอียด</th><th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>⭐ คะแนน</th><th>หมายเหตุ</th></tr></thead>
         <tbody id="history-tbody"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
       </table></div></div>
     </div>
@@ -688,7 +697,7 @@ function closeAlert(){document.getElementById('new-alert').classList.remove('sho
 
 // ===== RENDER ALL =====
 function renderAll(){
-  renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderPendingBadge();
+  renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderPendingBadge();renderRatingBar();
   const ap=document.querySelector('.page.active')?.id;
   if(ap==='page-tickets') renderTicketsPage();
   if(ap==='page-technicians') renderTechGrid();
@@ -788,6 +797,7 @@ function mkCard(t){
     <div class="kb-card-top">
       <span class="kb-id">${tid}</span>${newB}
       <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
+      ${ratingHtml}
     </div>
     <div class="kb-desc">${desc||'ไม่มีรายละเอียด'}</div>
     <div class="kb-meta">
@@ -903,6 +913,7 @@ function renderHistory(){
     <td style="font-size:10px">${t.assigned_to||'—'}</td>
     <td style="font-size:10px;white-space:nowrap">${t.assigned_at||'—'}</td>
     <td style="font-size:10px;white-space:nowrap">${t.resolved_at||'—'}</td>
+    <td style="font-size:10px">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'12px'):'—'}</td>
     <td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||'—'}</td>
   </tr>`).join('');
 }
@@ -912,6 +923,21 @@ function renderReport(){
   const b=getBase();
   const done=b.filter(t=>t.status==='done');
   document.getElementById('report-grid').innerHTML=`
+    <div class="report-card">
+      <div class="report-ttl">⭐ คะแนนความพึงพอใจ</div>
+      ${(()=>{
+        const rated=b.filter(t=>t.rating&&parseInt(t.rating)>0);
+        if(!rated.length) return '<div class="stat-row"><span class="stat-lbl">ยังไม่มีการประเมิน</span><span class="stat-val">—</span></div>';
+        const avg=(rated.reduce((s,t)=>s+parseInt(t.rating),0)/rated.length).toFixed(1);
+        let html=`<div class="stat-row"><span class="stat-lbl">คะแนนเฉลี่ย</span><span class="stat-val" style="color:#F59E0B">${avg} / 5.0 ⭐</span></div>`;
+        html+=`<div class="stat-row"><span class="stat-lbl">จำนวนประเมิน</span><span class="stat-val">${rated.length} ครั้ง</span></div>`;
+        for(let s=5;s>=1;s--){
+          const cnt=rated.filter(t=>parseInt(t.rating)===s).length;
+          html+=`<div class="stat-row"><span class="stat-lbl">${'★'.repeat(s)}${'☆'.repeat(5-s)}</span><span class="stat-val">${cnt} ครั้ง</span></div>`;
+        }
+        return html;
+      })()}
+    </div>
     <div class="report-card"><div class="report-ttl">📊 สรุปภาพรวม</div>
       <div class="stat-row"><span class="stat-lbl">งานทั้งหมด</span><span class="stat-val">${b.length}</span></div>
       <div class="stat-row"><span class="stat-lbl">รอดำเนินการ</span><span class="stat-val" style="color:var(--orange)">${b.filter(t=>t.status==='pending'||t.status==='assigned').length}</span></div>
@@ -954,6 +980,25 @@ function updateCats(){
     el.innerHTML='<option value="all">ทุกประเภท</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
     el.value=v;
   });
+}
+
+// ===== RATING STARS =====
+function renderStars(score, size='13px'){
+  const n = parseInt(score) || 0;
+  if(n===0) return '<span style="font-size:10px;color:var(--text3)">ยังไม่ได้รับการประเมิน</span>';
+  let html='<span class="stars">';
+  for(let i=1;i<=5;i++){
+    html+=`<span class="star ${i<=n?'filled':'empty'}" style="font-size:${size}">★</span>`;
+  }
+  html+='</span>';
+  return html;
+}
+
+function avgRating(){
+  const rated = allTickets.filter(t=>t.rating&&parseInt(t.rating)>0);
+  if(!rated.length) return null;
+  const avg = rated.reduce((s,t)=>s+parseInt(t.rating),0)/rated.length;
+  return {avg:avg.toFixed(1), count:rated.length};
 }
 
 // ===== UTILS =====
@@ -1006,6 +1051,7 @@ function openDetail(id){
       <div><div class="detail-lbl">รับงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at||'—'}</div></div>
       <div><div class="detail-lbl">เสร็จงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
       ${t.response_min?`<div><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${t.response_min} นาที</div></div>`:''}
+      <div><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':'ยังไม่ได้รับการประเมิน'}</div></div>
       ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
