@@ -620,9 +620,8 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
   <div class="modal" style="width:540px">
     <div class="modal-title">📋 รายละเอียด Ticket<button class="modal-close" onclick="closeModal('detail-modal')">×</button></div>
     <div id="detail-content"></div>
-    <div class="modal-actions" style="margin-top:12px">
+    <div class="modal-actions" style="margin-top:12px" id="detail-modal-actions">
       <button class="btn-cancel" onclick="closeModal('detail-modal')">ปิด</button>
-      <button class="btn-confirm" onclick="closeModal('detail-modal');openAssign(currentId)">มอบหมายงาน</button>
     </div>
   </div>
 </div>
@@ -1078,6 +1077,19 @@ function openDetail(id){
       ${t.completion_min?`<div><div class="detail-item-label">⏱ เวลาปิดงาน</div><div class="detail-item-value" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-item-label" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at}</div><div class="detail-item-value" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
     </div>`;
+  // แสดงปุ่มตาม status
+  const actions = document.getElementById('detail-modal-actions');
+  let actionBtns = '<button class="btn-cancel" onclick="closeModal(\'detail-modal\')">ปิด</button>';
+  if(t.status==='pending'||t.status==='rejected'){
+    actionBtns += `<button class="btn-confirm" onclick="closeModal('detail-modal');openAssign('${t.ticket_id}')">🔧 มอบหมายงาน</button>`;
+  } else if(t.status==='assigned'){
+    actionBtns += `<button class="btn-confirm" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="closeModal('detail-modal');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
+  } else if(t.status==='in_progress'){
+    actionBtns += `<button class="btn-confirm" onclick="closeModal('detail-modal');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  }
+  // status==='done' ไม่มีปุ่มเพิ่ม
+  actions.innerHTML = actionBtns;
+
   document.getElementById('detail-modal').classList.add('show');
 }
 
