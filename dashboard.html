@@ -664,6 +664,7 @@ async function loadData(silent=false){
       team:r[19]||'',building:r[20]||'',displayName:r[22]||'',
       accepted_at:r[25]||'',rejected_at:r[26]||'',rejected_by:r[27]||'',
       reject_reason:r[28]||'',response_min:r[29]||'',completion_min:r[30]||'',
+      rating:r[16]||'',
       _new:false
     })).filter(t=>t.ticket_id);
     lastIds=new Set(tickets.map(t=>t.ticket_id));
@@ -755,6 +756,53 @@ function renderCharts(){
 }
 
 // ===== KANBAN =====
+// ===== RATING =====
+function renderStars(score, size){
+  size = size || '13px';
+  const n = parseInt(score) || 0;
+  if(n===0) return '<span style="font-size:10px;color:var(--text3)">ยังไม่ประเมิน</span>';
+  let html='<span style="display:inline-flex;gap:1px">';
+  for(let i=1;i<=5;i++){
+    html+='<span style="font-size:'+size+';color:'+(i<=n?'#F59E0B':'#E2E8F0')+'">★</span>';
+  }
+  return html+'</span>';
+}
+
+function renderRatingBar(){
+  try{
+    const b=getBase().filter(t=>t.rating&&parseInt(t.rating)>0);
+    const avgEl=document.getElementById('rating-avg-num');
+    const starsEl=document.getElementById('rating-avg-stars');
+    const countEl=document.getElementById('rating-avg-count');
+    const distEl=document.getElementById('rating-dist');
+    if(!avgEl) return;
+    if(!b.length){
+      avgEl.textContent='—';
+      starsEl.innerHTML='<span style="font-size:10px;color:var(--text3)">ยังไม่มีการประเมิน</span>';
+      countEl.textContent='';
+      if(distEl) distEl.innerHTML='';
+      return;
+    }
+    const avg=b.reduce((s,t)=>s+parseInt(t.rating),0)/b.length;
+    avgEl.textContent=avg.toFixed(1)+' / 5.0';
+    starsEl.innerHTML=renderStars(Math.round(avg),'14px');
+    countEl.textContent='('+b.length+' การประเมิน)';
+    if(distEl){
+      let h='';
+      for(let s=5;s>=1;s--){
+        const cnt=b.filter(t=>parseInt(t.rating)===s).length;
+        const pct=b.length?Math.round(cnt/b.length*100):0;
+        h+='<div style="display:flex;align-items:center;gap:4px">'
+          +'<span style="font-size:11px;color:#F59E0B;white-space:nowrap">'+'★'.repeat(s)+'</span>'
+          +'<div style="width:50px;height:5px;background:#F1F5F9;border-radius:3px;overflow:hidden">'
+          +'<div style="width:'+pct+'%;height:100%;background:#F59E0B;border-radius:3px"></div></div>'
+          +'<span style="font-size:10px;color:var(--text3);min-width:16px">'+cnt+'</span></div>';
+      }
+      distEl.innerHTML=h;
+    }
+  }catch(err){ console.error('renderRatingBar:',err); }
+}
+
 function renderKanban(){
   const b=getBase();
   const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
@@ -923,21 +971,7 @@ function renderReport(){
   const b=getBase();
   const done=b.filter(t=>t.status==='done');
   document.getElementById('report-grid').innerHTML=`
-    <div class="report-card">
-      <div class="report-ttl">⭐ คะแนนความพึงพอใจ</div>
-      ${(()=>{
-        const rated=b.filter(t=>t.rating&&parseInt(t.rating)>0);
-        if(!rated.length) return '<div class="stat-row"><span class="stat-lbl">ยังไม่มีการประเมิน</span><span class="stat-val">—</span></div>';
-        const avg=(rated.reduce((s,t)=>s+parseInt(t.rating),0)/rated.length).toFixed(1);
-        let html=`<div class="stat-row"><span class="stat-lbl">คะแนนเฉลี่ย</span><span class="stat-val" style="color:#F59E0B">${avg} / 5.0 ⭐</span></div>`;
-        html+=`<div class="stat-row"><span class="stat-lbl">จำนวนประเมิน</span><span class="stat-val">${rated.length} ครั้ง</span></div>`;
-        for(let s=5;s>=1;s--){
-          const cnt=rated.filter(t=>parseInt(t.rating)===s).length;
-          html+=`<div class="stat-row"><span class="stat-lbl">${'★'.repeat(s)}${'☆'.repeat(5-s)}</span><span class="stat-val">${cnt} ครั้ง</span></div>`;
-        }
-        return html;
-      })()}
-    </div>
+    <div class="report-card"><div class="report-ttl">⭐ คะแนนความพึงพอใจ</div><div id="report-rating-content"><div class="stat-row"><span class="stat-lbl">กำลังคำนวณ...</span></div></div></div>
     <div class="report-card"><div class="report-ttl">📊 สรุปภาพรวม</div>
       <div class="stat-row"><span class="stat-lbl">งานทั้งหมด</span><span class="stat-val">${b.length}</span></div>
       <div class="stat-row"><span class="stat-lbl">รอดำเนินการ</span><span class="stat-val" style="color:var(--orange)">${b.filter(t=>t.status==='pending'||t.status==='assigned').length}</span></div>
@@ -968,6 +1002,23 @@ function renderReport(){
   const ls=Object.entries(lo).sort((a,c)=>c[1]-a[1]).slice(0,6);
   if(charts.loc) charts.loc.destroy();
   const lc=document.getElementById('chart-loc');
+  // render rating section
+  const ratingContent=document.getElementById('report-rating-content');
+  if(ratingContent){
+    const rated=b.filter(t=>t.rating&&parseInt(t.rating)>0);
+    if(!rated.length){
+      ratingContent.innerHTML='<div class="stat-row"><span class="stat-lbl">ยังไม่มีการประเมิน</span><span class="stat-val">—</span></div>';
+    }else{
+      const avg=(rated.reduce((s,t)=>s+parseInt(t.rating),0)/rated.length).toFixed(1);
+      let html='<div class="stat-row"><span class="stat-lbl">คะแนนเฉลี่ย</span><span class="stat-val" style="color:#F59E0B">'+avg+' / 5.0 ⭐</span></div>';
+      html+='<div class="stat-row"><span class="stat-lbl">จำนวนประเมิน</span><span class="stat-val">'+rated.length+' ครั้ง</span></div>';
+      for(let s=5;s>=1;s--){
+        const cnt=rated.filter(t=>parseInt(t.rating)===s).length;
+        html+='<div class="stat-row"><span class="stat-lbl">'+'★'.repeat(s)+'☆'.repeat(5-s)+'</span><span class="stat-val">'+cnt+' ครั้ง</span></div>';
+      }
+      ratingContent.innerHTML=html;
+    }
+  }
   if(lc) charts.loc=new Chart(lc.getContext('2d'),{type:'bar',data:{labels:ls.map(([k])=>k),datasets:[{data:ls.map(([,v])=>v),backgroundColor:'rgba(245,158,11,0.25)',borderColor:'#F59E0B',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
 }
 
@@ -982,24 +1033,6 @@ function updateCats(){
   });
 }
 
-// ===== RATING STARS =====
-function renderStars(score, size='13px'){
-  const n = parseInt(score) || 0;
-  if(n===0) return '<span style="font-size:10px;color:var(--text3)">ยังไม่ได้รับการประเมิน</span>';
-  let html='<span class="stars">';
-  for(let i=1;i<=5;i++){
-    html+=`<span class="star ${i<=n?'filled':'empty'}" style="font-size:${size}">★</span>`;
-  }
-  html+='</span>';
-  return html;
-}
-
-function avgRating(){
-  const rated = allTickets.filter(t=>t.rating&&parseInt(t.rating)>0);
-  if(!rated.length) return null;
-  const avg = rated.reduce((s,t)=>s+parseInt(t.rating),0)/rated.length;
-  return {avg:avg.toFixed(1), count:rated.length};
-}
 
 // ===== UTILS =====
 function thaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
