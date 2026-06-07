@@ -856,9 +856,9 @@ function makeRow(t, extraCols=false){
     <td style="font-size:10px;color:var(--text2)">${t.assigned_to||'—'}</td>
     ${extra}
     <td onclick="event.stopPropagation()" style="white-space:nowrap">
-      ${(t.status==='pending'||t.status==='rejected')?`<button class="btn-assign" onclick="openAssign('${t.ticket_id}')">มอบหมาย</button>`:''}
-      ${t.status==='assigned'?`<button class="btn-assign" onclick="openAccept('${t.ticket_id}')">รับ/ปฏิเสธ</button>`:''}
-      ${t.status==='in_progress'?`<button class="btn-done" onclick="openDone('${t.ticket_id}')">ปิดงาน</button>`:''}
+      ${(t.status==='pending'||t.status==='rejected')?`<button class="btn-assign" onclick="openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`:''}
+      ${t.status==='assigned'?`<button class="btn-assign" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 6px rgba(139,92,246,0.4)" onclick="openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`:''}
+      ${t.status==='in_progress'?`<button class="btn-done" onclick="openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`:''}
       <button class="btn-view" onclick="openDetail('${t.ticket_id}')">ดู</button>
     </td>
   </tr>`;
@@ -1149,7 +1149,7 @@ async function confirmAssign(){
   try{
     const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_at:ts,notes:note||''})});
     const r=await res.json();
-    if(r.success){t.status='in_progress';t.assigned_to=member;t.assigned_at=ts;if(note)t.notes=note;closeModal('assign-modal');renderAll();showToast(`มอบหมายให้ ${member} เรียบร้อย`,'🎉','success');}
+    if(r.success){t.status='assigned';t.assigned_to=member;t.assigned_at=ts;if(note)t.notes=note;closeModal('assign-modal');renderAll();showToast(`มอบหมายให้ ${member} เรียบร้อย — รอช่างรับงาน`,'🎉','success');}
     else showToast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
   }catch(e){showToast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันมอบหมาย';
