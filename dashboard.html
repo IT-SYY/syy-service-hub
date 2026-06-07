@@ -68,13 +68,13 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .alert-id{font-family:'JetBrains Mono',monospace;color:var(--green);font-size:10px;margin-top:3px;}
 
 /* CONTENT */
-.content{padding:12px;flex:1;}
+.content{padding:10px 12px;flex:1;}
 .page{display:none;}
 .page.active{display:block;}
 
 /* KPI */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}
-.kpi-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;}
+.kpi-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;}
 .kpi-card.all::before{background:var(--blue);}
@@ -92,7 +92,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kpi-card.pending .kpi-badge{background:var(--orange-dim);color:var(--orange);}
 .kpi-card.inprog .kpi-badge{background:var(--purple-dim);color:var(--purple);}
 .kpi-card.done .kpi-badge{background:var(--green-dim);color:var(--green);}
-.kpi-num{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:2px;}
+.kpi-num{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:1px;}
 .kpi-card.all .kpi-num{color:var(--blue);}
 .kpi-card.pending .kpi-num{color:var(--orange);}
 .kpi-card.inprog .kpi-num{color:var(--purple);}
@@ -104,17 +104,17 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kpi-new.show{display:block;}
 
 /* CHARTS */
-.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
-.chart-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);}
-.chart-hdr{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.chart-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;box-shadow:var(--shadow);}
+.chart-hdr{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
 .chart-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
 .chart-ttl{font-size:11px;font-weight:700;color:var(--text);}
 
 /* KANBAN */
-.kanban-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.kanban-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .kanban-ttl{font-size:13px;font-weight:700;color:var(--text);}
 .kanban-link{font-size:11px;color:var(--blue);font-weight:600;cursor:pointer;text-decoration:underline;}
-.kanban-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px;}
+.kanban-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px;}
 
 /* KANBAN COLUMN */
 .kb-col{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;}
@@ -125,7 +125,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-col-icon{font-size:15px;}
 .kb-col-name{font-size:12px;font-weight:700;color:#FFF;flex:1;}
 .kb-col-count{background:rgba(255,255,255,0.3);color:#FFF;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;min-width:26px;text-align:center;}
-.kb-col-body{overflow-y:auto;max-height:360px;padding:8px;display:flex;flex-direction:column;gap:8px;}
+.kb-col-body{overflow-y:auto;max-height:480px;padding:8px;display:flex;flex-direction:column;gap:8px;}
 .kb-col-body.pending{background:#FFFBEB;}
 .kb-col-body.inprog{background:#F5F3FF;}
 .kb-col-body.done{background:#F0FDF4;}
@@ -399,9 +399,9 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 
       <!-- CHARTS -->
       <div class="charts-row">
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะงาน</div></div><canvas id="chart-status" height="105"></canvas></div>
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl">ประเภทงาน</div></div><canvas id="chart-cat" height="105"></canvas></div>
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="105"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะงาน</div></div><canvas id="chart-status" height="75"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl">ประเภทงาน</div></div><canvas id="chart-cat" height="75"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="75"></canvas></div>
       </div>
 
       <!-- KANBAN -->
