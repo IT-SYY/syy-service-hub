@@ -306,6 +306,54 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
   .tech-grid,.report-grid{grid-template-columns:1fr;}
 }
 @media(max-width:480px){.kpi-num{font-size:22px;}.topbar-search{display:none;}}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #FFF !important; font-family: 'Prompt', 'Sarabun', sans-serif !important; }
+  .sidebar, .topbar, .new-alert, .toast, .overlay,
+  .btn-primary, .btn-secondary2, .btn-tb, .hamburger,
+  .kb-actions, .btn-assign, .btn-accept, .btn-done2, .btn-view2,
+  .kanban-link { display: none !important; }
+  .main { margin-left: 0 !important; }
+  .content { padding: 0 !important; }
+  .page { display: block !important; }
+  #page-dashboard { display: block !important; }
+  #page-tickets, #page-technicians, #page-history, #page-report { display: none !important; }
+  .print-show { display: block !important; }
+
+  /* Print Report Container */
+  .print-report { display: block !important; padding: 20px; }
+  .print-report h1 { font-size: 18px; color: #1E293B; margin-bottom: 4px; }
+  .print-report .print-sub { font-size: 12px; color: #64748B; margin-bottom: 16px; }
+
+  /* KPI Print */
+  .kpi-grid { grid-template-columns: repeat(4,1fr) !important; gap: 8px !important; margin-bottom: 12px !important; break-inside: avoid; }
+  .kpi-card { padding: 10px !important; border: 1px solid #E2E8F0 !important; box-shadow: none !important; }
+  .kpi-num { font-size: 20px !important; }
+
+  /* Charts - hide in print, show table instead */
+  .charts-row { display: none !important; }
+  .kanban-hdr { display: none !important; }
+  .kanban-grid { display: none !important; }
+  .bottom-row { display: none !important; }
+
+  /* Print Table */
+  .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 10px; }
+  .print-table th { background: #1E293B !important; color: #FFF !important; padding: 6px 8px; text-align: left; font-size: 10px; }
+  .print-table td { padding: 5px 8px; border-bottom: 1px solid #E2E8F0; font-size: 10px; vertical-align: top; }
+  .print-table tr:nth-child(even) td { background: #F8FAFC !important; }
+  .print-table .status-done { background: #D1FAE5 !important; color: #059669 !important; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
+  .print-table .status-inprog { background: #DBEAFE !important; color: #2563EB !important; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
+  .print-table .status-pending { background: #FEF3C7 !important; color: #D97706 !important; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
+
+  /* Summary Box */
+  .print-summary { display: grid !important; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 12px 0; break-inside: avoid; }
+  .print-summary-card { border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; }
+  .print-summary-card h3 { font-size: 11px; color: #64748B; margin-bottom: 6px; }
+  .print-summary-row { display: flex; justify-content: space-between; font-size: 10px; padding: 2px 0; border-bottom: 1px solid #F1F5F9; }
+  .print-summary-row:last-child { border-bottom: none; }
+}
 </style>
 </head>
 <body>
@@ -1022,36 +1070,93 @@ async function doDone(){
   btn.disabled=false;btn.textContent='✅ ยืนยันปิดงาน';
 }
 
-// ===== PDF =====
+// ===== PRINT REPORT (รองรับภาษาไทย) =====
 function exportPDF(){
-  toast('กำลัง Export PDF...','📄','info');
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  const b=getBase();
-  doc.setFillColor(30,41,59);doc.rect(0,0,297,18,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('SYY Service Hub - Maintenance Report',10,12);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text(`Generated: ${new Date().toLocaleString('th-TH')}`,220,12);
-  const kpis=[{l:'Total',v:b.length,c:[59,130,246]},{l:'Pending',v:b.filter(t=>t.status==='pending'||t.status==='assigned').length,c:[245,158,11]},{l:'In Progress',v:b.filter(t=>t.status==='in_progress').length,c:[139,92,246]},{l:'Done',v:b.filter(t=>t.status==='done').length,c:[16,185,129]}];
-  kpis.forEach((k,i)=>{const x=10+i*70;doc.setFillColor(...k.c);doc.roundedRect(x,22,65,14,2,2,'F');doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text(String(k.v),x+7,31);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text(k.l,x+7,35);});
-  doc.setTextColor(30,41,59);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('Ticket List',10,44);
-  const hs=['Ticket ID','Date','Category','Location','Description','Status','Assigned To'];const cw=[40,26,22,24,62,22,22];
-  let y=48,x=10;
-  doc.setFillColor(248,250,252);doc.rect(10,y-4,274,6,'F');
-  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(100,116,139);
-  hs.forEach((h,i)=>{doc.text(h,x+1,y);x+=cw[i];});y+=4;
-  doc.setFont('helvetica','normal');doc.setTextColor(30,41,59);
-  b.slice(0,40).forEach((t,idx)=>{
-    if(y>190){doc.addPage();y=15;}
-    if(idx%2===0){doc.setFillColor(248,250,252);doc.rect(10,y-3,274,5,'F');}
-    const row=[t.ticket_id.substring(0,22),t.created_at.substring(0,10),(t.category||'').substring(0,14),([t.building||t.location,t.room?'#'+t.room:''].filter(Boolean).join(' ')).substring(0,16),(t.description||'').substring(0,38),t.status==='done'?'Done':t.status==='in_progress'?'In Progress':'Pending',(t.assigned_to||'—').substring(0,14)];
-    x=10;
-    row.forEach((v,i)=>{if(i===5){const c=t.status==='done'?[16,185,129]:t.status==='in_progress'?[139,92,246]:[245,158,11];doc.setTextColor(...c);}else doc.setTextColor(30,41,59);doc.setFontSize(6.5);doc.text(String(v),x+1,y);x+=cw[i];});
-    y+=5;
-  });
-  doc.save(`SYY_Report_${new Date().toISOString().substring(0,10)}.pdf`);
-  toast('Export PDF สำเร็จ','✅','success');
+  const b = getBase();
+  const now = new Date().toLocaleString('th-TH',{dateStyle:'full',timeStyle:'short'});
+  document.getElementById('print-date').textContent = now;
+
+  // KPI Section
+  const kpiData = [
+    {l:'งานทั้งหมด', v:b.length, c:'#3B82F6'},
+    {l:'รอดำเนินการ', v:b.filter(t=>t.status==='pending'||t.status==='assigned').length, c:'#F59E0B'},
+    {l:'กำลังดำเนินการ', v:b.filter(t=>t.status==='in_progress').length, c:'#8B5CF6'},
+    {l:'เสร็จสิ้น', v:b.filter(t=>t.status==='done').length, c:'#10B981'},
+  ];
+  document.getElementById('print-kpi-section').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+      ${kpiData.map(k=>`
+        <div style="border:2px solid ${k.c};border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:28px;font-weight:700;color:${k.c};font-family:'JetBrains Mono',monospace">${k.v}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">${k.l}</div>
+        </div>`).join('')}
+    </div>`;
+
+  // Summary Section
+  const cats = {};
+  b.forEach(t=>{if(t.category)cats[t.category]=(cats[t.category]||0)+1;});
+  const catRows = Object.entries(cats).sort((a,c)=>c[1]-a[1]).slice(0,6)
+    .map(([k,v])=>`<div class="print-summary-row"><span>${k}</span><span style="font-weight:600">${v}</span></div>`).join('');
+
+  const memRows = MEMBERS.map(m=>{
+    const d=b.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
+    const a=b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
+    return `<div class="print-summary-row"><span>${m.name}</span><span style="font-weight:600">${d} เสร็จ · ${a} ค้าง</span></div>`;
+  }).join('');
+
+  const locs = {};
+  b.forEach(t=>{const l=t.building||t.location;if(l)locs[l]=(locs[l]||0)+1;});
+  const locRows = Object.entries(locs).sort((a,c)=>c[1]-a[1]).slice(0,6)
+    .map(([k,v])=>`<div class="print-summary-row"><span>${k}</span><span style="font-weight:600">${v}</span></div>`).join('');
+
+  document.getElementById('print-summary-section').innerHTML = `
+    <div class="print-summary-card"><h3>🏷️ งานตามประเภท</h3>${catRows}</div>
+    <div class="print-summary-card"><h3>👥 ผลงานรายบุคคล</h3>${memRows}</div>
+    <div class="print-summary-card"><h3>📍 งานตามสถานที่</h3>${locRows}</div>`;
+
+  // Table Section
+  const rows = b.map(t=>{
+    const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+    const sc = t.status==='done'?'status-done':t.status==='in_progress'?'status-inprog':'status-pending';
+    const sl = t.status==='done'?'✅ เสร็จ':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='assigned'?'📋 มอบหมาย':'⏳ รอ';
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:9px">${t.ticket_id.substring(0,22)}</td>
+      <td>${t.created_at.substring(0,10)}</td>
+      <td>${t.category||'—'}</td>
+      <td>${loc||'—'}</td>
+      <td>${t.description||'—'}</td>
+      <td>${t.assigned_to||'—'}</td>
+      <td><span class="${sc}">${sl}</span></td>
+      <td>${t.assigned_at?t.assigned_at.substring(0,10):'—'}</td>
+      <td>${t.resolved_at?t.resolved_at.substring(0,10):'—'}</td>
+      <td>${t.notes||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('print-table-section').innerHTML = `
+    <h3 style="font-size:13px;font-weight:700;color:#1E293B;margin:16px 0 8px">📋 รายการ Ticket ทั้งหมด (${b.length} รายการ)</h3>
+    <table class="print-table">
+      <thead><tr>
+        <th>Ticket ID</th><th>วันที่</th><th>ประเภท</th><th>สถานที่</th>
+        <th>รายละเอียด</th><th>ผู้รับงาน</th><th>สถานะ</th>
+        <th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  // แสดง print report และซ่อน content เดิม
+  document.getElementById('print-report').style.display = 'block';
+  document.getElementById('page-dashboard').style.display = 'none';
+
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{
+      document.getElementById('print-report').style.display = 'none';
+      document.getElementById('page-dashboard').style.display = 'block';
+    }, 1000);
+  }, 300);
+
+  toast('กำลังพิมพ์รายงาน...','📄','info');
 }
 
 // ===== TOAST =====
@@ -1091,5 +1196,16 @@ document.addEventListener('click',e=>{
   if(window.innerWidth<=768&&sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.hamburger'))sb.classList.remove('open');
 });
 </script>
+
+<!-- PRINT REPORT (แสดงเฉพาะตอน Print) -->
+<div id="print-report" style="display:none">
+  <div style="border-bottom:3px solid #1E293B;padding-bottom:10px;margin-bottom:16px">
+    <h1 style="font-size:20px;font-weight:700;color:#1E293B;margin:0">🔧 SYY Service Hub — รายงานสรุปงานซ่อม</h1>
+    <div style="font-size:11px;color:#64748B;margin-top:4px">Santhiya Collection · พิมพ์เมื่อ <span id="print-date"></span></div>
+  </div>
+  <div id="print-kpi-section"></div>
+  <div id="print-summary-section" class="print-summary"></div>
+  <div id="print-table-section"></div>
+</div>
 </body>
 </html>
