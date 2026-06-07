@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SYY Service Hub — Dashboard v20260607040631</title>
+<title>SYY Service Hub — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
-  --bg:#F0F2F5;--bg2:#FFFFFF;--bg3:#F8FAFC;--border:#E2E8F0;
+  --bg:#F0F2F5;--bg2:#FFF;--bg3:#F8FAFC;--border:#E2E8F0;
   --green:#10B981;--green2:#059669;--green-dim:rgba(16,185,129,0.12);
   --blue:#3B82F6;--blue-dim:rgba(59,130,246,0.12);
   --orange:#F59E0B;--orange-dim:rgba(245,158,11,0.12);
@@ -22,150 +22,164 @@
 body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
 /* SIDEBAR */
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1E293B;border-right:1px solid #334155;display:flex;flex-direction:column;z-index:100;transition:width 0.25s ease;overflow:hidden;}
-.sidebar-logo{padding:16px;border-bottom:1px solid #334155;flex-shrink:0;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1E293B;display:flex;flex-direction:column;z-index:100;transition:width 0.25s;overflow:hidden;}
+.sidebar-logo{padding:14px 16px;border-bottom:1px solid #334155;flex-shrink:0;}
 .logo-mark{display:flex;align-items:center;gap:10px;}
-.logo-icon{width:34px;height:34px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-.logo-text{font-size:14px;font-weight:700;color:#F1F5F9;white-space:nowrap;}
+.logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.logo-text{font-size:13px;font-weight:700;color:#F1F5F9;white-space:nowrap;}
 .logo-sub{font-size:10px;color:#64748B;white-space:nowrap;}
-.sidebar-nav{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
-.nav-section{font-size:9px;font-weight:600;color:#475569;letter-spacing:1.5px;text-transform:uppercase;padding:10px 8px 4px;white-space:nowrap;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:#94A3B8;transition:all 0.15s;border:1px solid transparent;white-space:nowrap;position:relative;}
+.sidebar-nav{flex:1;padding:8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.nav-sec{font-size:9px;font-weight:600;color:#475569;letter-spacing:1.5px;text-transform:uppercase;padding:8px 8px 3px;white-space:nowrap;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12px;color:#94A3B8;transition:all 0.15s;border:1px solid transparent;white-space:nowrap;}
 .nav-item:hover{background:#334155;color:#F1F5F9;}
 .nav-item.active{background:rgba(16,185,129,0.2);color:#10B981;border-color:rgba(16,185,129,0.3);}
-.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
-.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;animation:badgePulse 2s infinite;}
-@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-.team-filter{padding:12px 8px;border-top:1px solid #334155;flex-shrink:0;}
-.team-select{width:100%;background:#334155;border:1px solid #475569;border-radius:8px;color:#F1F5F9;font-family:'Prompt',sans-serif;font-size:11px;padding:7px 10px;outline:none;cursor:pointer;}
-.sidebar-footer{padding:12px 8px;border-top:1px solid #334155;flex-shrink:0;}
-.sidebar-version{font-size:9px;color:#475569;white-space:nowrap;}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;display:none;}
+.team-filter{padding:10px 8px;border-top:1px solid #334155;flex-shrink:0;}
+.team-select{width:100%;background:#334155;border:1px solid #475569;border-radius:8px;color:#F1F5F9;font-family:'Prompt',sans-serif;font-size:11px;padding:6px 10px;outline:none;cursor:pointer;}
+.sidebar-ver{padding:8px 16px;border-top:1px solid #334155;font-size:9px;color:#475569;flex-shrink:0;}
 
 /* MAIN */
-.main{margin-left:220px;min-height:100vh;display:flex;flex-direction:column;transition:margin-left 0.25s ease;}
+.main{margin-left:220px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left 0.25s;}
 
 /* TOPBAR */
-.topbar{height:52px;background:#FFFFFF;border-bottom:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;padding:0 16px;gap:10px;position:sticky;top:0;z-index:50;}
-.hamburger{background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px;border-radius:6px;display:none;}
-.hamburger:hover{background:var(--bg3);}
+.topbar{height:50px;background:#FFF;border-bottom:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;padding:0 16px;gap:10px;position:sticky;top:0;z-index:50;}
+.hamburger{display:none;background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px;border-radius:6px;}
 .topbar-title{font-size:14px;font-weight:600;flex:1;}
-.topbar-search{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1.5px solid var(--border);border-radius:9px;padding:5px 10px;width:200px;transition:border-color 0.15s;}
+.topbar-search{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:5px 10px;width:200px;}
 .topbar-search:focus-within{border-color:var(--green);}
 .topbar-search input{background:none;border:none;color:var(--text);font-family:'Prompt',sans-serif;font-size:12px;outline:none;width:100%;}
 .topbar-search input::placeholder{color:var(--text2);}
-.live-indicator{display:flex;align-items:center;gap:5px;}
 .live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:livePulse 2s infinite;}
 @keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.4)}50%{opacity:0.8;box-shadow:0 0 0 4px rgba(16,185,129,0)}}
-.live-text{font-size:11px;color:var(--green);font-weight:600;}
-.btn-topbar{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Prompt',sans-serif;font-size:11px;padding:5px 10px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:4px;}
-.btn-topbar:hover{border-color:var(--green);color:var(--green);}
+.live-txt{font-size:11px;color:var(--green);font-weight:600;}
+.btn-tb{background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-family:'Prompt',sans-serif;font-size:11px;padding:5px 10px;cursor:pointer;transition:all 0.15s;}
+.btn-tb:hover{border-color:var(--green);color:var(--green);}
 
-/* NEW TICKET ALERT */
-.new-ticket-alert{display:none;position:fixed;top:60px;right:16px;z-index:400;background:#1E293B;border:2px solid var(--green);border-radius:12px;padding:14px 18px;box-shadow:0 8px 30px rgba(0,0,0,0.2);animation:slideInRight 0.4s ease;max-width:320px;}
-.new-ticket-alert.show{display:block;}
-@keyframes slideInRight{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-.alert-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.alert-dot{width:10px;height:10px;background:var(--green);border-radius:50%;animation:livePulse 1s infinite;}
-.alert-title{font-size:13px;font-weight:700;color:#F1F5F9;}
-.alert-close{margin-left:auto;background:none;border:none;color:#64748B;cursor:pointer;font-size:16px;line-height:1;}
+/* NEW ALERT */
+.new-alert{display:none;position:fixed;top:58px;right:14px;z-index:400;background:#1E293B;border:2px solid var(--green);border-radius:12px;padding:12px 16px;box-shadow:0 8px 30px rgba(0,0,0,0.25);max-width:300px;}
+.new-alert.show{display:block;animation:slideIn 0.4s ease;}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.alert-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.alert-dot{width:9px;height:9px;background:var(--green);border-radius:50%;animation:livePulse 1s infinite;}
+.alert-ttl{font-size:12px;font-weight:700;color:#F1F5F9;flex:1;}
+.alert-x{background:none;border:none;color:#64748B;cursor:pointer;font-size:16px;line-height:1;}
 .alert-body{font-size:11px;color:#94A3B8;}
-.alert-ticket{font-family:'JetBrains Mono',monospace;color:var(--green);font-size:11px;margin-top:4px;}
+.alert-id{font-family:'JetBrains Mono',monospace;color:var(--green);font-size:10px;margin-top:3px;}
 
 /* CONTENT */
-.content{padding:14px;flex:1;}
+.content{padding:12px;flex:1;}
 .page{display:none;}
 .page.active{display:block;}
 
 /* KPI */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
-.kpi-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}
+.kpi-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;}
 .kpi-card.all::before{background:var(--blue);}
 .kpi-card.pending::before{background:var(--orange);}
-.kpi-card.inprogress::before{background:var(--purple);}
+.kpi-card.inprog::before{background:var(--purple);}
 .kpi-card.done::before{background:var(--green);}
-.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
-.kpi-icon-wrap{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
-.kpi-card.all .kpi-icon-wrap{background:var(--blue-dim);}
-.kpi-card.pending .kpi-icon-wrap{background:var(--orange-dim);}
-.kpi-card.inprogress .kpi-icon-wrap{background:var(--purple-dim);}
-.kpi-card.done .kpi-icon-wrap{background:var(--green-dim);}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.kpi-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.kpi-card.all .kpi-icon{background:var(--blue-dim);}
+.kpi-card.pending .kpi-icon{background:var(--orange-dim);}
+.kpi-card.inprog .kpi-icon{background:var(--purple-dim);}
+.kpi-card.done .kpi-icon{background:var(--green-dim);}
 .kpi-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;}
 .kpi-card.all .kpi-badge{background:var(--blue-dim);color:var(--blue);}
 .kpi-card.pending .kpi-badge{background:var(--orange-dim);color:var(--orange);}
-.kpi-card.inprogress .kpi-badge{background:var(--purple-dim);color:var(--purple);}
+.kpi-card.inprog .kpi-badge{background:var(--purple-dim);color:var(--purple);}
 .kpi-card.done .kpi-badge{background:var(--green-dim);color:var(--green);}
-.kpi-num{font-size:30px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:2px;}
+.kpi-num{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:2px;}
 .kpi-card.all .kpi-num{color:var(--blue);}
 .kpi-card.pending .kpi-num{color:var(--orange);}
-.kpi-card.inprogress .kpi-num{color:var(--purple);}
+.kpi-card.inprog .kpi-num{color:var(--purple);}
 .kpi-card.done .kpi-num{color:var(--green);}
-.kpi-label{font-size:12px;color:var(--text2);font-weight:500;}
-.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px;}
-
-/* NEW BADGE ON KPI */
-.kpi-new{display:none;position:absolute;top:10px;left:10px;background:var(--red);color:white;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;animation:badgePulse 1s infinite;}
+.kpi-label{font-size:11px;color:var(--text2);font-weight:500;}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+.kpi-new{display:none;position:absolute;top:8px;left:8px;background:var(--red);color:#FFF;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
 .kpi-new.show{display:block;}
 
 /* CHARTS */
-.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
-.chart-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);}
-.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.chart-title{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;}
-.chart-title-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.chart-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);}
+.chart-hdr{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.chart-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.chart-ttl{font-size:11px;font-weight:700;color:var(--text);}
 
-/* TABLE */
-.table-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow);}
-.table-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.table-title{font-size:13px;font-weight:600;flex:1;}
-.filter-chips{display:flex;gap:5px;flex-wrap:wrap;}
-.chip{padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);color:var(--text2);background:var(--bg3);transition:all 0.15s;}
-.chip:hover{border-color:var(--green);color:var(--green);}
-.chip.active{background:var(--green);border-color:var(--green);color:#FFF;box-shadow:0 2px 8px rgba(16,185,129,0.3);}
-.table-wrap{overflow:auto;max-height:320px;}
-table{width:100%;border-collapse:collapse;}
-thead th{position:sticky;top:0;z-index:1;padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;background:#F8FAFC;border-bottom:1px solid var(--border);white-space:nowrap;}
-tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;cursor:pointer;}
-tbody tr:hover{background:#F0FDF4;}
-tbody tr.row-new{background:#ECFDF5;animation:rowHighlight 3s ease-out forwards;}
-@keyframes rowHighlight{0%{background:#DCFCE7}100%{background:transparent}}
-tbody tr:last-child{border-bottom:none;}
-td{padding:8px 10px;font-size:11px;vertical-align:middle;}
-.ticket-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:500;}
-.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
-.status-pending{background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;}
-.status-assigned{background:#EDE9FE;color:#7C3AED;border:1px solid #DDD6FE;}
-.status-in_progress{background:#DBEAFE;color:#2563EB;border:1px solid #BFDBFE;}
-.status-done{background:#D1FAE5;color:#059669;border:1px solid #A7F3D0;}
-.priority-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;}
-.priority-high{background:var(--red-dim);color:var(--red);}
-.priority-med{background:var(--orange-dim);color:var(--orange);}
-.priority-low{background:var(--green-dim);color:var(--green);}
-.new-row-badge{display:inline-block;background:var(--red);color:white;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:4px;animation:badgePulse 1s infinite;}
-.btn-assign{background:linear-gradient(135deg,#3B82F6,#2563EB);border:none;border-radius:6px;color:#FFF;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(59,130,246,0.35);}
-.btn-assign:hover{background:linear-gradient(135deg,#2563EB,#1D4ED8);transform:translateY(-1px);}
-.btn-done{background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:6px;color:#FFF;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(16,185,129,0.35);margin-left:4px;}
-.btn-done:hover{background:linear-gradient(135deg,#059669,#047857);transform:translateY(-1px);}
-.btn-view{background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;color:#475569;font-family:'Prompt',sans-serif;font-size:10px;font-weight:500;padding:4px 8px;cursor:pointer;transition:all 0.15s;margin-left:4px;}
-.btn-view:hover{background:#E2E8F0;}
+/* KANBAN */
+.kanban-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.kanban-ttl{font-size:13px;font-weight:700;color:var(--text);}
+.kanban-link{font-size:11px;color:var(--blue);font-weight:600;cursor:pointer;text-decoration:underline;}
+.kanban-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px;}
+
+/* KANBAN COLUMN */
+.kb-col{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;}
+.kb-col-hdr{padding:10px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.kb-col-hdr.pending{background:linear-gradient(135deg,#F59E0B,#D97706);}
+.kb-col-hdr.inprog{background:linear-gradient(135deg,#8B5CF6,#7C3AED);}
+.kb-col-hdr.done{background:linear-gradient(135deg,#10B981,#059669);}
+.kb-col-icon{font-size:15px;}
+.kb-col-name{font-size:12px;font-weight:700;color:#FFF;flex:1;}
+.kb-col-count{background:rgba(255,255,255,0.3);color:#FFF;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;min-width:26px;text-align:center;}
+.kb-col-body{overflow-y:auto;max-height:360px;padding:8px;display:flex;flex-direction:column;gap:8px;}
+.kb-col-body.pending{background:#FFFBEB;}
+.kb-col-body.inprog{background:#F5F3FF;}
+.kb-col-body.done{background:#F0FDF4;}
+
+/* KANBAN CARD */
+.kb-card{background:#FFF;border-radius:10px;padding:12px 13px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.06);cursor:pointer;transition:all 0.15s;border-left:3px solid transparent;}
+.kb-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.kb-card.pending{border-left-color:#F59E0B;}
+.kb-card.assigned{border-left-color:#8B5CF6;}
+.kb-card.inprog{border-left-color:#3B82F6;}
+.kb-card.done{border-left-color:#10B981;}
+.kb-card.new-card{animation:cardGlow 3s ease-out;}
+@keyframes cardGlow{0%{box-shadow:0 0 0 3px rgba(239,68,68,0.5)}100%{box-shadow:none}}
+.kb-card-top{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.kb-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:600;}
+.kb-new{background:var(--red);color:#FFF;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;animation:blink 1s infinite;}
+.kb-pri{font-size:10px;font-weight:700;margin-left:auto;}
+.kb-desc{font-size:12px;color:var(--text);font-weight:500;line-height:1.45;margin-bottom:6px;}
+.kb-meta{font-size:10px;color:var(--text2);margin-bottom:8px;display:flex;flex-direction:column;gap:2px;}
+.kb-actions{display:flex;gap:4px;flex-wrap:wrap;}
+.kb-empty{text-align:center;padding:30px 10px;color:var(--text3);}
+.kb-empty-icon{font-size:28px;margin-bottom:6px;}
+.kb-empty-txt{font-size:11px;}
+
+/* BUTTONS */
+.btn-assign{background:linear-gradient(135deg,#3B82F6,#2563EB);border:none;border-radius:6px;color:#FFF;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(59,130,246,0.3);}
+.btn-assign:hover{transform:translateY(-1px);}
+.btn-accept{background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:none;border-radius:6px;color:#FFF;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(139,92,246,0.3);}
+.btn-accept:hover{transform:translateY(-1px);}
+.btn-done2{background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:6px;color:#FFF;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(16,185,129,0.3);}
+.btn-done2:hover{transform:translateY(-1px);}
+.btn-view2{background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;color:#475569;font-family:'Prompt',sans-serif;font-size:10px;font-weight:500;padding:4px 8px;cursor:pointer;transition:all 0.15s;}
+.btn-view2:hover{background:#E2E8F0;}
+.btn-primary{background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:8px;color:#FFF;font-family:'Prompt',sans-serif;font-size:12px;font-weight:600;padding:8px 16px;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.35);transition:all 0.2s;display:flex;align-items:center;gap:6px;}
+.btn-primary:hover{transform:translateY(-1px);}
+.btn-secondary2{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Prompt',sans-serif;font-size:12px;padding:7px 14px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+.btn-secondary2:hover{border-color:var(--blue);color:var(--blue);}
 
 /* BOTTOM ROW */
 .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .tech-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
-.tech-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border-radius:9px;border:1px solid var(--border);transition:all 0.15s;}
+.tech-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);transition:all 0.15s;}
 .tech-item:hover{border-color:var(--green);background:var(--green-dim);}
-.tech-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:white;flex-shrink:0;}
+.tech-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#FFF;flex-shrink:0;}
 .tech-info{flex:1;}
 .tech-name{font-size:12px;font-weight:600;}
 .tech-role{font-size:10px;color:var(--text2);}
 .tech-stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
 .tech-active{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--orange);font-weight:600;}
-.tech-done{font-size:9px;color:var(--text3);}
-.tech-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tech-done-stat{font-size:9px;color:var(--text3);}
+.tech-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .tech-dot.online{background:var(--green);}
 .tech-dot.busy{background:var(--orange);}
-.timeline{display:flex;flex-direction:column;gap:0;margin-top:4px;max-height:220px;overflow-y:auto;}
+.timeline{display:flex;flex-direction:column;margin-top:4px;max-height:220px;overflow-y:auto;}
 .tl-item{display:flex;gap:10px;padding-bottom:10px;position:relative;}
 .tl-item::before{content:'';position:absolute;left:5px;top:14px;bottom:0;width:1px;background:var(--border);}
 .tl-item:last-child::before{display:none;}
@@ -173,106 +187,91 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 .tl-action{font-size:11px;font-weight:600;}
 .tl-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
 
-/* ===== TICKETS PAGE ===== */
-.tickets-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-.toolbar-title{font-size:16px;font-weight:700;flex:1;}
-.btn-primary{background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:8px;color:white;font-family:'Prompt',sans-serif;font-size:12px;font-weight:600;padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(16,185,129,0.35);transition:all 0.2s;}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,0.4);}
-.btn-secondary{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Prompt',sans-serif;font-size:12px;font-weight:500;padding:7px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;}
-.btn-secondary:hover{border-color:var(--blue);color:var(--blue);}
-.tickets-filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.filter-select{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'Prompt',sans-serif;font-size:12px;padding:7px 12px;outline:none;cursor:pointer;transition:border-color 0.15s;}
-.filter-select:focus{border-color:var(--green);}
+/* TICKETS PAGE TABLE */
+.tickets-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.toolbar-ttl{font-size:15px;font-weight:700;flex:1;}
+.filter-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.fsel{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'Prompt',sans-serif;font-size:12px;padding:7px 12px;outline:none;cursor:pointer;}
+.fsel:focus{border-color:var(--green);}
+.tbl-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:10px;}
+.tbl-wrap{overflow:auto;max-height:calc(100vh - 240px);}
+table{width:100%;border-collapse:collapse;}
+thead th{position:sticky;top:0;z-index:1;padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;background:#F8FAFC;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;cursor:pointer;}
+tbody tr:hover{background:#F0FDF4;}
+tbody tr:last-child{border-bottom:none;}
+td{padding:8px 10px;font-size:11px;vertical-align:middle;}
+.tid{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:500;}
+.sbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
+.s-pending{background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;}
+.s-assigned{background:#EDE9FE;color:#7C3AED;border:1px solid #DDD6FE;}
+.s-inprog{background:#DBEAFE;color:#2563EB;border:1px solid #BFDBFE;}
+.s-done{background:#D1FAE5;color:#059669;border:1px solid #A7F3D0;}
+.s-rejected{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;}
+.pri-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;}
+.pri-high{background:var(--red-dim);color:var(--red);}
+.pri-med{background:var(--orange-dim);color:var(--orange);}
+.pri-low{background:var(--green-dim);color:var(--green);}
 
-/* ===== REPORT PAGE ===== */
-.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-.report-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
-.report-card-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
-.stat-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
-.stat-row:last-child{border-bottom:none;}
-.stat-label{font-size:12px;color:var(--text2);}
-.stat-value{font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;}
-.report-export-bar{display:flex;gap:8px;margin-bottom:12px;}
-
-/* ===== TECH PAGE ===== */
+/* TECH GRID */
 .tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.tech-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;}
-.tech-card-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;color:white;margin:0 auto 12px;}
-.tech-card-name{font-size:14px;font-weight:700;margin-bottom:2px;}
-.tech-card-role{font-size:11px;color:var(--text2);margin-bottom:12px;}
+.tech-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;}
+.tech-card-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#FFF;margin:0 auto 10px;}
+.tech-card-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.tech-card-role{font-size:10px;color:var(--text2);margin-bottom:10px;}
 .tech-card-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
-.tech-stat{background:var(--bg3);border-radius:8px;padding:8px;}
+.tech-stat{background:var(--bg3);border-radius:8px;padding:8px 4px;}
 .tech-stat-num{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;}
-.tech-stat-label{font-size:9px;color:var(--text3);}
-.tech-card .tech-dot{margin:8px auto 0;display:block;}
+.tech-stat-lbl{font-size:9px;color:var(--text3);}
 
-/* ===== HISTORY PAGE ===== */
-.history-filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+/* REPORT */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.report-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
+.report-ttl{font-size:12px;font-weight:700;margin-bottom:10px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
+.stat-row:last-child{border-bottom:none;}
+.stat-lbl{font-size:11px;color:var(--text2);}
+.stat-val{font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;}
 
-/* ===== MODAL ===== */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.modal-overlay.show{display:flex;}
-.modal{background:#FFFFFF;border:1px solid var(--border);border-radius:16px;padding:24px;width:480px;max-width:90vw;animation:slideUp 0.2s ease;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
-@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
-.modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;}
-.modal-close:hover{color:var(--text);}
-.modal-field{margin-bottom:14px;}
-.modal-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;}
-.modal-select,.modal-textarea,.modal-input{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'Prompt',sans-serif;font-size:12px;padding:9px 12px;outline:none;transition:border-color 0.15s;}
-.modal-select:focus,.modal-textarea:focus,.modal-input:focus{border-color:var(--green);}
-.modal-textarea{resize:vertical;min-height:70px;}
-.modal-actions{display:flex;gap:8px;margin-top:16px;}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.show{display:flex;}
+.modal{background:#FFF;border:1px solid var(--border);border-radius:16px;padding:22px;width:460px;max-width:90vw;animation:popUp 0.2s ease;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
+@keyframes popUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-ttl{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.modal-x{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;}
+.modal-x:hover{color:var(--text);}
+.modal-field{margin-bottom:12px;}
+.modal-lbl{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block;}
+.modal-sel,.modal-ta{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'Prompt',sans-serif;font-size:12px;padding:9px 12px;outline:none;transition:border-color 0.15s;}
+.modal-sel:focus,.modal-ta:focus{border-color:var(--green);}
+.modal-ta{resize:vertical;min-height:70px;}
+.modal-actions{display:flex;gap:8px;margin-top:14px;}
 .btn-cancel{flex:1;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Prompt',sans-serif;font-size:12px;cursor:pointer;}
-.btn-confirm{flex:2;padding:9px;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:8px;color:white;font-family:'Prompt',sans-serif;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.4);transition:all 0.2s;}
-.btn-confirm:hover{background:linear-gradient(135deg,#059669,#047857);}
-.btn-confirm:disabled{opacity:0.6;cursor:not-allowed;}
-.ticket-info-box{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--text2);border-left:3px solid var(--blue);}
-.ticket-info-box strong{color:var(--text);display:block;margin-bottom:3px;font-size:12px;}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.detail-item-label{font-size:10px;color:var(--text3);margin-bottom:2px;}
-.detail-item-value{font-size:12px;font-weight:500;}
+.btn-ok{flex:2;padding:9px;border:none;border-radius:8px;color:#FFF;font-family:'Prompt',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-ok.green{background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 2px 8px rgba(16,185,129,0.4);}
+.btn-ok.red{background:linear-gradient(135deg,#EF4444,#DC2626);box-shadow:0 2px 8px rgba(239,68,68,0.4);}
+.btn-ok:disabled{opacity:0.6;cursor:not-allowed;}
+.info-box{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--text2);border-left:3px solid var(--blue);}
+.info-box strong{color:var(--text);display:block;margin-bottom:2px;font-size:12px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.detail-lbl{font-size:10px;color:var(--text3);margin-bottom:2px;}
+.detail-val{font-size:12px;font-weight:500;}
 
 /* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:#1E293B;border-radius:12px;padding:12px 16px;z-index:300;display:flex;align-items:center;gap:8px;font-size:12px;color:white;transform:translateY(100px);opacity:0;transition:all 0.35s ease;max-width:320px;box-shadow:0 8px 30px rgba(0,0,0,0.2);}
+.toast{position:fixed;bottom:18px;right:18px;background:#1E293B;border-radius:12px;padding:11px 15px;z-index:300;display:flex;align-items:center;gap:8px;font-size:12px;color:#FFF;transform:translateY(80px);opacity:0;transition:all 0.35s ease;max-width:300px;box-shadow:0 8px 30px rgba(0,0,0,0.2);}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.success{border-left:3px solid var(--green);}
 .toast.error{border-left:3px solid var(--red);}
 .toast.info{border-left:3px solid var(--blue);}
 
-/* TICKET CARD IN BOARD */
-.ticket-card{
-  background:#FFFFFF;
-  margin:8px;
-  border-radius:10px;
-  padding:12px 14px;
-  border:1px solid var(--border);
-  box-shadow:0 1px 4px rgba(0,0,0,0.06);
-  cursor:pointer;
-  transition:all 0.15s;
-}
-.ticket-card:hover{
-  transform:translateY(-2px);
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
-  border-color:var(--blue);
-}
-.ticket-card.new-card{
-  border-left:3px solid var(--red);
-  animation:rowHighlight 3s ease-out forwards;
-}
-.ticket-card-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
-.ticket-card-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:600;}
-.ticket-card-desc{font-size:12px;color:var(--text);margin-bottom:6px;line-height:1.5;font-weight:500;}
-.ticket-card-meta{font-size:10px;color:var(--text2);margin-bottom:8px;display:flex;flex-direction:column;gap:2px;}
-.ticket-card-actions{display:flex;gap:4px;flex-wrap:wrap;}
-
 /* LOADING & EMPTY */
-.loading{display:flex;align-items:center;justify-content:center;padding:40px;flex-direction:column;gap:10px;}
-.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 10px;gap:10px;}
+.spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:40px;color:var(--text3);}
-.empty-icon{font-size:32px;margin-bottom:8px;}
-.empty-text{font-size:12px;}
+.empty-state{text-align:center;padding:24px 10px;color:var(--text3);}
+.empty-icon{font-size:26px;margin-bottom:5px;}
+.empty-txt{font-size:11px;}
 
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:5px;height:5px;}
@@ -283,48 +282,43 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 /* RESPONSIVE */
 @media(max-width:1280px){
   .sidebar{width:60px;}
-  .logo-text,.logo-sub,.nav-section,.team-filter,.sidebar-footer{display:none;}
+  .logo-text,.logo-sub,.nav-sec,.team-filter,.sidebar-ver{display:none;}
   .nav-item{justify-content:center;padding:10px;}
-  .nav-item span:not(.nav-icon):not(.nav-badge){display:none;}
+  .nav-item>span:not(.nav-icon):not(.nav-badge){display:none;}
   .main{margin-left:60px;}
   .sidebar:hover{width:220px;}
-  .sidebar:hover .logo-text,.sidebar:hover .logo-sub,.sidebar:hover .nav-section,.sidebar:hover .team-filter,.sidebar:hover .sidebar-footer{display:block;}
-  .sidebar:hover .nav-item{justify-content:flex-start;padding:9px 10px;}
-  .sidebar:hover .nav-item span:not(.nav-icon):not(.nav-badge){display:inline;}
-  .charts-row{grid-template-columns:1fr 1fr;}
-  .charts-row .chart-card:last-child{grid-column:1/-1;}
+  .sidebar:hover .logo-text,.sidebar:hover .logo-sub,.sidebar:hover .nav-sec,.sidebar:hover .team-filter,.sidebar:hover .sidebar-ver{display:block;}
+  .sidebar:hover .nav-item{justify-content:flex-start;padding:8px 10px;}
+  .sidebar:hover .nav-item>span:not(.nav-icon):not(.nav-badge){display:inline;}
+  .charts-row,.kanban-grid,.bottom-row{grid-template-columns:1fr 1fr;}
+  .kanban-grid .kb-col:last-child,.charts-row .chart-card:last-child,.bottom-row .chart-card:last-child{grid-column:1/-1;}
 }
 @media(max-width:768px){
-  .sidebar{width:0;display:none;}
-  .sidebar.open{display:flex;width:220px;box-shadow:4px 0 20px rgba(0,0,0,0.3);}
-  .sidebar.open .logo-text,.sidebar.open .logo-sub,.sidebar.open .nav-section,.sidebar.open .team-filter,.sidebar.open .sidebar-footer{display:block;}
-  .sidebar.open .nav-item{justify-content:flex-start;padding:9px 10px;}
-  .sidebar.open .nav-item span:not(.nav-icon):not(.nav-badge){display:inline;}
+  .sidebar{display:none;}
+  .sidebar.open{display:flex;width:220px;position:fixed;z-index:200;box-shadow:4px 0 20px rgba(0,0,0,0.3);}
+  .sidebar.open .logo-text,.sidebar.open .logo-sub,.sidebar.open .nav-sec,.sidebar.open .team-filter,.sidebar.open .sidebar-ver{display:block;}
+  .sidebar.open .nav-item{justify-content:flex-start;padding:8px 10px;}
+  .sidebar.open .nav-item>span:not(.nav-icon):not(.nav-badge){display:inline;}
   .main{margin-left:0;}
   .hamburger{display:block;}
-  .kpi-grid{grid-template-columns:repeat(2,1fr);}
-  .charts-row,.bottom-row{grid-template-columns:1fr;}
-  .tech-grid{grid-template-columns:1fr 1fr;}
-  .report-grid{grid-template-columns:1fr;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .charts-row,.kanban-grid,.bottom-row{grid-template-columns:1fr;}
+  .tech-grid,.report-grid{grid-template-columns:1fr;}
 }
-@media(max-width:480px){
-  .kpi-num{font-size:24px;}
-  .filter-chips,.topbar-search{display:none;}
-  .tech-grid{grid-template-columns:1fr;}
-}
+@media(max-width:480px){.kpi-num{font-size:22px;}.topbar-search{display:none;}}
 </style>
 </head>
 <body>
 
-<!-- NEW TICKET ALERT -->
-<div class="new-ticket-alert" id="new-alert">
-  <div class="alert-header">
+<!-- ALERT -->
+<div class="new-alert" id="new-alert">
+  <div class="alert-hdr">
     <div class="alert-dot"></div>
-    <div class="alert-title">🔔 มีงานใหม่เข้า!</div>
-    <button class="alert-close" onclick="closeAlert()">×</button>
+    <div class="alert-ttl">🔔 มีงานใหม่เข้า!</div>
+    <button class="alert-x" onclick="closeAlert()">×</button>
   </div>
-  <div class="alert-body" id="alert-body">กำลังโหลด...</div>
-  <div class="alert-ticket" id="alert-ticket"></div>
+  <div class="alert-body" id="alert-body"></div>
+  <div class="alert-id" id="alert-id"></div>
 </div>
 
 <!-- SIDEBAR -->
@@ -336,238 +330,206 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
     </div>
   </div>
   <div class="sidebar-nav">
-    <div class="nav-section">Overview</div>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">
-      <span class="nav-icon">📊</span><span>Dashboard</span>
-    </div>
-    <div class="nav-item" onclick="showPage('tickets',this)">
-      <span class="nav-icon">🎫</span><span>Tickets</span>
-      <span class="nav-badge" id="pending-badge" style="display:none">0</span>
-    </div>
-    <div class="nav-section">Management</div>
-    <div class="nav-item" onclick="showPage('technicians',this)">
-      <span class="nav-icon">👥</span><span>ทีมช่าง</span>
-    </div>
-    <div class="nav-item" onclick="showPage('history',this)">
-      <span class="nav-icon">📋</span><span>ประวัติงาน</span>
-    </div>
-    <div class="nav-section">Reports</div>
-    <div class="nav-item" onclick="showPage('report',this)">
-      <span class="nav-icon">📈</span><span>รายงาน</span>
-    </div>
-    <div class="nav-item" onclick="exportPDF()">
-      <span class="nav-icon">📄</span><span>Export PDF</span>
-    </div>
+    <div class="nav-sec">Overview</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+    <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets</span><span class="nav-badge" id="pending-badge">0</span></div>
+    <div class="nav-sec">Management</div>
+    <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
+    <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span>ประวัติงาน</span></div>
+    <div class="nav-sec">Reports</div>
+    <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span>รายงาน</span></div>
+    <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span>Export PDF</span></div>
   </div>
   <div class="team-filter">
-    <div style="font-size:10px;color:#64748B;margin-bottom:5px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองทีม</div>
-    <select class="team-select" id="team-filter" onchange="onTeamChange()">
+    <div style="font-size:10px;color:#64748B;margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองทีม</div>
+    <select class="team-select" id="team-filter" onchange="onTeam()">
       <option value="all">ทุกทีม</option>
       <option value="IT Support">IT Support</option>
       <option value="Engineering">Engineering</option>
-      <option value="Landscape & Garden">Landscape &amp; Garden</option>
+      <option value="Landscape & Garden">L&amp;G</option>
       <option value="Environment">Environment</option>
     </select>
   </div>
-  <div class="sidebar-footer">
-    <div class="sidebar-version">v2.0 · Auto refresh 30s</div>
-  </div>
+  <div class="sidebar-ver">v3.0 · Auto refresh 30s</div>
 </div>
 
 <!-- MAIN -->
-<div class="main" id="main">
+<div class="main">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <button class="hamburger" onclick="toggleSB()">☰</button>
     <div class="topbar-title" id="page-title">📊 Dashboard Overview</div>
-    <div class="topbar-search">
-      <span style="color:var(--text3)">🔍</span>
-      <input type="text" placeholder="ค้นหา Ticket..." id="search-input" oninput="onSearch()">
-    </div>
-    <div class="live-indicator">
-      <div class="live-dot"></div>
-      <span class="live-text" id="live-status">Live</span>
-    </div>
-    <button class="btn-topbar" onclick="loadData()">↻ Refresh</button>
-    <button class="btn-topbar" onclick="exportPDF()">📄 PDF</button>
+    <div class="topbar-search"><span style="color:var(--text3)">🔍</span><input type="text" placeholder="ค้นหา..." id="search-input" oninput="onSearch()"></div>
+    <div class="live-dot"></div><span class="live-txt" id="live-txt">Live</span>
+    <button class="btn-tb" onclick="loadData()">↻ Refresh</button>
+    <button class="btn-tb" onclick="exportPDF()">📄 PDF</button>
   </div>
 
   <div class="content">
 
-    <!-- ===== DASHBOARD PAGE ===== -->
+    <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
+      <!-- KPI -->
       <div class="kpi-grid">
-        <div class="kpi-card all" onclick="filterStatus('all')">
-          <div class="kpi-new" id="kpi-new-badge">NEW</div>
-          <div class="kpi-top">
-            <div class="kpi-icon-wrap">🎫</div>
-            <div class="kpi-badge">Total</div>
-          </div>
-          <div class="kpi-num" id="kpi-all">—</div>
+        <div class="kpi-card all" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">
+          <div class="kpi-new" id="kpi-new">NEW</div>
+          <div class="kpi-top"><div class="kpi-icon">🎫</div><div class="kpi-badge">Total</div></div>
+          <div class="kpi-num" id="k-all">—</div>
           <div class="kpi-label">งานทั้งหมด</div>
-          <div class="kpi-sub" id="kpi-sub">กำลังโหลด...</div>
+          <div class="kpi-sub" id="k-sub">กำลังโหลด...</div>
         </div>
-        <div class="kpi-card pending" onclick="filterStatus('pending')">
-          <div class="kpi-top"><div class="kpi-icon-wrap">⏳</div><div class="kpi-badge">Pending</div></div>
-          <div class="kpi-num" id="kpi-pending">—</div>
+        <div class="kpi-card pending" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">
+          <div class="kpi-top"><div class="kpi-icon">⏳</div><div class="kpi-badge">Pending</div></div>
+          <div class="kpi-num" id="k-pending">—</div>
           <div class="kpi-label">รอดำเนินการ</div>
           <div class="kpi-sub">รอมอบหมาย + รอรับงาน</div>
         </div>
-        <div class="kpi-card inprogress" onclick="filterStatus('in_progress')">
-          <div class="kpi-top"><div class="kpi-icon-wrap">🔄</div><div class="kpi-badge">Active</div></div>
-          <div class="kpi-num" id="kpi-inprogress">—</div>
+        <div class="kpi-card inprog" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">
+          <div class="kpi-top"><div class="kpi-icon">🔄</div><div class="kpi-badge">Active</div></div>
+          <div class="kpi-num" id="k-inprog">—</div>
           <div class="kpi-label">กำลังดำเนินการ</div>
           <div class="kpi-sub">รับงานแล้ว</div>
         </div>
-        <div class="kpi-card done" onclick="filterStatus('done')">
-          <div class="kpi-top"><div class="kpi-icon-wrap">✅</div><div class="kpi-badge">Done</div></div>
-          <div class="kpi-num" id="kpi-done">—</div>
+        <div class="kpi-card done" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">
+          <div class="kpi-top"><div class="kpi-icon">✅</div><div class="kpi-badge">Done</div></div>
+          <div class="kpi-num" id="k-done">—</div>
           <div class="kpi-label">เสร็จสิ้น</div>
           <div class="kpi-sub">Completed</div>
         </div>
       </div>
+
+      <!-- CHARTS -->
       <div class="charts-row">
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot"></div>สถานะงาน</div></div>
-          <canvas id="chart-status" height="105"></canvas>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะงาน</div></div><canvas id="chart-status" height="105"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl">ประเภทงาน</div></div><canvas id="chart-cat" height="105"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="105"></canvas></div>
+      </div>
+
+      <!-- KANBAN -->
+      <div class="kanban-hdr">
+        <div class="kanban-ttl">📋 Ticket ล่าสุด</div>
+        <span class="kanban-link" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">ดูทั้งหมดที่เมนู Tickets →</span>
+      </div>
+      <div class="kanban-grid">
+        <!-- รอดำเนินการ -->
+        <div class="kb-col">
+          <div class="kb-col-hdr pending">
+            <span class="kb-col-icon">⏳</span>
+            <span class="kb-col-name">รอดำเนินการ</span>
+            <span class="kb-col-count" id="kb-count-pending">0</span>
+          </div>
+          <div class="kb-col-body pending" id="kb-pending">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
         </div>
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot" style="background:var(--blue)"></div>ประเภทงาน</div></div>
-          <canvas id="chart-category" height="105"></canvas>
+        <!-- กำลังดำเนินการ -->
+        <div class="kb-col">
+          <div class="kb-col-hdr inprog">
+            <span class="kb-col-icon">🔄</span>
+            <span class="kb-col-name">กำลังดำเนินการ</span>
+            <span class="kb-col-count" id="kb-count-inprog">0</span>
+          </div>
+          <div class="kb-col-body inprog" id="kb-inprog">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
         </div>
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot" style="background:var(--orange)"></div>งานรายวัน 7 วัน</div></div>
-          <canvas id="chart-daily" height="105"></canvas>
+        <!-- เสร็จสิ้น -->
+        <div class="kb-col">
+          <div class="kb-col-hdr done">
+            <span class="kb-col-icon">✅</span>
+            <span class="kb-col-name">เสร็จสิ้น</span>
+            <span class="kb-col-count" id="kb-count-done">0</span>
+          </div>
+          <div class="kb-col-body done" id="kb-done">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
         </div>
       </div>
-      
+
+      <!-- BOTTOM -->
       <div class="bottom-row">
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot"></div>สถานะทีม</div></div>
-          <div class="tech-list" id="tech-list"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot" style="background:var(--orange)"></div>กิจกรรมล่าสุด</div></div>
-          <div class="timeline" id="activity-timeline"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะทีม</div></div><div class="tech-list" id="tech-list"><div class="loading"><div class="spinner"></div></div></div></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">กิจกรรมล่าสุด</div></div><div class="timeline" id="timeline"><div class="loading"><div class="spinner"></div></div></div></div>
       </div>
     </div>
 
-    <!-- ===== TICKETS PAGE ===== -->
+    <!-- TICKETS PAGE -->
     <div class="page" id="page-tickets">
       <div class="tickets-toolbar">
-        <div class="toolbar-title">🎫 จัดการ Ticket ทั้งหมด</div>
-        <button class="btn-secondary" onclick="loadData()">↻ รีเฟรช</button>
+        <div class="toolbar-ttl">🎫 จัดการ Ticket ทั้งหมด</div>
+        <button class="btn-secondary2" onclick="loadData()">↻ รีเฟรช</button>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
-      <div class="tickets-filter-bar">
-        <select class="filter-select" id="ticket-status-filter" onchange="renderTicketsPage()">
+      <div class="filter-bar">
+        <select class="fsel" id="f-status" onchange="renderTicketsPage()">
           <option value="all">ทุกสถานะ</option>
-          <option value="pending">⏳ รอ + มอบหมายแล้ว</option>
-          <option value="in_progress">กำลังดำเนินการ</option>
-          <option value="done">เสร็จสิ้น</option>
+          <option value="pending">⏳ รอดำเนินการ / มอบหมายแล้ว</option>
+          <option value="in_progress">🔄 กำลังดำเนินการ</option>
+          <option value="done">✅ เสร็จสิ้น</option>
         </select>
-        <select class="filter-select" id="ticket-priority-filter" onchange="renderTicketsPage()">
+        <select class="fsel" id="f-priority" onchange="renderTicketsPage()">
           <option value="all">ทุกความเร่งด่วน</option>
           <option value="high">🔴 ฉุกเฉิน</option>
           <option value="med">🟡 เร่งด่วน</option>
           <option value="low">🟢 ปกติ</option>
         </select>
-        <select class="filter-select" id="ticket-category-filter" onchange="renderTicketsPage()">
-          <option value="all">ทุกประเภท</option>
-        </select>
+        <select class="fsel" id="f-category" onchange="renderTicketsPage()"><option value="all">ทุกประเภท</option></select>
       </div>
-      <div class="table-card">
-        <div class="table-wrap" style="max-height:calc(100vh - 260px)"><table>
-          <thead><tr>
-            <th>Ticket ID</th><th>วันที่</th><th>ทีม</th><th>ประเภท</th><th>สถานที่</th>
-            <th>รายละเอียด</th><th>ผู้แจ้ง</th><th>ความเร่งด่วน</th><th>สถานะ</th>
-            <th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th><th>ดำเนินการ</th>
-          </tr></thead>
-          <tbody id="tickets-page-body">
-            <tr><td colspan="14"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
-        </table></div>
-      </div>
+      <div class="tbl-card"><div class="tbl-wrap"><table>
+        <thead><tr>
+          <th>Ticket ID</th><th>วันที่</th><th>ทีม</th><th>ประเภท</th><th>สถานที่</th>
+          <th>รายละเอียด</th><th>ผู้แจ้ง</th><th>ความเร่งด่วน</th><th>สถานะ</th>
+          <th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th><th>ดำเนินการ</th>
+        </tr></thead>
+        <tbody id="tickets-tbody"><tr><td colspan="14"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+      </table></div></div>
     </div>
 
-    <!-- ===== TECHNICIANS PAGE ===== -->
+    <!-- TECHNICIANS PAGE -->
     <div class="page" id="page-technicians">
-      <div class="tickets-toolbar">
-        <div class="toolbar-title">👥 ทีมช่าง IT Support</div>
-      </div>
-      <div class="tech-grid" id="tech-grid">
-        <div class="loading"><div class="spinner"></div></div>
-      </div>
+      <div class="tickets-toolbar"><div class="toolbar-ttl">👥 ทีมช่าง IT Support</div></div>
+      <div class="tech-grid" id="tech-grid"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- ===== HISTORY PAGE ===== -->
+    <!-- HISTORY PAGE -->
     <div class="page" id="page-history">
       <div class="tickets-toolbar">
-        <div class="toolbar-title">📋 ประวัติงานที่เสร็จสิ้น</div>
+        <div class="toolbar-ttl">📋 ประวัติงานที่เสร็จสิ้น</div>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
-      <div class="history-filters">
-        <select class="filter-select" id="history-member-filter" onchange="renderHistoryPage()">
-          <option value="all">ทุกคน</option>
-          <option value="Chana">Chana</option>
-          <option value="Farid">Farid</option>
-          <option value="Radthaphol">Radthaphol</option>
-          <option value="Pongsakorn">Pongsakorn</option>
-          <option value="Nianas">Nianas</option>
-        </select>
-        <select class="filter-select" id="history-category-filter" onchange="renderHistoryPage()">
-          <option value="all">ทุกประเภท</option>
-        </select>
+      <div class="filter-bar">
+        <select class="fsel" id="h-member" onchange="renderHistory()"><option value="all">ทุกคน</option><option>Chana</option><option>Farid</option><option>Radthaphol</option><option>Pongsakorn</option><option>Nianas</option></select>
+        <select class="fsel" id="h-cat" onchange="renderHistory()"><option value="all">ทุกประเภท</option></select>
       </div>
-      <div class="table-card">
-        <div class="table-wrap" style="max-height:calc(100vh - 260px)"><table>
-          <thead><tr>
-            <th>Ticket ID</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th>
-            <th>รายละเอียด</th><th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th>
-          </tr></thead>
-          <tbody id="history-body">
-            <tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
-        </table></div>
-      </div>
+      <div class="tbl-card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Ticket ID</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th><th>รายละเอียด</th><th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th></tr></thead>
+        <tbody id="history-tbody"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+      </table></div></div>
     </div>
 
-    <!-- ===== REPORT PAGE ===== -->
+    <!-- REPORT PAGE -->
     <div class="page" id="page-report">
       <div class="tickets-toolbar">
-        <div class="toolbar-title">📈 รายงานสรุป</div>
+        <div class="toolbar-ttl">📈 รายงานสรุป</div>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
-      <div class="report-grid" id="report-grid">
-        <div class="loading"><div class="spinner"></div></div>
-      </div>
-      <div class="charts-row" style="margin-top:12px">
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot"></div>สัดส่วนงานตามทีม</div></div>
-          <canvas id="chart-team" height="180"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot" style="background:var(--blue)"></div>ผลงานรายบุคคล</div></div>
-          <canvas id="chart-member" height="180"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><div class="chart-title-dot" style="background:var(--orange)"></div>งานตามสถานที่</div></div>
-          <canvas id="chart-location" height="180"></canvas>
-        </div>
+      <div class="report-grid" id="report-grid"><div class="loading"><div class="spinner"></div></div></div>
+      <div class="charts-row" style="margin-top:10px">
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สัดส่วนงานตามทีม</div></div><canvas id="chart-team" height="180"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl">ผลงานรายบุคคล</div></div><canvas id="chart-member" height="180"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">งานตามสถานที่</div></div><canvas id="chart-loc" height="180"></canvas></div>
       </div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
+  </div>
+</div>
 
-<!-- ASSIGN MODAL -->
-<div class="modal-overlay" id="assign-modal">
+<!-- MODALS -->
+<div class="overlay" id="m-assign">
   <div class="modal">
-    <div class="modal-title">🔧 มอบหมายงาน<button class="modal-close" onclick="closeModal('assign-modal')">×</button></div>
-    <div class="ticket-info-box" id="assign-info"></div>
-    <div class="modal-field">
-      <label class="modal-label">มอบหมายให้</label>
-      <select class="modal-select" id="assign-member">
+    <div class="modal-ttl">🔧 มอบหมายงาน<button class="modal-x" onclick="closeM('m-assign')">×</button></div>
+    <div class="info-box" id="m-assign-info"></div>
+    <div class="modal-field"><label class="modal-lbl">มอบหมายให้</label>
+      <select class="modal-sel" id="m-assign-member">
         <option value="">— เลือกสมาชิก —</option>
         <option value="Chana">Chana — IT Manager</option>
         <option value="Farid">Farid — IT Project Supervisor</option>
@@ -576,403 +538,316 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
         <option value="Nianas">Nianas — IT Officer</option>
       </select>
     </div>
-    <div class="modal-field">
-      <label class="modal-label">หมายเหตุ (ถ้ามี)</label>
-      <textarea class="modal-textarea" id="assign-note" placeholder="เช่น กุญแจห้องอยู่ที่ Reception..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('assign-modal')">ยกเลิก</button>
-      <button class="btn-confirm" id="btn-assign-confirm" onclick="confirmAssign()">✅ ยืนยันมอบหมาย</button>
-    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="m-assign-note" placeholder="เช่น กุญแจห้องอยู่ที่ Reception..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-assign')">ยกเลิก</button><button class="btn-ok green" id="btn-assign-ok" onclick="doAssign()">✅ ยืนยันมอบหมาย</button></div>
   </div>
 </div>
 
-<!-- DONE MODAL -->
-<div class="modal-overlay" id="done-modal">
+<div class="overlay" id="m-accept">
   <div class="modal">
-    <div class="modal-title">🏁 ปิดงาน<button class="modal-close" onclick="closeModal('done-modal')">×</button></div>
-    <div class="ticket-info-box" id="done-info"></div>
-    <div class="modal-field">
-      <label class="modal-label">หมายเหตุการซ่อม (ถ้ามี)</label>
-      <textarea class="modal-textarea" id="done-note" placeholder="เช่น เปลี่ยน Access Point ใหม่ ทดสอบแล้วปกติ..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('done-modal')">ยกเลิก</button>
-      <button class="btn-confirm" id="btn-done-confirm" onclick="confirmDone()">✅ ยืนยันปิดงาน</button>
-    </div>
-  </div>
-</div>
-
-<!-- ACCEPT/REJECT MODAL -->
-<div class="modal-overlay" id="accept-modal">
-  <div class="modal">
-    <div class="modal-title">⚡ รับหรือปฏิเสธงาน<button class="modal-close" onclick="closeModal('accept-modal')">×</button></div>
-    <div class="ticket-info-box" id="accept-info"></div>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn-confirm" style="flex:1;background:linear-gradient(135deg,#10B981,#059669)" onclick="confirmAccept()">✅ รับงาน</button>
-      <button class="btn-confirm" style="flex:1;background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="showRejectForm()">❌ ปฏิเสธ</button>
+    <div class="modal-ttl">⚡ รับหรือปฏิเสธงาน<button class="modal-x" onclick="closeM('m-accept')">×</button></div>
+    <div class="info-box" id="m-accept-info"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-ok green" style="flex:1" onclick="doAccept()">✅ รับงาน</button>
+      <button class="btn-ok red" style="flex:1" onclick="showRejectForm()">❌ ปฏิเสธ</button>
     </div>
     <div id="reject-form" style="display:none;margin-top:12px">
-      <div class="modal-field">
-        <label class="modal-label">เหตุผลที่ปฏิเสธ *</label>
-        <textarea class="modal-textarea" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ, ติดงานอื่นอยู่..."></textarea>
-      </div>
-      <button class="btn-confirm" style="width:100%;background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="confirmReject()">❌ ยืนยันปฏิเสธ</button>
+      <div class="modal-field"><label class="modal-lbl">เหตุผลที่ปฏิเสธ *</label><textarea class="modal-ta" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ..."></textarea></div>
+      <button class="btn-ok red" style="width:100%;margin-top:6px" onclick="doReject()">❌ ยืนยันปฏิเสธ</button>
     </div>
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
-<div class="modal-overlay" id="detail-modal">
-  <div class="modal" style="width:540px">
-    <div class="modal-title">📋 รายละเอียด Ticket<button class="modal-close" onclick="closeModal('detail-modal')">×</button></div>
-    <div id="detail-content"></div>
-    <div class="modal-actions" style="margin-top:12px" id="detail-modal-actions">
-      <button class="btn-cancel" onclick="closeModal('detail-modal')">ปิด</button>
-    </div>
+<div class="overlay" id="m-done">
+  <div class="modal">
+    <div class="modal-ttl">🏁 ปิดงาน<button class="modal-x" onclick="closeM('m-done')">×</button></div>
+    <div class="info-box" id="m-done-info"></div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุการซ่อม</label><textarea class="modal-ta" id="m-done-note" placeholder="เช่น เปลี่ยน AP ใหม่ ทดสอบแล้วปกติ..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-done')">ยกเลิก</button><button class="btn-ok green" id="btn-done-ok" onclick="doDone()">✅ ยืนยันปิดงาน</button></div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast">
-  <span id="toast-icon">✅</span>
-  <span id="toast-msg">สำเร็จ</span>
+<div class="overlay" id="m-detail">
+  <div class="modal" style="width:520px">
+    <div class="modal-ttl">📋 รายละเอียด Ticket<button class="modal-x" onclick="closeM('m-detail')">×</button></div>
+    <div id="m-detail-content"></div>
+    <div class="modal-actions" id="m-detail-actions" style="margin-top:12px"><button class="btn-cancel" onclick="closeM('m-detail')">ปิด</button></div>
+  </div>
 </div>
+
+<div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">สำเร็จ</span></div>
 
 <script>
 // ===== CONFIG =====
 const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
 const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbx3DovxjjOPBS8dDljIBXF4MkzLnsmQgV2EQhZNEYZdasZbBhWMl_mg-M5ddFJKAAsAfA/exec';
-const BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
-const MEMBERS  = [
-  {name:'Chana',role:'IT Manager'},
-  {name:'Farid',role:'IT Project Supervisor'},
-  {name:'Radthaphol',role:'IT Supervisor'},
-  {name:'Pongsakorn',role:'IT Officer'},
-  {name:'Nianas',role:'IT Officer'},
-];
-const REFRESH_INTERVAL = 30000; // 30 วินาที
+const BASE    = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
+const MEMBERS = [{name:'Chana',role:'IT Manager'},{name:'Farid',role:'IT Project Supervisor'},{name:'Radthaphol',role:'IT Supervisor'},{name:'Pongsakorn',role:'IT Officer'},{name:'Nianas',role:'IT Officer'}];
 
 // ===== STATE =====
-let allTickets=[], currentFilter='all', currentTeam='all', currentId=null, charts={};
-let lastTicketCount=0, lastTicketIds=new Set(), isFirstLoad=true;
-let refreshTimer=null;
+let tickets=[], currentTeam='all', currentId=null, charts={}, firstLoad=true, lastIds=new Set(), timer=null;
 
 // ===== INIT =====
-document.addEventListener('DOMContentLoaded',()=>{
-  loadData();
-  startAutoRefresh();
-});
+document.addEventListener('DOMContentLoaded',()=>{ loadData(); timer=setInterval(()=>loadData(true),30000); });
 
-function startAutoRefresh(){
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(()=>{ loadData(true); }, REFRESH_INTERVAL);
-}
-
-// ===== LOAD DATA =====
+// ===== LOAD =====
 async function loadData(silent=false){
-  if(!silent){
-    document.getElementById('live-status').textContent='กำลังโหลด...';
-  }
+  if(!silent) document.getElementById('live-txt').textContent='กำลังโหลด...';
   try{
-    const res  = await fetch(`${BASE_URL}/TICKETS!A2:Y300?key=${API_KEY}`);
-    const data = await res.json();
-    if(!data.values){ allTickets=[]; renderAll(); return; }
-
-    const prev = new Set(lastTicketIds);
-    allTickets = data.values.map(r=>({
-      ticket_id:r[0]||'', created_at:r[1]||'', department:r[2]||'',
-      reported_by:r[3]||'', category:r[4]||'', location:r[5]||'',
-      room:r[6]||'', description:r[7]||'', priority:r[8]||'low',
-      status:r[9]||'pending', assigned_to:r[10]||'', assigned_at:r[11]||'',
-      resolved_at:r[12]||'', notes:r[17]||'', team:r[19]||'',
-      building:r[20]||'', displayName:r[22]||'', _new:false,
+    const res=await fetch(`${BASE}/TICKETS!A2:AE300?key=${API_KEY}`);
+    const d=await res.json();
+    if(!d.values){tickets=[];renderAll();return;}
+    const prev=new Set(lastIds);
+    tickets=d.values.map(r=>({
+      ticket_id:r[0]||'',created_at:r[1]||'',department:r[2]||'',reported_by:r[3]||'',
+      category:r[4]||'',location:r[5]||'',room:r[6]||'',description:r[7]||'',
+      priority:r[8]||'low',status:r[9]||'pending',assigned_to:r[10]||'',
+      assigned_at:r[11]||'',resolved_at:r[12]||'',notes:r[17]||'',
+      team:r[19]||'',building:r[20]||'',displayName:r[22]||'',
+      accepted_at:r[25]||'',rejected_at:r[26]||'',rejected_by:r[27]||'',
+      reject_reason:r[28]||'',response_min:r[29]||'',completion_min:r[30]||'',
+      _new:false
     })).filter(t=>t.ticket_id);
-
-    // ตรวจหา Ticket ใหม่
-    const newIds = new Set(allTickets.map(t=>t.ticket_id));
-    lastTicketIds = newIds;
-
-    if(!isFirstLoad){
-      const newTickets = allTickets.filter(t=>!prev.has(t.ticket_id));
-      if(newTickets.length>0){
-        newTickets.forEach(t=>{ t._new=true; });
-        showNewTicketAlert(newTickets);
-        showKPINewBadge();
-      }
+    lastIds=new Set(tickets.map(t=>t.ticket_id));
+    if(!firstLoad){
+      const newT=tickets.filter(t=>!prev.has(t.ticket_id));
+      if(newT.length){newT.forEach(t=>t._new=true);showAlert(newT);showKPINew();}
     }
-    isFirstLoad=false;
-
+    firstLoad=false;
+    updateCats();
     renderAll();
-    updateCategories();
-    const now=new Date();
-    document.getElementById('live-status').textContent=`อัปเดต ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-    if(!silent) showToast(`โหลดข้อมูลสำเร็จ ${allTickets.length} Ticket`,'✅','success');
+    const n=new Date();
+    document.getElementById('live-txt').textContent=`อัปเดต ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+    if(!silent) toast(`โหลดสำเร็จ ${tickets.length} Ticket`,'✅','success');
   }catch(e){
-    console.error(e);
-    document.getElementById('live-status').textContent='Error';
-    if(!silent) showToast('โหลดข้อมูลล้มเหลว','❌','error');
+    document.getElementById('live-txt').textContent='Error';
+    if(!silent) toast('โหลดล้มเหลว','❌','error');
   }
 }
 
-// ===== NEW TICKET ALERT =====
-function showNewTicketAlert(tickets){
-  const alert = document.getElementById('new-alert');
-  const body  = document.getElementById('alert-body');
-  const tid   = document.getElementById('alert-ticket');
-  body.textContent  = `มี ${tickets.length} งานใหม่เข้ามา — ${tickets[0].category||'ไม่ระบุ'} · ${tickets[0].building||tickets[0].location||''}`;
-  tid.textContent   = tickets[0].ticket_id;
-  alert.classList.add('show');
-  setTimeout(()=>alert.classList.remove('show'), 8000);
-  // เสียงแจ้งเตือน (ถ้าเบราว์เซอร์อนุญาต)
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const osc=ctx.createOscillator();
-    const gain=ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value=880; gain.gain.value=0.1;
-    osc.start(); osc.stop(ctx.currentTime+0.15);
-  }catch(e){}
+// ===== ALERT =====
+function showAlert(arr){
+  const al=document.getElementById('new-alert');
+  document.getElementById('alert-body').textContent=`${arr.length} งานใหม่ — ${arr[0].category||'ไม่ระบุ'} · ${arr[0].building||arr[0].location||''}`;
+  document.getElementById('alert-id').textContent=arr[0].ticket_id;
+  al.classList.add('show');
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=0.08;o.start();o.stop(ctx.currentTime+0.15);}catch(e){}
+  setTimeout(()=>al.classList.remove('show'),8000);
 }
-
-function showKPINewBadge(){
-  const badge=document.getElementById('kpi-new-badge');
-  badge.classList.add('show');
-  setTimeout(()=>badge.classList.remove('show'),10000);
-}
-
-function closeAlert(){ document.getElementById('new-alert').classList.remove('show'); }
+function showKPINew(){const b=document.getElementById('kpi-new');b.classList.add('show');setTimeout(()=>b.classList.remove('show'),10000);}
+function closeAlert(){document.getElementById('new-alert').classList.remove('show');}
 
 // ===== RENDER ALL =====
 function renderAll(){
-  renderKPI();
-  renderCharts();
-  renderBoards();
-  renderTechList();
-  renderTimeline();
-  updatePendingBadge();
-
-  const activePage = document.querySelector('.page.active')?.id;
-  if(activePage==='page-tickets') renderTicketsPage();
-  if(activePage==='page-technicians') renderTechGrid();
-  if(activePage==='page-history') renderHistoryPage();
-  if(activePage==='page-report') renderReportPage();
+  renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderPendingBadge();
+  const ap=document.querySelector('.page.active')?.id;
+  if(ap==='page-tickets') renderTicketsPage();
+  if(ap==='page-technicians') renderTechGrid();
+  if(ap==='page-history') renderHistory();
+  if(ap==='page-report') renderReport();
 }
 
-// ===== RENDER BOARDS =====
-function renderBoards(){
-  console.log('renderBoards called, tickets:', allTickets.length);
-  const base=getBase();
-  const pending=base.filter(t=>t.status==='pending'||t.status==='assigned');
-  const inprog =base.filter(t=>t.status==='in_progress');
-  const done   =base.filter(t=>t.status==='done').slice(0,10); // แสดงแค่ 10 รายการล่าสุด
-
-  document.getElementById('count-pending').textContent=pending.length;
-  document.getElementById('count-inprogress').textContent=inprog.length;
-  document.getElementById('count-done').textContent=base.filter(t=>t.status==='done').length;
-
-  document.getElementById('board-pending').innerHTML   = pending.length ? pending.map(t=>makeBoardCard(t)).join('') : '<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">ไม่มีงานค้าง</div></div>';
-  document.getElementById('board-inprogress').innerHTML= inprog.length  ? inprog.map(t=>makeBoardCard(t)).join('')  : '<div class="empty"><div class="empty-icon">💤</div><div class="empty-text">ยังไม่มีงาน</div></div>';
-  document.getElementById('board-done').innerHTML      = done.length    ? done.map(t=>makeBoardCard(t)).join('')    : '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มีงานเสร็จ</div></div>';
-}
-
-function makeBoardCard(t){
-  const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
-  const shortDesc=t.description.length>50?t.description.substring(0,50)+'…':t.description;
-  const shortId=t.ticket_id.length>22?t.ticket_id.substring(0,22)+'…':t.ticket_id;
-  const newBadge=t._new?'<span class="new-row-badge">NEW</span>':'';  
-  const priColor=t.priority==='high'?'var(--red)':t.priority==='med'?'var(--orange)':' var(--green)';
-  const priLabel=t.priority==='high'?'🔴':t.priority==='med'?'🟡':'🟢';
-
-  let actionBtns='';
-  if(t.status==='pending'||t.status==='rejected'){
-    actionBtns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
-  } else if(t.status==='assigned'){
-    actionBtns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px;background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
-  } else if(t.status==='in_progress'){
-    actionBtns+=`<button class="btn-done" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
-  }
-  actionBtns+=`<button class="btn-view" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
-
-  actionBtns+=`<button class="btn-view" style="padding:4px 8px;font-size:10px" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
-
-  return `<div class="ticket-card ${t._new?'new-card':''}" onclick="openDetail('${t.ticket_id}')">
-    <div class="ticket-card-header">
-      <span class="ticket-card-id">${shortId}</span>
-      ${newBadge}
-      <span style="margin-left:auto;font-size:10px;font-weight:600;color:${priColor}">${priLabel}</span>
-    </div>
-    <div class="ticket-card-desc">${shortDesc||'ไม่มีรายละเอียด'}</div>
-    <div class="ticket-card-meta">
-      <span>📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
-      <span>${assignStr} &nbsp;·&nbsp; 🕐 ${timeStr}</span>
-    </div>
-    <div class="ticket-card-actions">${actionBtns}</div>
-  </div>`;
-}
-
-// ===== FILTERS =====
-function getBase(){ return allTickets.filter(t=>currentTeam==='all'||t.team===currentTeam||t.department===currentTeam); }
-function getFiltered(){
-  const base=getBase();
-  const s=(document.getElementById('search-input')?.value||'').toLowerCase();
-  return base.filter(t=>{
-    const sm=currentFilter==='all'||
-      (currentFilter==='pending'&&(t.status==='pending'||t.status==='assigned'))||
-      (currentFilter==='in_progress'&&t.status==='in_progress')||
-      t.status===currentFilter;
-    const qm=!s||t.ticket_id.toLowerCase().includes(s)||t.description.toLowerCase().includes(s)||
-      t.category.toLowerCase().includes(s)||(t.building||t.location).toLowerCase().includes(s)||
-      t.assigned_to.toLowerCase().includes(s)||t.room.toLowerCase().includes(s);
-    return sm&&qm;
-  });
-}
-
-function filterStatus(s){
-  currentFilter=s;
-  ['all','pending','inprogress','done'].forEach(c=>document.getElementById('chip-'+c)?.classList.remove('active'));
-  document.getElementById('chip-'+(s==='in_progress'?'inprogress':s))?.classList.add('active');
-  
-  renderTicketsPage();
-}
-function onTeamChange(){ currentTeam=document.getElementById('team-filter').value; renderAll(); }
-function onSearch(){  }
+// ===== BASE FILTER =====
+function getBase(){return tickets.filter(t=>currentTeam==='all'||t.team===currentTeam||t.department===currentTeam);}
 
 // ===== KPI =====
 function renderKPI(){
   const b=getBase();
-  document.getElementById('kpi-all').textContent=b.length;
-  document.getElementById('kpi-pending').textContent=b.filter(t=>t.status==='pending'||t.status==='assigned').length;
-  document.getElementById('kpi-inprogress').textContent=b.filter(t=>t.status==='in_progress').length;
-  document.getElementById('kpi-done').textContent=b.filter(t=>t.status==='done').length;
+  document.getElementById('k-all').textContent=b.length;
+  document.getElementById('k-pending').textContent=b.filter(t=>t.status==='pending'||t.status==='assigned').length;
+  document.getElementById('k-inprog').textContent=b.filter(t=>t.status==='in_progress').length;
+  document.getElementById('k-done').textContent=b.filter(t=>t.status==='done').length;
+  const n=new Date();
+  document.getElementById('k-sub').textContent=`อัปเดต ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} น.`;
 }
-
-function updatePendingBadge(){
+function renderPendingBadge(){
   const n=getBase().filter(t=>t.status==='pending'||t.status==='assigned').length;
-  const badge=document.getElementById('pending-badge');
-  badge.textContent=n;
-  badge.style.display=n>0?'inline-block':'none';
+  const b=document.getElementById('pending-badge');
+  b.textContent=n; b.style.display=n>0?'inline-block':'none';
 }
 
 // ===== CHARTS =====
 function renderCharts(){
   const b=getBase();
   // Donut
-  if(charts.status) charts.status.destroy();
-  charts.status=new Chart(document.getElementById('chart-status').getContext('2d'),{
+  if(charts.s) charts.s.destroy();
+  charts.s=new Chart(document.getElementById('chart-status').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['รอดำเนินการ/มอบหมาย','กำลังซ่อม','เสร็จแล้ว'],
-      datasets:[{data:[b.filter(t=>t.status==='pending'||t.status==='assigned').length,b.filter(t=>t.status==='in_progress').length,b.filter(t=>t.status==='done').length],
-      backgroundColor:['#F59E0B','#3B82F6','#10B981'],borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10},padding:8}}},cutout:'68%'}
+    data:{labels:['รอ','มอบหมาย','กำลังซ่อม','เสร็จ'],
+      datasets:[{data:[b.filter(t=>t.status==='pending').length,b.filter(t=>t.status==='assigned').length,b.filter(t=>t.status==='in_progress').length,b.filter(t=>t.status==='done').length],
+      backgroundColor:['#F59E0B','#8B5CF6','#3B82F6','#10B981'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10},padding:8}}},cutout:'65%'}
   });
-  // Bar Category
+  // Bar
   const cats={};b.forEach(t=>{if(t.category)cats[t.category]=(cats[t.category]||0)+1;});
-  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  if(charts.cat) charts.cat.destroy();
-  charts.cat=new Chart(document.getElementById('chart-category').getContext('2d'),{
-    type:'bar',
-    data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:'rgba(59,130,246,0.2)',borderColor:'#3B82F6',borderWidth:1.5,borderRadius:4}]},
+  const cs=Object.entries(cats).sort((a,c)=>c[1]-a[1]).slice(0,6);
+  if(charts.c) charts.c.destroy();
+  charts.c=new Chart(document.getElementById('chart-cat').getContext('2d'),{
+    type:'bar',data:{labels:cs.map(([k])=>k),datasets:[{data:cs.map(([,v])=>v),backgroundColor:'rgba(59,130,246,0.2)',borderColor:'#3B82F6',borderWidth:1.5,borderRadius:4}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}},grid:{color:'#F1F5F9'}},y:{ticks:{color:'#94A3B8',stepSize:1},grid:{color:'#F1F5F9'}}}}
   });
-  // Line Daily
-  const days=[],counts=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const l=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-    const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-    days.push(l);counts.push(b.filter(t=>t.created_at&&t.created_at.startsWith(ds)).length);
-  }
-  if(charts.daily) charts.daily.destroy();
-  charts.daily=new Chart(document.getElementById('chart-daily').getContext('2d'),{
-    type:'line',
-    data:{labels:days,datasets:[{data:counts,borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,0.1)',fill:true,tension:0.4,pointBackgroundColor:'#F59E0B',pointRadius:4}]},
+  // Line
+  const days=[],cnts=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const l=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;days.push(l);cnts.push(b.filter(t=>t.created_at.startsWith(ds)).length);}
+  if(charts.d) charts.d.destroy();
+  charts.d=new Chart(document.getElementById('chart-daily').getContext('2d'),{
+    type:'line',data:{labels:days,datasets:[{data:cnts,borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,0.1)',fill:true,tension:0.4,pointBackgroundColor:'#F59E0B',pointRadius:4}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'JetBrains Mono',size:9}},grid:{color:'#F1F5F9'}},y:{ticks:{color:'#94A3B8',stepSize:1},grid:{color:'#F1F5F9'},min:0}}}
   });
 }
 
+// ===== KANBAN =====
+function renderKanban(){
+  const b=getBase();
+  const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
+  const inprog=b.filter(t=>t.status==='in_progress');
+  const done=b.filter(t=>t.status==='done').slice(0,15);
 
-// ===== TICKETS PAGE =====
-function renderTicketsPage(){
-  const tb=document.getElementById('tickets-page-body');
-  const sf=document.getElementById('ticket-status-filter')?.value||'all';
-  const pf=document.getElementById('ticket-priority-filter')?.value||'all';
-  const cf=document.getElementById('ticket-category-filter')?.value||'all';
-  const s=(document.getElementById('search-input')?.value||'').toLowerCase();
-  let data=getBase().filter(t=>{
-    const statusMatch = sf==='all' ||
-      (sf==='pending' && (t.status==='pending' || t.status==='assigned')) ||
-      (sf==='in_progress' && t.status==='in_progress') ||
-      t.status===sf;
-    return statusMatch&&(pf==='all'||t.priority===pf)&&(cf==='all'||t.category===cf)&&
-      (!s||t.ticket_id.toLowerCase().includes(s)||t.description.toLowerCase().includes(s)||t.category.toLowerCase().includes(s));
-  });
-  if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">ไม่พบข้อมูล</div></div></td></tr>`;return;}
-  tb.innerHTML=data.map(t=>makeRow(t,true)).join('');
+  document.getElementById('kb-count-pending').textContent=pend.length;
+  document.getElementById('kb-count-inprog').textContent=inprog.length;
+  document.getElementById('kb-count-done').textContent=b.filter(t=>t.status==='done').length;
+
+  const mkEmpty=(icon,txt)=>`<div class="kb-empty"><div class="kb-empty-icon">${icon}</div><div class="kb-empty-txt">${txt}</div></div>`;
+
+  document.getElementById('kb-pending').innerHTML=pend.length?pend.map(t=>mkCard(t)).join(''):mkEmpty('🎉','ไม่มีงานค้าง');
+  document.getElementById('kb-inprog').innerHTML=inprog.length?inprog.map(t=>mkCard(t)).join(''):mkEmpty('💤','ยังไม่มีงานกำลังซ่อม');
+  document.getElementById('kb-done').innerHTML=done.length?done.map(t=>mkCard(t)).join(''):mkEmpty('📋','ยังไม่มีงานเสร็จ');
 }
 
-// ===== TECH LIST (Dashboard) =====
+function mkCard(t){
+  const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+  const desc=t.description.length>55?t.description.substring(0,55)+'…':t.description;
+  const tid=t.ticket_id.length>22?t.ticket_id.substring(0,22)+'…':t.ticket_id;
+  const newB=t._new?'<span class="kb-new">NEW</span>':'';
+  const pri=t.priority==='high'?{l:'🔴 ฉุกเฉิน',c:'#EF4444'}:t.priority==='med'?{l:'🟡 เร่งด่วน',c:'#F59E0B'}:{l:'🟢 ปกติ',c:'#10B981'};
+  const ts=t.created_at?t.created_at.substring(0,16):'';
+  const assignee=t.assigned_to?`👤 ${t.assigned_to}`:'👤 ยังไม่มอบหมาย';
+
+  let btns='';
+  if(t.status==='pending'||t.status==='rejected'){
+    btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
+  }else if(t.status==='assigned'){
+    btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
+  }else if(t.status==='in_progress'){
+    btns+=`<button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  }
+  btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
+
+  const sc=t.status==='pending'?'pending':t.status==='assigned'?'assigned':t.status==='in_progress'?'inprog':'done';
+  return `
+  <div class="kb-card ${sc} ${t._new?'new-card':''}" onclick="openDetail('${t.ticket_id}')">
+    <div class="kb-card-top">
+      <span class="kb-id">${tid}</span>${newB}
+      <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
+    </div>
+    <div class="kb-desc">${desc||'ไม่มีรายละเอียด'}</div>
+    <div class="kb-meta">
+      <span>📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
+      <span>${assignee} &nbsp;·&nbsp; 🕐 ${ts}</span>
+    </div>
+    <div class="kb-actions">${btns}</div>
+  </div>`;
+}
+
+// ===== TECH LIST =====
 function renderTechList(){
-  const list=document.getElementById('tech-list');
-  list.innerHTML=MEMBERS.map(m=>{
+  document.getElementById('tech-list').innerHTML=MEMBERS.map(m=>{
     const a=getBase().filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
     const d=getBase().filter(t=>t.assigned_to===m.name&&t.status==='done').length;
     return `<div class="tech-item">
-      <div class="tech-avatar">${m.name.charAt(0)}</div>
+      <div class="tech-av">${m.name[0]}</div>
       <div class="tech-info"><div class="tech-name">${m.name}</div><div class="tech-role">${m.role}</div></div>
-      <div class="tech-stats"><div class="tech-active">${a} งานค้าง</div><div class="tech-done">เสร็จ ${d} งาน</div></div>
+      <div class="tech-stats"><div class="tech-active">${a} งานค้าง</div><div class="tech-done-stat">เสร็จ ${d} งาน</div></div>
       <div class="tech-dot ${a>0?'busy':'online'}"></div>
-    </div>`;
-  }).join('');
-}
-
-// ===== TECH GRID PAGE =====
-function renderTechGrid(){
-  const grid=document.getElementById('tech-grid');
-  const base=getBase();
-  grid.innerHTML=MEMBERS.map(m=>{
-    const active=base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
-    const done  =base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
-    const pending=base.filter(t=>t.assigned_to===m.name&&t.status==='pending').length;
-    return `<div class="tech-card">
-      <div class="tech-card-avatar">${m.name.charAt(0)}</div>
-      <div class="tech-card-name">${m.name}</div>
-      <div class="tech-card-role">${m.role}</div>
-      <div class="tech-card-stats">
-        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--orange)">${active}</div><div class="tech-stat-label">กำลังทำ</div></div>
-        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--green)">${done}</div><div class="tech-stat-label">เสร็จแล้ว</div></div>
-        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--text3)">${pending}</div><div class="tech-stat-label">รอรับงาน</div></div>
-      </div>
-      <div class="tech-dot ${active>0?'busy':'online'}" style="margin:10px auto 0;display:block;"></div>
     </div>`;
   }).join('');
 }
 
 // ===== TIMELINE =====
 function renderTimeline(){
-  const tl=document.getElementById('activity-timeline');
-  const recent=[...getBase()].reverse().slice(0,8);
-  if(!recent.length){tl.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มีกิจกรรม</div></div>';return;}
-  tl.innerHTML=recent.map(t=>`
-    <div class="tl-item">
-      <div class="tl-dot" style="background:${t.status==='done'?'var(--green)':t.status==='in_progress'?'var(--purple)':'var(--orange)'}"></div>
-      <div>
-        <div class="tl-action">${t.status==='done'?'✅ ปิดงาน':t.status==='in_progress'?'🔄 รับงาน':'📝 แจ้งงานใหม่'} — ${t.category||'ไม่ระบุ'}</div>
-        <div class="tl-time">${t.ticket_id.substring(0,20)} · ${t.created_at.substring(0,16)}</div>
-      </div>
-    </div>`).join('');
+  const r=[...getBase()].reverse().slice(0,8);
+  const tl=document.getElementById('timeline');
+  if(!r.length){tl.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-txt">ยังไม่มีกิจกรรม</div></div>';return;}
+  tl.innerHTML=r.map(t=>`<div class="tl-item">
+    <div class="tl-dot" style="background:${t.status==='done'?'var(--green)':t.status==='in_progress'?'var(--purple)':'var(--orange)'}"></div>
+    <div><div class="tl-action">${t.status==='done'?'✅ ปิดงาน':t.status==='in_progress'?'🔄 รับงาน':'📝 แจ้งงานใหม่'} — ${t.category||'ไม่ระบุ'}</div>
+    <div class="tl-time">${t.ticket_id.substring(0,20)} · ${t.created_at.substring(0,16)}</div></div>
+  </div>`).join('');
 }
 
-// ===== HISTORY PAGE =====
-function renderHistoryPage(){
-  const tb=document.getElementById('history-body');
-  const mf=document.getElementById('history-member-filter')?.value||'all';
-  const cf=document.getElementById('history-category-filter')?.value||'all';
-  let data=getBase().filter(t=>t.status==='done'&&(mf==='all'||t.assigned_to===mf)&&(cf==='all'||t.category===cf));
-  if(!data.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มีประวัติ</div></div></td></tr>`;return;}
+// ===== TICKETS PAGE =====
+function renderTicketsPage(){
+  const sf=document.getElementById('f-status')?.value||'all';
+  const pf=document.getElementById('f-priority')?.value||'all';
+  const cf=document.getElementById('f-category')?.value||'all';
+  const s=(document.getElementById('search-input')?.value||'').toLowerCase();
+  const data=getBase().filter(t=>{
+    const sm=sf==='all'||(sf==='pending'&&(t.status==='pending'||t.status==='assigned'))||(sf==='in_progress'&&t.status==='in_progress')||t.status===sf;
+    return sm&&(pf==='all'||t.priority===pf)&&(cf==='all'||t.category===cf)&&(!s||t.ticket_id.toLowerCase().includes(s)||t.description.toLowerCase().includes(s)||t.category.toLowerCase().includes(s));
+  });
+  const tb=document.getElementById('tickets-tbody');
+  if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">ไม่พบข้อมูล</div></div></td></tr>`;return;}
+  tb.innerHTML=data.map(t=>{
+    const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+    const sc=t.status==='pending'?'s-pending':t.status==='assigned'?'s-assigned':t.status==='in_progress'?'s-inprog':t.status==='done'?'s-done':'s-rejected';
+    const sl=t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมาย':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='done'?'✅ เสร็จ':'❌ ปฏิเสธ';
+    const pl=t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ';
+    const pc=t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low';
+    let btns='';
+    if(t.status==='pending'||t.status==='rejected') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
+    if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
+    if(t.status==='in_progress') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+    btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
+    return `<tr onclick="openDetail('${t.ticket_id}')">
+      <td><span class="tid">${t.ticket_id.substring(0,20)}</span></td>
+      <td style="font-size:10px;white-space:nowrap">${t.created_at.substring(0,16)}</td>
+      <td style="font-size:10px">${t.team||t.department||'—'}</td>
+      <td style="font-size:10px">${t.category||'—'}</td>
+      <td style="font-size:10px">${loc||'—'}</td>
+      <td style="font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.description||'—'}</td>
+      <td style="font-size:10px">${t.displayName||t.reported_by||'—'}</td>
+      <td><span class="pri-badge ${pc}">${pl}</span></td>
+      <td><span class="sbadge ${sc}">${sl}</span></td>
+      <td style="font-size:10px">${t.assigned_to||'—'}</td>
+      <td style="font-size:10px;white-space:nowrap">${t.assigned_at||'—'}</td>
+      <td style="font-size:10px;white-space:nowrap">${t.resolved_at||'—'}</td>
+      <td style="font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||'—'}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">${btns}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== TECH GRID =====
+function renderTechGrid(){
+  document.getElementById('tech-grid').innerHTML=MEMBERS.map(m=>{
+    const b=getBase();
+    const a=b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
+    const d=b.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
+    const p=b.filter(t=>t.assigned_to===m.name&&t.status==='pending').length;
+    return `<div class="tech-card">
+      <div class="tech-card-av">${m.name[0]}</div>
+      <div class="tech-card-name">${m.name}</div>
+      <div class="tech-card-role">${m.role}</div>
+      <div class="tech-card-stats">
+        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--orange)">${a}</div><div class="tech-stat-lbl">กำลังทำ</div></div>
+        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--green)">${d}</div><div class="tech-stat-lbl">เสร็จแล้ว</div></div>
+        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--text3)">${p}</div><div class="tech-stat-lbl">รอรับงาน</div></div>
+      </div>
+      <div class="tech-dot ${a>0?'busy':'online'}" style="margin:10px auto 0;display:block;"></div>
+    </div>`;
+  }).join('');
+}
+
+// ===== HISTORY =====
+function renderHistory(){
+  const mf=document.getElementById('h-member')?.value||'all';
+  const cf=document.getElementById('h-cat')?.value||'all';
+  const data=getBase().filter(t=>t.status==='done'&&(mf==='all'||t.assigned_to===mf)&&(cf==='all'||t.category===cf));
+  const tb=document.getElementById('history-tbody');
+  if(!data.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-txt">ยังไม่มีประวัติ</div></div></td></tr>`;return;}
   tb.innerHTML=data.map(t=>`<tr onclick="openDetail('${t.ticket_id}')">
-    <td><span class="ticket-id">${t.ticket_id.substring(0,20)}</span></td>
+    <td><span class="tid">${t.ticket_id.substring(0,20)}</span></td>
     <td style="font-size:10px;white-space:nowrap">${t.created_at.substring(0,16)}</td>
     <td style="font-size:10px">${t.category||'—'}</td>
     <td style="font-size:10px">${[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ')||'—'}</td>
@@ -984,304 +859,203 @@ function renderHistoryPage(){
   </tr>`).join('');
 }
 
-// ===== REPORT PAGE =====
-function renderReportPage(){
-  const base=getBase();
-  const done=base.filter(t=>t.status==='done');
-  const inprog=base.filter(t=>t.status==='in_progress');
-  const pend=base.filter(t=>t.status==='pending');
-  const grid=document.getElementById('report-grid');
-  grid.innerHTML=`
-    <div class="report-card">
-      <div class="report-card-title">📊 สรุปภาพรวม</div>
-      <div class="stat-row"><span class="stat-label">งานทั้งหมด</span><span class="stat-value">${base.length}</span></div>
-      <div class="stat-row"><span class="stat-label">รอดำเนินการ</span><span class="stat-value" style="color:var(--orange)">${pend.length}</span></div>
-      <div class="stat-row"><span class="stat-label">กำลังดำเนินการ</span><span class="stat-value" style="color:var(--purple)">${inprog.length}</span></div>
-      <div class="stat-row"><span class="stat-label">เสร็จสิ้น</span><span class="stat-value" style="color:var(--green)">${done.length}</span></div>
-      <div class="stat-row"><span class="stat-label">อัตราสำเร็จ</span><span class="stat-value" style="color:var(--green)">${base.length?Math.round(done.length/base.length*100):0}%</span></div>
+// ===== REPORT =====
+function renderReport(){
+  const b=getBase();
+  const done=b.filter(t=>t.status==='done');
+  document.getElementById('report-grid').innerHTML=`
+    <div class="report-card"><div class="report-ttl">📊 สรุปภาพรวม</div>
+      <div class="stat-row"><span class="stat-lbl">งานทั้งหมด</span><span class="stat-val">${b.length}</span></div>
+      <div class="stat-row"><span class="stat-lbl">รอดำเนินการ</span><span class="stat-val" style="color:var(--orange)">${b.filter(t=>t.status==='pending'||t.status==='assigned').length}</span></div>
+      <div class="stat-row"><span class="stat-lbl">กำลังดำเนินการ</span><span class="stat-val" style="color:var(--purple)">${b.filter(t=>t.status==='in_progress').length}</span></div>
+      <div class="stat-row"><span class="stat-lbl">เสร็จสิ้น</span><span class="stat-val" style="color:var(--green)">${done.length}</span></div>
+      <div class="stat-row"><span class="stat-lbl">อัตราสำเร็จ</span><span class="stat-val" style="color:var(--green)">${b.length?Math.round(done.length/b.length*100):0}%</span></div>
     </div>
-    <div class="report-card">
-      <div class="report-card-title">👥 ผลงานทีม</div>
-      ${MEMBERS.map(m=>{
-        const md=base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
-        const ma=base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
-        return `<div class="stat-row"><span class="stat-label">${m.name}</span><span class="stat-value">${md} เสร็จ · <span style="color:var(--orange)">${ma} ค้าง</span></span></div>`;
-      }).join('')}
+    <div class="report-card"><div class="report-ttl">👥 ผลงานทีม</div>
+      ${MEMBERS.map(m=>`<div class="stat-row"><span class="stat-lbl">${m.name}</span><span class="stat-val">${b.filter(t=>t.assigned_to===m.name&&t.status==='done').length} เสร็จ · <span style="color:var(--orange)">${b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length} ค้าง</span></span></div>`).join('')}
     </div>
-    <div class="report-card">
-      <div class="report-card-title">🏷️ ประเภทงานสูงสุด</div>
-      ${Object.entries(base.reduce((a,t)=>{if(t.category)a[t.category]=(a[t.category]||0)+1;return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>
-        `<div class="stat-row"><span class="stat-label">${k}</span><span class="stat-value">${v}</span></div>`
-      ).join('')}
+    <div class="report-card"><div class="report-ttl">🏷️ ประเภทงาน</div>
+      ${Object.entries(b.reduce((a,t)=>{if(t.category)a[t.category]=(a[t.category]||0)+1;return a},{})).sort((a,c)=>c[1]-a[1]).slice(0,6).map(([k,v])=>`<div class="stat-row"><span class="stat-lbl">${k}</span><span class="stat-val">${v}</span></div>`).join('')}
     </div>
-    <div class="report-card">
-      <div class="report-card-title">📍 สถานที่สูงสุด</div>
-      ${Object.entries(base.reduce((a,t)=>{const l=t.building||t.location;if(l)a[l]=(a[l]||0)+1;return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>
-        `<div class="stat-row"><span class="stat-label">${k}</span><span class="stat-value">${v}</span></div>`
-      ).join('')}
+    <div class="report-card"><div class="report-ttl">📍 สถานที่สูงสุด</div>
+      ${Object.entries(b.reduce((a,t)=>{const l=t.building||t.location;if(l)a[l]=(a[l]||0)+1;return a},{})).sort((a,c)=>c[1]-a[1]).slice(0,6).map(([k,v])=>`<div class="stat-row"><span class="stat-lbl">${k}</span><span class="stat-val">${v}</span></div>`).join('')}
     </div>`;
-
-  // Charts สำหรับ Report
-  const base2=getBase();
-  // Team chart
-  const teamMap={};base2.forEach(t=>{const l=t.team||t.department;if(l)teamMap[l]=(teamMap[l]||0)+1;});
+  // Charts
+  const tm={};b.forEach(t=>{const l=t.team||t.department;if(l)tm[l]=(tm[l]||0)+1;});
   if(charts.team) charts.team.destroy();
   const tc=document.getElementById('chart-team');
-  if(tc) charts.team=new Chart(tc.getContext('2d'),{type:'doughnut',data:{labels:Object.keys(teamMap),datasets:[{data:Object.values(teamMap),backgroundColor:['#10B981','#3B82F6','#F59E0B','#8B5CF6'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10}}}}}});
-  // Member chart
-  const memLabels=MEMBERS.map(m=>m.name);
-  const memDone=MEMBERS.map(m=>base2.filter(t=>t.assigned_to===m.name&&t.status==='done').length);
-  if(charts.member) charts.member.destroy();
+  if(tc) charts.team=new Chart(tc.getContext('2d'),{type:'doughnut',data:{labels:Object.keys(tm),datasets:[{data:Object.values(tm),backgroundColor:['#10B981','#3B82F6','#F59E0B','#8B5CF6'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10}}}}}});
+  const mn=MEMBERS.map(m=>m.name);
+  const md=MEMBERS.map(m=>b.filter(t=>t.assigned_to===m.name&&t.status==='done').length);
+  if(charts.mem) charts.mem.destroy();
   const mc=document.getElementById('chart-member');
-  if(mc) charts.member=new Chart(mc.getContext('2d'),{type:'bar',data:{labels:memLabels,datasets:[{label:'เสร็จ',data:memDone,backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10B981',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:10}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
-  // Location chart
-  const locMap={};base2.forEach(t=>{const l=t.building||t.location;if(l)locMap[l]=(locMap[l]||0)+1;});
-  const locSorted=Object.entries(locMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  if(charts.location) charts.location.destroy();
-  const lc=document.getElementById('chart-location');
-  if(lc) charts.location=new Chart(lc.getContext('2d'),{type:'bar',data:{labels:locSorted.map(([k])=>k),datasets:[{data:locSorted.map(([,v])=>v),backgroundColor:'rgba(245,158,11,0.25)',borderColor:'#F59E0B',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
+  if(mc) charts.mem=new Chart(mc.getContext('2d'),{type:'bar',data:{labels:mn,datasets:[{label:'เสร็จ',data:md,backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10B981',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:10}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
+  const lo={};b.forEach(t=>{const l=t.building||t.location;if(l)lo[l]=(lo[l]||0)+1;});
+  const ls=Object.entries(lo).sort((a,c)=>c[1]-a[1]).slice(0,6);
+  if(charts.loc) charts.loc.destroy();
+  const lc=document.getElementById('chart-loc');
+  if(lc) charts.loc=new Chart(lc.getContext('2d'),{type:'bar',data:{labels:ls.map(([k])=>k),datasets:[{data:ls.map(([,v])=>v),backgroundColor:'rgba(245,158,11,0.25)',borderColor:'#F59E0B',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
 }
 
-// ===== UPDATE CATEGORIES =====
-function updateCategories(){
-  const cats=[...new Set(allTickets.map(t=>t.category).filter(Boolean))].sort();
-  ['ticket-category-filter','history-category-filter'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(!el) return;
+// ===== CATEGORIES =====
+function updateCats(){
+  const cats=[...new Set(tickets.map(t=>t.category).filter(Boolean))].sort();
+  ['f-category','h-cat'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
     const v=el.value;
     el.innerHTML='<option value="all">ทุกประเภท</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
     el.value=v;
   });
 }
 
-// ===== MODAL =====
+// ===== UTILS =====
+function thaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
+
+// ===== MODALS =====
 function openAssign(id){
   currentId=id;
-  const t=allTickets.find(x=>x.ticket_id===id);
-  if(!t) return;
-  document.getElementById('assign-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">${t.description}</span>`;
-  document.getElementById('assign-member').value=t.assigned_to||'';
-  document.getElementById('assign-note').value='';
-  document.getElementById('assign-modal').classList.add('show');
+  const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
+  document.getElementById('m-assign-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">${t.description}</span>`;
+  document.getElementById('m-assign-member').value=t.assigned_to||'';
+  document.getElementById('m-assign-note').value='';
+  document.getElementById('m-assign').classList.add('show');
 }
-
-function openDone(id){
-  currentId=id;
-  const t=allTickets.find(x=>x.ticket_id===id);
-  if(!t) return;
-  document.getElementById('done-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
-  document.getElementById('done-note').value='';
-  document.getElementById('done-modal').classList.add('show');
-}
-
-function openDetail(id){
-  currentId=id;
-  const t=allTickets.find(x=>x.ticket_id===id);
-  if(!t) return;
-  document.getElementById('detail-content').innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-      <span class="ticket-id" style="font-size:12px">${t.ticket_id}</span>
-      <span class="status-badge status-${t.status}">${t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมายแล้ว':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='rejected'?'❌ ปฏิเสธ':'✅ เสร็จ'}</span>
-      <span class="priority-badge priority-${t.priority==='high'?'high':t.priority==='med'?'med':'low'}">${t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ'}</span>
-    </div>
-    <div class="detail-grid">
-      <div><div class="detail-item-label">ทีม</div><div class="detail-item-value">${t.team||t.department||'—'}</div></div>
-      <div><div class="detail-item-label">ประเภท</div><div class="detail-item-value">${t.category||'—'}</div></div>
-      <div><div class="detail-item-label">สถานที่</div><div class="detail-item-value">${t.building||t.location||'—'} ${t.room?'ห้อง '+t.room:''}</div></div>
-      <div><div class="detail-item-label">ผู้แจ้ง</div><div class="detail-item-value">${t.displayName||t.reported_by||'—'}</div></div>
-      <div><div class="detail-item-label">วันที่แจ้ง</div><div class="detail-item-value" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
-      <div><div class="detail-item-label">ผู้รับงาน</div><div class="detail-item-value">${t.assigned_to||'ยังไม่มอบหมาย'}</div></div>
-      <div><div class="detail-item-label">รับงานเมื่อ</div><div class="detail-item-value" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
-      <div><div class="detail-item-label">เสร็จงานเมื่อ</div><div class="detail-item-value" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
-      <div style="grid-column:1/-1"><div class="detail-item-label">รายละเอียด</div><div class="detail-item-value">${t.description||'—'}</div></div>
-      ${t.notes?`<div style="grid-column:1/-1"><div class="detail-item-label">หมายเหตุ</div><div class="detail-item-value">${t.notes}</div></div>`:''}
-      ${t.accepted_at?`<div><div class="detail-item-label">✅ รับงานเมื่อ</div><div class="detail-item-value" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at}</div></div>`:''}
-      ${t.response_min?`<div><div class="detail-item-label">⏱ เวลารับงาน</div><div class="detail-item-value" style="color:var(--blue)">${t.response_min} นาที</div></div>`:''}
-      ${t.completion_min?`<div><div class="detail-item-label">⏱ เวลาปิดงาน</div><div class="detail-item-value" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
-      ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-item-label" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at}</div><div class="detail-item-value" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
-    </div>`;
-  // แสดงปุ่มตาม status
-  const actions = document.getElementById('detail-modal-actions');
-  let actionBtns = '<button class="btn-cancel" onclick="closeModal(\'detail-modal\')">ปิด</button>';
-  if(t.status==='pending'||t.status==='rejected'){
-    actionBtns += `<button class="btn-confirm" onclick="closeModal('detail-modal');openAssign('${t.ticket_id}')">🔧 มอบหมายงาน</button>`;
-  } else if(t.status==='assigned'){
-    actionBtns += `<button class="btn-confirm" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="closeModal('detail-modal');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
-  } else if(t.status==='in_progress'){
-    actionBtns += `<button class="btn-confirm" onclick="closeModal('detail-modal');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
-  }
-  // status==='done' ไม่มีปุ่มเพิ่ม
-  actions.innerHTML = actionBtns;
-
-  document.getElementById('detail-modal').classList.add('show');
-}
-
-function closeModal(id){ document.getElementById(id).classList.remove('show'); }
-
-// ===== ACCEPT / REJECT =====
 function openAccept(id){
   currentId=id;
-  const t=allTickets.find(x=>x.ticket_id===id);
-  if(!t) return;
-  document.getElementById('accept-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">มอบหมายให้: ${t.assigned_to||'—'} เมื่อ ${t.assigned_at||'—'}</span>`;
+  const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
+  document.getElementById('m-accept-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">มอบหมายให้: ${t.assigned_to||'—'} เมื่อ ${t.assigned_at||'—'}</span>`;
   document.getElementById('reject-form').style.display='none';
   document.getElementById('reject-reason').value='';
-  document.getElementById('accept-modal').classList.add('show');
+  document.getElementById('m-accept').classList.add('show');
 }
-
-function showRejectForm(){
-  document.getElementById('reject-form').style.display='block';
+function showRejectForm(){document.getElementById('reject-form').style.display='block';}
+function openDone(id){
+  currentId=id;
+  const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
+  document.getElementById('m-done-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
+  document.getElementById('m-done-note').value='';
+  document.getElementById('m-done').classList.add('show');
 }
+function openDetail(id){
+  currentId=id;
+  const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
+  const sc=t.status==='pending'?'s-pending':t.status==='assigned'?'s-assigned':t.status==='in_progress'?'s-inprog':t.status==='done'?'s-done':'s-rejected';
+  const sl=t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมาย':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='done'?'✅ เสร็จ':'❌ ปฏิเสธ';
+  document.getElementById('m-detail-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span class="tid" style="font-size:12px">${t.ticket_id}</span>
+      <span class="sbadge ${sc}">${sl}</span>
+      <span class="pri-badge ${t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low'}">${t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ'}</span>
+    </div>
+    <div class="detail-grid">
+      <div><div class="detail-lbl">ทีม</div><div class="detail-val">${t.team||t.department||'—'}</div></div>
+      <div><div class="detail-lbl">ประเภท</div><div class="detail-val">${t.category||'—'}</div></div>
+      <div><div class="detail-lbl">สถานที่</div><div class="detail-val">${t.building||t.location||'—'} ${t.room?'ห้อง '+t.room:''}</div></div>
+      <div><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||'—'}</div></div>
+      <div><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
+      <div><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}</div></div>
+      <div><div class="detail-lbl">มอบหมายเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
+      <div><div class="detail-lbl">รับงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at||'—'}</div></div>
+      <div><div class="detail-lbl">เสร็จงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
+      ${t.response_min?`<div><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${t.response_min} นาที</div></div>`:''}
+      ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
+      <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
+      ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
+      ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at} โดย ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
+    </div>`;
+  // ปุ่มตาม status
+  const ac=document.getElementById('m-detail-actions');
+  let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">ปิด</button>`;
+  if(t.status==='pending'||t.status==='rejected') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
+  else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
+  else if(t.status==='in_progress') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  ac.innerHTML=ab;
+  document.getElementById('m-detail').classList.add('show');
+}
+function closeM(id){document.getElementById(id).classList.remove('show');}
 
-async function confirmAccept(){
-  const t=allTickets.find(x=>x.ticket_id===currentId);
-  if(!t) return;
-  const ts=getThaiTime();
+// ===== API CALLS =====
+async function doAssign(){
+  const member=document.getElementById('m-assign-member').value;
+  const note=document.getElementById('m-assign-note').value;
+  if(!member){toast('กรุณาเลือกสมาชิก','⚠️','info');return;}
+  const btn=document.getElementById('btn-assign-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  const t=tickets.find(x=>x.ticket_id===currentId);
+  const ts=thaiTime();
   try{
-    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts})});
-    const r=await res.json();
-    if(r.success){
-      t.status='in_progress';t.accepted_at=ts;
-      closeModal('accept-modal');renderAll();
-      showToast(`รับงาน ${currentId} เรียบร้อย`,'✅','success');
-    }else showToast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
-  }catch(e){showToast('Error: '+e.message,'❌','error');}
-}
-
-async function confirmReject(){
-  const reason=document.getElementById('reject-reason').value.trim();
-  if(!reason){showToast('กรุณาระบุเหตุผล','⚠️','info');return;}
-  const t=allTickets.find(x=>x.ticket_id===currentId);
-  if(!t) return;
-  const ts=getThaiTime();
-  try{
-    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
-      action:'reject',ticket_id:currentId,rejected_at:ts,
-      rejected_by:t.assigned_to,reject_reason:reason
-    })});
-    const r=await res.json();
-    if(r.success){
-      t.status='pending';t.assigned_to='';t.assigned_at='';
-      t.rejected_at=ts;t.reject_reason=reason;
-      closeModal('accept-modal');renderAll();
-      showToast(`ปฏิเสธงาน ${currentId} — กรุณามอบหมายใหม่`,'⚠️','info');
-    }else showToast('บันทึกไม่สำเร็จ','❌','error');
-  }catch(e){showToast('Error: '+e.message,'❌','error');}
-}
-
-// ===== CONFIRM ASSIGN =====
-function getThaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600*1000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
-
-async function confirmAssign(){
-  const member=document.getElementById('assign-member').value;
-  const note=document.getElementById('assign-note').value;
-  if(!member){showToast('กรุณาเลือกสมาชิก','⚠️','info');return;}
-  const btn=document.getElementById('btn-assign-confirm');
-  btn.disabled=true;btn.textContent='กำลังบันทึก...';
-  const t=allTickets.find(x=>x.ticket_id===currentId);
-  if(!t){btn.disabled=false;btn.textContent='✅ ยืนยัน';return;}
-  const ts=getThaiTime();
-  try{
-    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_at:ts,notes:note||''})});
-    const r=await res.json();
-    if(r.success){t.status='assigned';t.assigned_to=member;t.assigned_at=ts;if(note)t.notes=note;closeModal('assign-modal');renderAll();showToast(`มอบหมายให้ ${member} เรียบร้อย — รอช่างรับงาน`,'🎉','success');}
-    else showToast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
-  }catch(e){showToast('Error: '+e.message,'❌','error');}
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_at:ts,notes:note||''})})).json();
+    if(r.success){t.status='assigned';t.assigned_to=member;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(`มอบหมายให้ ${member} เรียบร้อย — รอช่างรับงาน`,'🎉','success');}
+    else toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
+  }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันมอบหมาย';
 }
-
-async function confirmDone(){
-  const note=document.getElementById('done-note').value;
-  const btn=document.getElementById('btn-done-confirm');
-  btn.disabled=true;btn.textContent='กำลังบันทึก...';
-  const t=allTickets.find(x=>x.ticket_id===currentId);
-  if(!t){btn.disabled=false;btn.textContent='✅ ยืนยัน';return;}
-  const ts=getThaiTime();
+async function doAccept(){
+  const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
+  const ts=thaiTime();
   try{
-    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,notes:note||''})});
-    const r=await res.json();
-    if(r.success){t.status='done';t.resolved_at=ts;if(note)t.notes=note;closeModal('done-modal');renderAll();showToast(`ปิดงาน ${currentId} เรียบร้อย`,'🎉','success');}
-    else showToast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
-  }catch(e){showToast('Error: '+e.message,'❌','error');}
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts})})).json();
+    if(r.success){t.status='in_progress';t.accepted_at=ts;closeM('m-accept');renderAll();toast(`รับงาน ${currentId} เรียบร้อย`,'✅','success');}
+    else toast('บันทึกไม่สำเร็จ','❌','error');
+  }catch(e){toast('Error: '+e.message,'❌','error');}
+}
+async function doReject(){
+  const reason=document.getElementById('reject-reason').value.trim();
+  if(!reason){toast('กรุณาระบุเหตุผล','⚠️','info');return;}
+  const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
+  const ts=thaiTime();
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason})})).json();
+    if(r.success){t.status='pending';t.assigned_to='';t.assigned_at='';t.rejected_at=ts;t.reject_reason=reason;closeM('m-accept');renderAll();toast(`ปฏิเสธงาน ${currentId} — กรุณามอบหมายใหม่`,'⚠️','info');}
+    else toast('บันทึกไม่สำเร็จ','❌','error');
+  }catch(e){toast('Error: '+e.message,'❌','error');}
+}
+async function doDone(){
+  const note=document.getElementById('m-done-note').value;
+  const btn=document.getElementById('btn-done-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  const t=tickets.find(x=>x.ticket_id===currentId);
+  const ts=thaiTime();
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,notes:note||''})})).json();
+    if(r.success){t.status='done';t.resolved_at=ts;if(note)t.notes=note;closeM('m-done');renderAll();toast(`ปิดงาน ${currentId} เรียบร้อย`,'🎉','success');}
+    else toast('บันทึกไม่สำเร็จ','❌','error');
+  }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันปิดงาน';
 }
 
-// ===== EXPORT PDF =====
+// ===== PDF =====
 function exportPDF(){
-  showToast('กำลัง Export PDF...','📄','info');
+  toast('กำลัง Export PDF...','📄','info');
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  const base=getBase();
-  // Title
-  doc.setFillColor(30,41,59);
-  doc.rect(0,0,297,20,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(14);
-  doc.setFont('helvetica','bold');
-  doc.text('SYY Service Hub - Maintenance Report',10,13);
-  doc.setFontSize(9);
-  doc.setFont('helvetica','normal');
-  doc.text(`Generated: ${new Date().toLocaleString('th-TH')}`,220,13);
-  // KPI
-  const kpis=[
-    {label:'Total',val:base.length,color:[59,130,246]},
-    {label:'Pending',val:base.filter(t=>t.status==='pending').length,color:[245,158,11]},
-    {label:'In Progress',val:base.filter(t=>t.status==='in_progress').length,color:[139,92,246]},
-    {label:'Done',val:base.filter(t=>t.status==='done').length,color:[16,185,129]},
-  ];
-  kpis.forEach((k,i)=>{
-    const x=10+i*70;
-    doc.setFillColor(...k.color);
-    doc.roundedRect(x,24,65,16,2,2,'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(16);doc.setFont('helvetica','bold');
-    doc.text(String(k.val),x+8,34);
-    doc.setFontSize(8);doc.setFont('helvetica','normal');
-    doc.text(k.label,x+8,38);
-  });
-  // Table
-  doc.setTextColor(30,41,59);
-  doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('Ticket List',10,48);
-  const headers=['Ticket ID','Date','Category','Location','Description','Status','Assigned To'];
-  const colW=[40,28,22,24,60,20,24];
-  let y=52;
-  doc.setFillColor(248,250,252);doc.rect(10,y-4,277,6,'F');
+  const b=getBase();
+  doc.setFillColor(30,41,59);doc.rect(0,0,297,18,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text('SYY Service Hub - Maintenance Report',10,12);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text(`Generated: ${new Date().toLocaleString('th-TH')}`,220,12);
+  const kpis=[{l:'Total',v:b.length,c:[59,130,246]},{l:'Pending',v:b.filter(t=>t.status==='pending'||t.status==='assigned').length,c:[245,158,11]},{l:'In Progress',v:b.filter(t=>t.status==='in_progress').length,c:[139,92,246]},{l:'Done',v:b.filter(t=>t.status==='done').length,c:[16,185,129]}];
+  kpis.forEach((k,i)=>{const x=10+i*70;doc.setFillColor(...k.c);doc.roundedRect(x,22,65,14,2,2,'F');doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text(String(k.v),x+7,31);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text(k.l,x+7,35);});
+  doc.setTextColor(30,41,59);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('Ticket List',10,44);
+  const hs=['Ticket ID','Date','Category','Location','Description','Status','Assigned To'];const cw=[40,26,22,24,62,22,22];
+  let y=48,x=10;
+  doc.setFillColor(248,250,252);doc.rect(10,y-4,274,6,'F');
   doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(100,116,139);
-  let x=10;
-  headers.forEach((h,i)=>{doc.text(h,x+1,y);x+=colW[i];});
-  y+=4;
+  hs.forEach((h,i)=>{doc.text(h,x+1,y);x+=cw[i];});y+=4;
   doc.setFont('helvetica','normal');doc.setTextColor(30,41,59);
-  base.slice(0,40).forEach((t,idx)=>{
+  b.slice(0,40).forEach((t,idx)=>{
     if(y>190){doc.addPage();y=15;}
-    if(idx%2===0){doc.setFillColor(248,250,252);doc.rect(10,y-3,277,5,'F');}
-    doc.setFontSize(6.5);
-    const row=[
-      t.ticket_id.substring(0,22),
-      t.created_at.substring(0,10),
-      (t.category||'').substring(0,14),
-      ([t.building||t.location,t.room?'#'+t.room:''].filter(Boolean).join(' ')).substring(0,16),
-      (t.description||'').substring(0,35),
-      t.status==='done'?'Done':t.status==='in_progress'?'In Progress':'Pending',
-      (t.assigned_to||'—').substring(0,14),
-    ];
+    if(idx%2===0){doc.setFillColor(248,250,252);doc.rect(10,y-3,274,5,'F');}
+    const row=[t.ticket_id.substring(0,22),t.created_at.substring(0,10),(t.category||'').substring(0,14),([t.building||t.location,t.room?'#'+t.room:''].filter(Boolean).join(' ')).substring(0,16),(t.description||'').substring(0,38),t.status==='done'?'Done':t.status==='in_progress'?'In Progress':'Pending',(t.assigned_to||'—').substring(0,14)];
     x=10;
-    row.forEach((v,i)=>{
-      if(i===5){
-        const c=t.status==='done'?[16,185,129]:t.status==='in_progress'?[139,92,246]:[245,158,11];
-        doc.setTextColor(...c);
-      }else doc.setTextColor(30,41,59);
-      doc.text(String(v),x+1,y);
-      x+=colW[i];
-    });
+    row.forEach((v,i)=>{if(i===5){const c=t.status==='done'?[16,185,129]:t.status==='in_progress'?[139,92,246]:[245,158,11];doc.setTextColor(...c);}else doc.setTextColor(30,41,59);doc.setFontSize(6.5);doc.text(String(v),x+1,y);x+=cw[i];});
     y+=5;
   });
   doc.save(`SYY_Report_${new Date().toISOString().substring(0,10)}.pdf`);
-  showToast('Export PDF สำเร็จ','✅','success');
+  toast('Export PDF สำเร็จ','✅','success');
 }
 
 // ===== TOAST =====
-function showToast(msg,icon='✅',type='success'){
+function toast(msg,icon='✅',type='success'){
   const t=document.getElementById('toast');
   document.getElementById('toast-msg').textContent=msg;
   document.getElementById('toast-icon').textContent=icon;
@@ -1290,31 +1064,31 @@ function showToast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-function showPage(page,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
+function showPage(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
   el.classList.add('active');
   const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',report:'📈 รายงาน'};
-  document.getElementById('page-title').textContent=titles[page]||'Dashboard';
-  if(page==='tickets') renderTicketsPage();
-  if(page==='technicians') renderTechGrid();
-  if(page==='history') renderHistoryPage();
-  if(page==='report') renderReportPage();
+  document.getElementById('page-title').textContent=titles[p]||'Dashboard';
+  if(p==='tickets') renderTicketsPage();
+  if(p==='technicians') renderTechGrid();
+  if(p==='history') renderHistory();
+  if(p==='report') renderReport();
 }
-
-function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('open');
+function onTeam(){currentTeam=document.getElementById('team-filter').value;renderAll();}
+function onSearch(){
+  const ap=document.querySelector('.page.active')?.id;
+  if(ap==='page-tickets') renderTicketsPage();
+  else renderKanban();
 }
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open');}
 
-// Close overlay
-document.querySelectorAll('.modal-overlay').forEach(o=>{
-  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});
-});
+// MODAL CLOSE ON OUTSIDE CLICK
+document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
 document.addEventListener('click',e=>{
   const sb=document.getElementById('sidebar');
-  if(window.innerWidth<=768&&sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.hamburger'))
-    sb.classList.remove('open');
+  if(window.innerWidth<=768&&sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.hamburger'))sb.classList.remove('open');
 });
 </script>
 </body>
