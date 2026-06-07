@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SYY Service Hub — Dashboard</title>
+<title>SYY Service Hub — Dashboard v20260607040631</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -110,7 +110,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* CHARTS */
 .charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
-.chart-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
+.chart-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);}
 .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .chart-title{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;}
 .chart-title-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
@@ -239,6 +239,32 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 .toast.success{border-left:3px solid var(--green);}
 .toast.error{border-left:3px solid var(--red);}
 .toast.info{border-left:3px solid var(--blue);}
+
+/* TICKET CARD IN BOARD */
+.ticket-card{
+  background:#FFFFFF;
+  margin:8px;
+  border-radius:10px;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.ticket-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  border-color:var(--blue);
+}
+.ticket-card.new-card{
+  border-left:3px solid var(--red);
+  animation:rowHighlight 3s ease-out forwards;
+}
+.ticket-card-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.ticket-card-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:600;}
+.ticket-card-desc{font-size:12px;color:var(--text);margin-bottom:6px;line-height:1.5;font-weight:500;}
+.ticket-card-meta{font-size:10px;color:var(--text2);margin-bottom:8px;display:flex;flex-direction:column;gap:2px;}
+.ticket-card-actions{display:flex;gap:4px;flex-wrap:wrap;}
 
 /* LOADING & EMPTY */
 .loading{display:flex;align-items:center;justify-content:center;padding:40px;flex-direction:column;gap:10px;}
@@ -402,15 +428,15 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
       <div class="charts-row">
         <div class="chart-card">
           <div class="chart-header"><div class="chart-title"><div class="chart-title-dot"></div>สถานะงาน</div></div>
-          <canvas id="chart-status" height="150"></canvas>
+          <canvas id="chart-status" height="105"></canvas>
         </div>
         <div class="chart-card">
           <div class="chart-header"><div class="chart-title"><div class="chart-title-dot" style="background:var(--blue)"></div>ประเภทงาน</div></div>
-          <canvas id="chart-category" height="150"></canvas>
+          <canvas id="chart-category" height="105"></canvas>
         </div>
         <div class="chart-card">
           <div class="chart-header"><div class="chart-title"><div class="chart-title-dot" style="background:var(--orange)"></div>งานรายวัน 7 วัน</div></div>
-          <canvas id="chart-daily" height="150"></canvas>
+          <canvas id="chart-daily" height="105"></canvas>
         </div>
       </div>
       <div class="table-card">
@@ -741,7 +767,7 @@ function closeAlert(){ document.getElementById('new-alert').classList.remove('sh
 function renderAll(){
   renderKPI();
   renderCharts();
-  renderDashboardTable();
+  renderBoards();
   renderTechList();
   renderTimeline();
   updatePendingBadge();
@@ -751,6 +777,58 @@ function renderAll(){
   if(activePage==='page-technicians') renderTechGrid();
   if(activePage==='page-history') renderHistoryPage();
   if(activePage==='page-report') renderReportPage();
+}
+
+// ===== RENDER BOARDS =====
+function renderBoards(){
+  console.log('renderBoards called, tickets:', allTickets.length);
+  const base=getBase();
+  const pending=base.filter(t=>t.status==='pending'||t.status==='assigned');
+  const inprog =base.filter(t=>t.status==='in_progress');
+  const done   =base.filter(t=>t.status==='done').slice(0,10); // แสดงแค่ 10 รายการล่าสุด
+
+  document.getElementById('count-pending').textContent=pending.length;
+  document.getElementById('count-inprogress').textContent=inprog.length;
+  document.getElementById('count-done').textContent=base.filter(t=>t.status==='done').length;
+
+  document.getElementById('board-pending').innerHTML   = pending.length ? pending.map(t=>makeBoardCard(t)).join('') : '<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">ไม่มีงานค้าง</div></div>';
+  document.getElementById('board-inprogress').innerHTML= inprog.length  ? inprog.map(t=>makeBoardCard(t)).join('')  : '<div class="empty"><div class="empty-icon">💤</div><div class="empty-text">ยังไม่มีงาน</div></div>';
+  document.getElementById('board-done').innerHTML      = done.length    ? done.map(t=>makeBoardCard(t)).join('')    : '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มีงานเสร็จ</div></div>';
+}
+
+function makeBoardCard(t){
+  const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+  const shortDesc=t.description.length>50?t.description.substring(0,50)+'…':t.description;
+  const shortId=t.ticket_id.length>22?t.ticket_id.substring(0,22)+'…':t.ticket_id;
+  const newBadge=t._new?'<span class="new-row-badge">NEW</span>':'';  
+  const priColor=t.priority==='high'?'var(--red)':t.priority==='med'?'var(--orange)':' var(--green)';
+  const priLabel=t.priority==='high'?'🔴':t.priority==='med'?'🟡':'🟢';
+
+  let actionBtns='';
+  if(t.status==='pending'||t.status==='rejected'){
+    actionBtns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
+  } else if(t.status==='assigned'){
+    actionBtns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px;background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
+  } else if(t.status==='in_progress'){
+    actionBtns+=`<button class="btn-done" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  }
+  actionBtns+=`<button class="btn-view" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
+
+  actionBtns+=`<button class="btn-view" style="padding:4px 8px;font-size:10px" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
+
+  return `<div class="ticket-card ${t._new?'new-card':''}" onclick="openDetail('${t.ticket_id}')">
+    <div class="ticket-card-header">
+      <span class="ticket-card-id">${shortId}</span>
+      ${newBadge}
+      <span style="margin-left:auto;font-size:10px;font-weight:600;color:${priColor}">${priLabel}</span>
+    </div>
+    <div class="ticket-card-desc">${shortDesc||'ไม่มีรายละเอียด'}</div>
+    <div class="ticket-card-meta">
+      <span>📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
+      <span>${assignStr} &nbsp;·&nbsp; 🕐 ${timeStr}</span>
+    </div>
+    <div class="ticket-card-actions">${actionBtns}</div>
+  </div>`;
 }
 
 // ===== FILTERS =====
@@ -774,11 +852,11 @@ function filterStatus(s){
   currentFilter=s;
   ['all','pending','inprogress','done'].forEach(c=>document.getElementById('chip-'+c)?.classList.remove('active'));
   document.getElementById('chip-'+(s==='in_progress'?'inprogress':s))?.classList.add('active');
-  renderDashboardTable();
+  
   renderTicketsPage();
 }
 function onTeamChange(){ currentTeam=document.getElementById('team-filter').value; renderAll(); }
-function onSearch(){ renderDashboardTable(); }
+function onSearch(){  }
 
 // ===== KPI =====
 function renderKPI(){
