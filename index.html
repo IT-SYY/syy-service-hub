@@ -7,313 +7,116 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-
   :root {
-    --green: #06C755;
-    --green-dark: #04A040;
-    --green-light: #E8FBF0;
-    --green-mid: #D0F5E3;
-    --navy: #0A1628;
-    --navy-mid: #1A2A40;
-    --text: #1A1A2E;
-    --text-muted: #6B7280;
-    --border: #E5E7EB;
-    --white: #FFFFFF;
-    --radius: 14px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --green:#06C755;--green-dark:#04A040;--green-light:#E8FBF0;--green-mid:#D0F5E3;
+    --navy:#0A1628;--text:#1A1A2E;--text-muted:#6B7280;--border:#E5E7EB;--radius:14px;
+    --shadow:0 4px 24px rgba(0,0,0,0.08);
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    font-family: 'Sarabun', sans-serif;
-    background: #F0F4F8;
-    min-height: 100vh;
-    color: var(--text);
-    padding-bottom: 40px;
-  }
-
-  .header {
-    background: linear-gradient(135deg, #06C755 0%, #04903C 100%);
-    padding: 20px 20px 28px;
-    position: relative;
-    overflow: hidden;
-  }
-  .header::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-  }
-  .header::after {
-    content: '';
-    position: absolute;
-    bottom: -20px; left: 40px;
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-  }
-  .header-inner { position: relative; z-index: 1; }
-  .header-logo {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 12px;
-  }
-  .logo-circle {
-    width: 40px; height: 40px; border-radius: 50%;
-    background: rgba(255,255,255,0.25);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-  .logo-text { font-size: 15px; font-weight: 700; color: white; }
-  .logo-sub  { font-size: 12px; color: rgba(255,255,255,0.8); }
-  .header h1 { font-size: 22px; font-weight: 700; color: white; line-height: 1.3; }
-  .header p  { font-size: 13px; color: rgba(255,255,255,0.85); margin-top: 4px; }
-
-  .user-chip {
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 30px; padding: 8px 14px;
-    margin-top: 14px; width: fit-content;
-  }
-  .user-avatar {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: white; overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; color: var(--green-dark);
-  }
-  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .user-name { font-size: 13px; color: white; font-weight: 500; }
-
-  .steps-bar {
-    display: flex; align-items: center;
-    padding: 16px 20px;
-    background: white;
-    border-bottom: 1px solid var(--border);
-    gap: 0;
-    overflow-x: auto;
-  }
-  .step-item {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 4px; flex: 1; min-width: 60px;
-  }
-  .step-dot {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--border); color: var(--text-muted);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700;
-    transition: all 0.3s;
-  }
-  .step-dot.active { background: var(--green); color: white; }
-  .step-dot.done   { background: var(--green-dark); color: white; }
-  .step-label { font-size: 10px; color: var(--text-muted); text-align: center; white-space: nowrap; }
-  .step-label.active { color: var(--green); font-weight: 600; }
-  .step-line {
-    height: 2px; flex: 0.5;
-    background: var(--border);
-    margin-bottom: 14px;
-    transition: background 0.3s;
-  }
-  .step-line.done { background: var(--green); }
-
-  .content { padding: 16px 16px 0; }
-
-  .card {
-    background: white; border-radius: var(--radius);
-    box-shadow: var(--shadow); padding: 20px;
-    margin-bottom: 14px;
-  }
-  .card-title {
-    font-size: 14px; font-weight: 700; color: var(--navy);
-    margin-bottom: 14px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .card-title span {
-    background: var(--green-light); color: var(--green-dark);
-    width: 24px; height: 24px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; flex-shrink: 0;
-  }
-
-  .team-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .team-btn {
-    border: 2px solid var(--border); border-radius: 12px;
-    padding: 14px 10px; text-align: center;
-    cursor: pointer; background: white;
-    transition: all 0.2s; position: relative;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-  }
-  .team-btn:active { transform: scale(0.97); }
-  .team-btn.selected {
-    border-color: var(--green);
-    background: var(--green-light);
-  }
-  .team-btn.selected .team-check { display: flex; }
-  .team-check {
-    display: none; position: absolute;
-    top: 6px; right: 6px;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--green); color: white;
-    font-size: 10px; align-items: center; justify-content: center;
-  }
-  .team-icon { font-size: 28px; }
-  .team-name-th { font-size: 13px; font-weight: 700; color: var(--text); }
-  .team-name-en { font-size: 11px; color: var(--text-muted); }
-  .team-desc    { font-size: 10px; color: var(--text-muted); }
-
-  .cat-list { display: flex; flex-wrap: wrap; gap: 8px; }
-  .cat-btn {
-    border: 1.5px solid var(--border); border-radius: 20px;
-    padding: 7px 14px; font-size: 12px; font-weight: 500;
-    cursor: pointer; background: white; color: var(--text);
-    transition: all 0.2s; font-family: 'Sarabun', sans-serif;
-  }
-  .cat-btn.selected {
-    border-color: var(--green);
-    background: var(--green); color: white;
-  }
-
-  .field { margin-bottom: 16px; }
-  .field label {
-    display: block; font-size: 13px; font-weight: 600;
-    color: var(--navy); margin-bottom: 7px;
-  }
-  .field label .en { font-weight: 400; color: var(--text-muted); margin-left: 4px; }
-  .field input, .field select, .field textarea {
-    width: 100%; padding: 12px 14px;
-    border: 1.5px solid var(--border); border-radius: 10px;
-    font-size: 14px; color: var(--text);
-    font-family: 'Sarabun', sans-serif;
-    background: white; outline: none;
-    transition: border-color 0.2s;
-    -webkit-appearance: none;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: var(--green);
-  }
-  .field textarea { min-height: 100px; resize: vertical; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-  .photo-area {
-    border: 2px dashed var(--border); border-radius: 12px;
-    padding: 24px 16px; text-align: center;
-    cursor: pointer; transition: all 0.2s; position: relative;
-  }
-  .photo-area:active { background: var(--green-light); border-color: var(--green); }
-  .photo-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .photo-icon { font-size: 32px; margin-bottom: 8px; }
-  .photo-text { font-size: 13px; color: var(--text-muted); }
-  .photo-text strong { color: var(--green); }
-  .photo-preview {
-    display: flex; gap: 8px; flex-wrap: wrap;
-    margin-top: 12px;
-  }
-  .photo-thumb {
-    width: 72px; height: 72px; border-radius: 8px;
-    object-fit: cover; border: 2px solid var(--green-mid);
-    position: relative;
-  }
-  .photo-thumb-wrap { position: relative; display: inline-block; }
-  .photo-remove {
-    position: absolute; top: -6px; right: -6px;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: #E24B4A; color: white; border: none;
-    font-size: 12px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  .priority-row { display: flex; gap: 8px; }
-  .pri-btn {
-    flex: 1; padding: 10px 6px; border-radius: 10px;
-    border: 2px solid var(--border); cursor: pointer;
-    text-align: center; background: white;
-    font-family: 'Sarabun', sans-serif; transition: all 0.2s;
-  }
-  .pri-btn .pri-icon { font-size: 18px; display: block; margin-bottom: 3px; }
-  .pri-btn .pri-label { font-size: 11px; font-weight: 600; }
-  .pri-btn.low.selected    { border-color: #1D9E75; background: #E8FBF0; }
-  .pri-btn.med.selected    { border-color: #F59E0B; background: #FFFBEB; }
-  .pri-btn.high.selected   { border-color: #E24B4A; background: #FEF2F2; }
-  .pri-btn.low  .pri-label  { color: #1D9E75; }
-  .pri-btn.med  .pri-label  { color: #F59E0B; }
-  .pri-btn.high .pri-label  { color: #E24B4A; }
-
-  .summary-card {
-    background: var(--green-light);
-    border: 1.5px solid var(--green-mid);
-    border-radius: var(--radius); padding: 16px;
-    margin-bottom: 14px;
-  }
-  .summary-row {
-    display: flex; gap: 10px; padding: 6px 0;
-    border-bottom: 1px solid var(--green-mid);
-    font-size: 13px;
-  }
-  .summary-row:last-child { border-bottom: none; }
-  .summary-label { color: var(--text-muted); min-width: 100px; flex-shrink: 0; }
-  .summary-value { color: var(--navy); font-weight: 600; }
-
-  .nav-row {
-    display: flex; gap: 10px;
-    padding: 16px;
-    background: white;
-    border-top: 1px solid var(--border);
-    position: sticky; bottom: 0; z-index: 10;
-  }
-  .btn-back {
-    flex: 1; padding: 14px;
-    border: 1.5px solid var(--border); border-radius: 12px;
-    background: white; color: var(--text-muted);
-    font-size: 15px; font-weight: 600;
-    cursor: pointer; font-family: 'Sarabun', sans-serif;
-    transition: all 0.2s;
-  }
-  .btn-next {
-    flex: 2; padding: 14px;
-    border: none; border-radius: 12px;
-    background: var(--green); color: white;
-    font-size: 15px; font-weight: 700;
-    cursor: pointer; font-family: 'Sarabun', sans-serif;
-    transition: all 0.2s;
-    box-shadow: 0 4px 16px rgba(6,199,85,0.4);
-  }
-  .btn-next:active { transform: scale(0.98); }
-  .btn-next:disabled { background: var(--border); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
-
-  .overlay {
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(10,22,40,0.7);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .overlay.hidden { display: none; }
-  .overlay-box {
-    background: white; border-radius: 20px;
-    padding: 32px 24px; text-align: center;
-    width: 80%; max-width: 300px;
-  }
-  .overlay-icon { font-size: 52px; margin-bottom: 12px; }
-  .overlay-title { font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
-  .overlay-sub   { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-  .ticket-badge {
-    display: inline-block; margin-top: 12px;
-    background: var(--green-light); color: var(--green-dark);
-    border: 1.5px solid var(--green); border-radius: 8px;
-    padding: 8px 16px; font-size: 15px; font-weight: 700;
-  }
-  .spinner {
-    width: 48px; height: 48px; border: 4px solid var(--green-mid);
-    border-top-color: var(--green); border-radius: 50%;
-    animation: spin 0.8s linear infinite; margin: 0 auto 16px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .page { display: none; }
-  .page.active { display: block; }
-  .req { color: #E24B4A; margin-left: 2px; }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Sarabun',sans-serif;background:#F0F4F8;min-height:100vh;color:var(--text);padding-bottom:80px;}
+  .header{background:linear-gradient(135deg,#06C755 0%,#04903C 100%);padding:20px 20px 28px;position:relative;overflow:hidden;}
+  .header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.1);}
+  .header::after{content:'';position:absolute;bottom:-20px;left:40px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.08);}
+  .header-inner{position:relative;z-index:1;}
+  .header-logo{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .logo-circle{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .logo-text{font-size:15px;font-weight:700;color:white;}
+  .logo-sub{font-size:12px;color:rgba(255,255,255,0.8);}
+  .header h1{font-size:22px;font-weight:700;color:white;line-height:1.3;}
+  .header p{font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;}
+  .user-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.2);border-radius:30px;padding:8px 14px;margin-top:14px;width:fit-content;}
+  .user-avatar{width:28px;height:28px;border-radius:50%;background:white;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green-dark);}
+  .user-avatar img{width:100%;height:100%;object-fit:cover;}
+  .user-name{font-size:13px;color:white;font-weight:500;}
+  .steps-bar{display:flex;align-items:center;padding:16px 20px;background:white;border-bottom:1px solid var(--border);gap:0;overflow-x:auto;}
+  .step-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:60px;}
+  .step-dot{width:28px;height:28px;border-radius:50%;background:var(--border);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;transition:all 0.3s;}
+  .step-dot.active{background:var(--green);color:white;}
+  .step-dot.done{background:var(--green-dark);color:white;}
+  .step-label{font-size:10px;color:var(--text-muted);text-align:center;white-space:nowrap;}
+  .step-label.active{color:var(--green);font-weight:600;}
+  .step-line{height:2px;flex:0.5;background:var(--border);margin-bottom:14px;transition:background 0.3s;}
+  .step-line.done{background:var(--green);}
+  .content{padding:16px 16px 0;}
+  .card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:14px;}
+  .card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .card-title span{background:var(--green-light);color:var(--green-dark);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+  .team-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .team-btn{border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;background:white;transition:all 0.2s;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .team-btn:active{transform:scale(0.97);}
+  .team-btn.selected{border-color:var(--green);background:var(--green-light);}
+  .team-btn.selected .team-check{display:flex;}
+  .team-check{display:none;position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:var(--green);color:white;font-size:10px;align-items:center;justify-content:center;}
+  .team-icon{font-size:28px;}
+  .team-name-th{font-size:13px;font-weight:700;color:var(--text);}
+  .team-name-en{font-size:11px;color:var(--text-muted);}
+  .team-desc{font-size:10px;color:var(--text-muted);}
+  .cat-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .cat-btn{border:1.5px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;background:white;color:var(--text);transition:all 0.2s;font-family:'Sarabun',sans-serif;}
+  .cat-btn.selected{border-color:var(--green);background:var(--green);color:white;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:7px;}
+  .field label .en{font-weight:400;color:var(--text-muted);margin-left:4px;}
+  .field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);font-family:'Sarabun',sans-serif;background:white;outline:none;transition:border-color 0.2s;-webkit-appearance:none;}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);}
+  .field textarea{min-height:100px;resize:vertical;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  /* PHOTO UPLOAD */
+  .photo-area{border:2px dashed var(--border);border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;transition:all 0.2s;background:white;}
+  .photo-area:hover{border-color:var(--green);background:var(--green-light);}
+  .photo-icon{font-size:32px;margin-bottom:8px;}
+  .photo-text{font-size:13px;color:var(--text-muted);}
+  .photo-text strong{color:var(--green);}
+  .photo-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+  .photo-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .photo-thumb-wrap{position:relative;display:inline-block;}
+  .photo-thumb{width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid var(--green-mid);}
+  .photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#E24B4A;color:white;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  /* UPLOAD PROGRESS */
+  .upload-progress{display:none;margin-top:10px;background:#F0F4F8;border-radius:8px;padding:10px 12px;}
+  .upload-progress.show{display:block;}
+  .upload-bar-wrap{background:var(--border);border-radius:4px;height:6px;margin-top:6px;overflow:hidden;}
+  .upload-bar{height:100%;background:var(--green);border-radius:4px;width:0%;transition:width 0.3s;}
+  .upload-status{font-size:11px;color:var(--text-muted);}
+  /* PRIORITY */
+  .priority-row{display:flex;gap:8px;}
+  .pri-btn{flex:1;padding:10px 6px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center;background:white;font-family:'Sarabun',sans-serif;transition:all 0.2s;}
+  .pri-btn .pri-icon{font-size:18px;display:block;margin-bottom:3px;}
+  .pri-btn .pri-label{font-size:11px;font-weight:600;}
+  .pri-btn.low.selected{border-color:#1D9E75;background:#E8FBF0;}
+  .pri-btn.med.selected{border-color:#F59E0B;background:#FFFBEB;}
+  .pri-btn.high.selected{border-color:#E24B4A;background:#FEF2F2;}
+  .pri-btn.low .pri-label{color:#1D9E75;}
+  .pri-btn.med .pri-label{color:#F59E0B;}
+  .pri-btn.high .pri-label{color:#E24B4A;}
+  /* SUMMARY */
+  .summary-card{background:var(--green-light);border:1.5px solid var(--green-mid);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+  .summary-row{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--green-mid);font-size:13px;}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-label{color:var(--text-muted);min-width:100px;flex-shrink:0;}
+  .summary-value{color:var(--navy);font-weight:600;}
+  .summary-thumb{width:48px;height:48px;border-radius:6px;object-fit:cover;border:1.5px solid var(--green-mid);}
+  /* NAV */
+  .nav-row{display:flex;gap:10px;padding:16px;background:white;border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:10;}
+  .btn-back{flex:1;padding:14px;border:1.5px solid var(--border);border-radius:12px;background:white;color:var(--text-muted);font-size:15px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.2s;}
+  .btn-next{flex:2;padding:14px;border:none;border-radius:12px;background:var(--green);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.2s;box-shadow:0 4px 16px rgba(6,199,85,0.4);}
+  .btn-next:active{transform:scale(0.98);}
+  .btn-next:disabled{background:var(--border);color:var(--text-muted);box-shadow:none;cursor:not-allowed;}
+  /* OVERLAY */
+  .overlay{position:fixed;inset:0;z-index:100;background:rgba(10,22,40,0.7);display:flex;align-items:center;justify-content:center;}
+  .overlay.hidden{display:none;}
+  .overlay-box{background:white;border-radius:20px;padding:32px 24px;text-align:center;width:80%;max-width:300px;}
+  .overlay-icon{font-size:52px;margin-bottom:12px;}
+  .overlay-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+  .overlay-sub{font-size:14px;color:var(--text-muted);line-height:1.6;}
+  .overlay-detail{font-size:11px;color:var(--text-muted);margin-top:8px;}
+  .ticket-badge{display:inline-block;margin-top:12px;background:var(--green-light);color:var(--green-dark);border:1.5px solid var(--green);border-radius:8px;padding:8px 16px;font-size:15px;font-weight:700;}
+  .spinner{width:48px;height:48px;border:4px solid var(--green-mid);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .page{display:none;}
+  .page.active{display:block;}
+  .req{color:#E24B4A;margin-left:2px;}
+  .hidden-input{display:none;}
 </style>
 </head>
 <body>
@@ -322,8 +125,9 @@
 <div class="overlay hidden" id="overlay-loading">
   <div class="overlay-box">
     <div class="spinner"></div>
-    <div class="overlay-title">กำลังส่งข้อมูล...</div>
-    <div class="overlay-sub">Submitting your request...</div>
+    <div class="overlay-title" id="loading-title">กำลังส่งข้อมูล...</div>
+    <div class="overlay-sub" id="loading-sub">Submitting your request...</div>
+    <div class="overlay-detail" id="loading-detail"></div>
   </div>
 </div>
 
@@ -360,109 +164,78 @@
 
 <!-- STEPS BAR -->
 <div class="steps-bar">
-  <div class="step-item">
-    <div class="step-dot active" id="dot-1">1</div>
-    <div class="step-label active" id="lbl-1">ทีม<br>Team</div>
-  </div>
+  <div class="step-item"><div class="step-dot active" id="dot-1">1</div><div class="step-label active" id="lbl-1">ทีม<br>Team</div></div>
   <div class="step-line" id="line-1"></div>
-  <div class="step-item">
-    <div class="step-dot" id="dot-2">2</div>
-    <div class="step-label" id="lbl-2">ประเภท<br>Type</div>
-  </div>
+  <div class="step-item"><div class="step-dot" id="dot-2">2</div><div class="step-label" id="lbl-2">ประเภท<br>Type</div></div>
   <div class="step-line" id="line-2"></div>
-  <div class="step-item">
-    <div class="step-dot" id="dot-3">3</div>
-    <div class="step-label" id="lbl-3">รายละเอียด<br>Details</div>
-  </div>
+  <div class="step-item"><div class="step-dot" id="dot-3">3</div><div class="step-label" id="lbl-3">รายละเอียด<br>Details</div></div>
   <div class="step-line" id="line-3"></div>
-  <div class="step-item">
-    <div class="step-dot" id="dot-4">4</div>
-    <div class="step-label" id="lbl-4">ยืนยัน<br>Confirm</div>
-  </div>
+  <div class="step-item"><div class="step-dot" id="dot-4">4</div><div class="step-label" id="lbl-4">ยืนยัน<br>Confirm</div></div>
 </div>
 
-<!-- PAGE 1: เลือกทีม -->
+<!-- PAGE 1 -->
 <div class="page active content" id="page-1">
   <div class="card">
     <div class="card-title"><span>1</span> เลือกทีมที่รับผิดชอบ / Select Team</div>
     <div class="team-grid">
       <div class="team-btn" onclick="selectTeam('IT Support','it')" id="team-IT Support">
-        <div class="team-check">✓</div>
-        <div class="team-icon">💻</div>
-        <div class="team-name-th">IT Support</div>
-        <div class="team-name-en">IT Support</div>
+        <div class="team-check">✓</div><div class="team-icon">💻</div>
+        <div class="team-name-th">IT Support</div><div class="team-name-en">IT Support</div>
         <div class="team-desc">คอม, เน็ต, CCTV</div>
       </div>
       <div class="team-btn" onclick="selectTeam('Engineering','eng')" id="team-Engineering">
-        <div class="team-check">✓</div>
-        <div class="team-icon">🔧</div>
-        <div class="team-name-th">ช่างเทคนิค</div>
-        <div class="team-name-en">Engineering</div>
+        <div class="team-check">✓</div><div class="team-icon">🔧</div>
+        <div class="team-name-th">ช่างเทคนิค</div><div class="team-name-en">Engineering</div>
         <div class="team-desc">ไฟฟ้า, ประปา, แอร์</div>
       </div>
       <div class="team-btn" onclick="selectTeam('Landscape & Garden','ls')" id="team-Landscape & Garden">
-        <div class="team-check">✓</div>
-        <div class="team-icon">🌿</div>
-        <div class="team-name-th">สวน & ภูมิทัศน์</div>
-        <div class="team-name-en">Landscape & Garden</div>
+        <div class="team-check">✓</div><div class="team-icon">🌿</div>
+        <div class="team-name-th">สวน & ภูมิทัศน์</div><div class="team-name-en">Landscape & Garden</div>
         <div class="team-desc">สวน, ต้นไม้, สระน้ำ</div>
       </div>
       <div class="team-btn" onclick="selectTeam('Environment','env')" id="team-Environment">
-        <div class="team-check">✓</div>
-        <div class="team-icon">♻️</div>
-        <div class="team-name-th">สิ่งแวดล้อม</div>
-        <div class="team-name-en">Environment</div>
+        <div class="team-check">✓</div><div class="team-icon">♻️</div>
+        <div class="team-name-th">สิ่งแวดล้อม</div><div class="team-name-en">Environment</div>
         <div class="team-desc">สระว่ายน้ำ, ขยะ</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- PAGE 2: เลือกประเภทงาน -->
+<!-- PAGE 2 -->
 <div class="page content" id="page-2">
   <div class="card">
     <div class="card-title"><span>2</span> ประเภทงาน / Type of Work</div>
     <div class="cat-list" id="cat-list"></div>
   </div>
-
   <div class="card">
     <div class="card-title"><span></span> ระดับความเร่งด่วน / Priority</div>
     <div class="priority-row">
       <button class="pri-btn low selected" onclick="selectPriority('low',this)">
-        <span class="pri-icon">🟢</span>
-        <span class="pri-label">ปกติ<br>Normal</span>
+        <span class="pri-icon">🟢</span><span class="pri-label">ปกติ<br>Normal</span>
       </button>
       <button class="pri-btn med" onclick="selectPriority('med',this)">
-        <span class="pri-icon">🟡</span>
-        <span class="pri-label">เร่งด่วน<br>Urgent</span>
+        <span class="pri-icon">🟡</span><span class="pri-label">เร่งด่วน<br>Urgent</span>
       </button>
       <button class="pri-btn high" onclick="selectPriority('high',this)">
-        <span class="pri-icon">🔴</span>
-        <span class="pri-label">ฉุกเฉิน<br>Emergency</span>
+        <span class="pri-icon">🔴</span><span class="pri-label">ฉุกเฉิน<br>Emergency</span>
       </button>
     </div>
   </div>
 </div>
 
-<!-- PAGE 3: รายละเอียด -->
+<!-- PAGE 3 -->
 <div class="page content" id="page-3">
   <div class="card">
     <div class="card-title"><span>3</span> สถานที่และรายละเอียด / Location & Details</div>
-
     <div class="field-row">
       <div class="field">
         <label>อาคาร/โซน <span class="en">Building</span><span class="req">*</span></label>
         <select id="field-building">
           <option value="">เลือก...</option>
-          <option>Main Building</option>
-          <option>Pool Villa</option>
-          <option>Beach Area</option>
-          <option>Lobby</option>
-          <option>Restaurant</option>
-          <option>Spa</option>
-          <option>Garden Area</option>
-          <option>Parking</option>
-          <option>Staff Area</option>
+          <option>Main Building</option><option>Pool Villa</option><option>Beach Area</option>
+          <option>Lobby</option><option>Restaurant</option><option>Spa</option>
+          <option>Garden Area</option><option>Parking</option><option>Staff Area</option>
           <option>อื่นๆ / Other</option>
         </select>
       </div>
@@ -471,43 +244,41 @@
         <input type="text" id="field-room" placeholder="เช่น 502, Pool 1">
       </div>
     </div>
-
     <div class="field">
       <label>รายละเอียดปัญหา <span class="en">Description</span><span class="req">*</span></label>
       <textarea id="field-desc" placeholder="อธิบายปัญหาที่พบ / Describe the issue..."></textarea>
     </div>
 
+    <!-- PHOTO UPLOAD -->
     <div class="field">
-      <label>แนบรูปภาพ <span class="en">Photos (optional)</span></label>
+      <label>📷 แนบรูปภาพ <span class="en">Photos (optional)</span></label>
       <div class="photo-area" onclick="document.getElementById('photo-input').click()">
-        <input type="file" id="photo-input" accept="image/*" multiple onchange="handlePhotos(this)">
         <div class="photo-icon">📷</div>
         <div class="photo-text">กดเพื่อถ่ายรูปหรือเลือกรูป<br><strong>Tap to add photos</strong></div>
+        <div class="photo-sub">รองรับ JPG, PNG · สูงสุด 5 รูป · ขนาดไม่เกิน 5MB/รูป</div>
       </div>
+      <input type="file" id="photo-input" class="hidden-input" accept="image/*" multiple onchange="handlePhotos(this)">
       <div class="photo-preview" id="photo-preview"></div>
+      <div class="upload-progress" id="upload-progress">
+        <div class="upload-status" id="upload-status">กำลังเตรียมรูปภาพ...</div>
+        <div class="upload-bar-wrap"><div class="upload-bar" id="upload-bar"></div></div>
+      </div>
     </div>
 
     <div class="field">
       <label>แผนกของคุณ <span class="en">Your Department</span></label>
       <select id="field-dept">
         <option value="">เลือก...</option>
-        <option>Front Office</option>
-        <option>Housekeeping</option>
-        <option>F&amp;B</option>
-        <option>Security</option>
-        <option>Spa</option>
-        <option>IT</option>
-        <option>Engineering</option>
-        <option>Landscape &amp; Garden</option>
-        <option>Environment</option>
-        <option>Main Kitchen</option>
-        <option>Management</option>
+        <option>Front Office</option><option>Housekeeping</option><option>F&amp;B</option>
+        <option>Security</option><option>Spa</option><option>IT</option>
+        <option>Engineering</option><option>Landscape &amp; Garden</option>
+        <option>Environment</option><option>Main Kitchen</option><option>Management</option>
       </select>
     </div>
   </div>
 </div>
 
-<!-- PAGE 4: ยืนยัน -->
+<!-- PAGE 4 -->
 <div class="page content" id="page-4">
   <div class="card">
     <div class="card-title"><span>4</span> ตรวจสอบและยืนยัน / Review & Confirm</div>
@@ -521,36 +292,24 @@
 
 <!-- NAV BUTTONS -->
 <div class="nav-row">
-  <button class="btn-back" id="btn-back" onclick="prevStep()" style="display:none">
-    ← ย้อนกลับ
-  </button>
-  <button class="btn-next" id="btn-next" onclick="nextStep()">
-    ถัดไป / Next →
-  </button>
+  <button class="btn-back" id="btn-back" onclick="prevStep()" style="display:none">← ย้อนกลับ</button>
+  <button class="btn-next" id="btn-next" onclick="nextStep()">ถัดไป / Next →</button>
 </div>
 
 <script>
-// ===================== CONFIG =====================
-const LIFF_ID = '2010241158-ll8R9q4T';
-const N8N_WEBHOOK = 'https://syy-service-hub.app.n8n.cloud/webhook/liff-form';
+// ===== CONFIG =====
+const LIFF_ID    = '2010241158-ll8R9q4T';
+const N8N_URL    = 'https://syy-service-hub.app.n8n.cloud/webhook/liff-form';
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbx3DovxjjOPBS8dDljIBXF4MkzLnsmQgV2EQhZNEYZdasZbBhWMl_mg-M5ddFJKAAsAfA/exec';
+const MAX_PHOTOS = 5;
+const MAX_SIZE   = 5 * 1024 * 1024; // 5MB
 
-// ===================== STATE =====================
+// ===== STATE =====
 let state = {
-  step: 1,
-  team: '',
-  teamCode: '',
-  category: '',
-  priority: 'low',
-  building: '',
-  room: '',
-  description: '',
-  department: '',
-  photos: [],
-  userId: '',
-  displayName: '',
-  pictureUrl: '',
-  groupId: '',
-  liffReady: false
+  step:1, team:'', teamCode:'', category:'', priority:'low',
+  building:'', room:'', description:'', department:'',
+  photos:[], uploadedUrls:[],
+  userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
 };
 
 const categories = {
@@ -560,115 +319,157 @@ const categories = {
   env: ['สระว่ายน้ำ','ขยะ','ทำความสะอาด','แมลง/สัตว์รบกวน','กลิ่น','น้ำเสีย','อื่นๆ']
 };
 
-// ===================== LIFF INIT =====================
+// ===== LIFF INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     await liff.init({ liffId: LIFF_ID });
     state.liffReady = true;
-  if (liff.isLoggedIn()) {
-  const profile = await liff.getProfile();
-  state.userId      = profile.userId;
-  state.displayName = profile.displayName;
-  state.pictureUrl  = profile.pictureUrl || '';
-
-  // รับ groupId จาก LIFF Context ก่อน
-  const ctx = liff.getContext();
-  if (ctx && ctx.groupId) state.groupId = ctx.groupId;
-
-  // รับ groupId จาก URL parameter (override เสมอ)
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlGroupId = urlParams.get('groupId');
-  if (urlGroupId) {
-    state.groupId = urlGroupId;
-  }
-
-  const chip   = document.getElementById('user-chip');
-  const avatar = document.getElementById('user-avatar');
-  const name   = document.getElementById('user-name');
-  chip.style.display = 'flex';
-  name.textContent = state.displayName;
-  if (state.pictureUrl) {
-    avatar.innerHTML = `<img src="${state.pictureUrl}" alt="">`;
-  } else {
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      state.userId      = profile.userId;
+      state.displayName = profile.displayName;
+      state.pictureUrl  = profile.pictureUrl || '';
+      const ctx = liff.getContext();
+      if (ctx && ctx.groupId) state.groupId = ctx.groupId;
+      const urlParams  = new URLSearchParams(window.location.search);
+      const urlGroupId = urlParams.get('groupId');
+      if (urlGroupId) state.groupId = urlGroupId;
+      const chip   = document.getElementById('user-chip');
+      const avatar = document.getElementById('user-avatar');
+      const name   = document.getElementById('user-name');
+      chip.style.display = 'flex';
+      name.textContent   = state.displayName;
+      if (state.pictureUrl) {
+        avatar.innerHTML = '<img src="'+state.pictureUrl+'" alt="">';
+      } else {
         avatar.textContent = state.displayName.charAt(0).toUpperCase();
       }
     } else {
       liff.login();
     }
-  } catch (e) {
-    console.log('LIFF init error:', e);
-    state.userId = 'test-user-' + Date.now();
+  } catch(e) {
+    console.log('LIFF error:', e);
+    state.userId      = 'test-' + Date.now();
     state.displayName = 'Test User';
   }
 });
 
-// ===================== TEAM SELECTION =====================
+// ===== TEAM =====
 function selectTeam(name, code) {
   document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('team-' + name).classList.add('selected');
-  state.team = name;
+  state.team     = name;
   state.teamCode = code;
   renderCategories(code);
 }
-
 function renderCategories(code) {
-  const list = document.getElementById('cat-list');
   const cats = categories[code] || [];
-  list.innerHTML = cats.map(c =>
-    `<button class="cat-btn" onclick="selectCat('${c}',this)">${c}</button>`
+  document.getElementById('cat-list').innerHTML = cats.map(c =>
+    '<button class="cat-btn" onclick="selectCat(\''+c+'\',this)">'+c+'</button>'
   ).join('');
   state.category = '';
 }
-
 function selectCat(name, el) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
   state.category = name;
 }
-
 function selectPriority(p, el) {
   document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
   state.priority = p;
 }
 
-// ===================== PHOTOS =====================
+// ===== PHOTOS =====
 function handlePhotos(input) {
-  const files = Array.from(input.files);
+  const files   = Array.from(input.files);
   const preview = document.getElementById('photo-preview');
+  // จำกัดจำนวน
+  if (state.photos.length + files.length > MAX_PHOTOS) {
+    alert('สูงสุด '+MAX_PHOTOS+' รูปต่อ Ticket ครับ\nMax '+MAX_PHOTOS+' photos per ticket.');
+    input.value = '';
+    return;
+  }
   files.forEach(file => {
+    if (file.size > MAX_SIZE) {
+      alert('รูป "'+file.name+'" ขนาดเกิน 5MB ครับ');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = e => {
-      state.photos.push({ data: e.target.result, name: file.name });
-      const wrap = document.createElement('div');
+      const base64full = e.target.result; // data:image/jpeg;base64,....
+      state.photos.push({ dataUrl: base64full, name: file.name, type: file.type });
+      const wrap    = document.createElement('div');
       wrap.className = 'photo-thumb-wrap';
-      const idx = state.photos.length - 1;
-      wrap.innerHTML = `
-        <img src="${e.target.result}" class="photo-thumb">
-        <button class="photo-remove" onclick="removePhoto(${idx},this.parentNode)">×</button>`;
+      const idx     = state.photos.length - 1;
+      wrap.innerHTML = '<img src="'+base64full+'" class="photo-thumb">'
+        + '<button class="photo-remove" onclick="removePhoto('+idx+',this.parentNode)">×</button>';
       preview.appendChild(wrap);
     };
     reader.readAsDataURL(file);
   });
+  input.value = '';
 }
 
 function removePhoto(idx, el) {
   state.photos.splice(idx, 1);
   el.remove();
+  // อัปเดต index ปุ่มลบ
+  document.querySelectorAll('.photo-remove').forEach((btn, i) => {
+    btn.setAttribute('onclick', 'removePhoto('+i+',this.parentNode)');
+  });
 }
 
-// ===================== NAVIGATION =====================
+// ===== UPLOAD PHOTOS TO DRIVE =====
+async function uploadPhotos(ticketId) {
+  if (state.photos.length === 0) return [];
+  const urls  = [];
+  const prog  = document.getElementById('upload-progress');
+  const bar   = document.getElementById('upload-bar');
+  const status = document.getElementById('upload-status');
+  prog.classList.add('show');
+
+  for (let i = 0; i < state.photos.length; i++) {
+    const photo  = state.photos[i];
+    status.textContent = 'กำลังอัปโหลดรูป '+(i+1)+'/'+state.photos.length+'...';
+    bar.style.width = Math.round(((i) / state.photos.length) * 100) + '%';
+
+    // แปลง dataUrl → base64 string เท่านั้น
+    const base64 = photo.dataUrl.split(',')[1];
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action:    'upload_image',
+          ticket_id: ticketId,
+          base64:    base64,
+          mimeType:  photo.type || 'image/jpeg',
+          fileName:  ticketId + '_' + (i+1) + '.jpg'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.imageUrl) {
+        urls.push(data.imageUrl);
+      }
+    } catch(e) {
+      console.error('Upload photo error:', e);
+    }
+  }
+  bar.style.width = '100%';
+  status.textContent = 'อัปโหลดรูปเสร็จแล้ว ✅';
+  return urls;
+}
+
+// ===== NAVIGATION =====
 function nextStep() {
   if (!validateStep()) return;
   if (state.step === 3) buildSummary();
   if (state.step === 4) { submitForm(); return; }
   goToStep(state.step + 1);
 }
-
 function prevStep() {
   if (state.step > 1) goToStep(state.step - 1);
 }
-
 function goToStep(n) {
   document.getElementById('page-' + state.step).classList.remove('active');
   document.getElementById('page-' + n).classList.add('active');
@@ -676,7 +477,6 @@ function goToStep(n) {
   updateStepUI();
   window.scrollTo(0, 0);
 }
-
 function updateStepUI() {
   const n = state.step;
   for (let i = 1; i <= 4; i++) {
@@ -684,9 +484,9 @@ function updateStepUI() {
     const lbl = document.getElementById('lbl-' + i);
     dot.classList.remove('active','done');
     lbl.classList.remove('active');
-    if (i < n) { dot.classList.add('done'); dot.textContent = '✓'; }
-    else if (i === n) { dot.classList.add('active'); dot.textContent = i; lbl.classList.add('active'); }
-    else { dot.textContent = i; }
+    if (i < n)      { dot.classList.add('done'); dot.textContent = '✓'; }
+    else if (i===n) { dot.classList.add('active'); dot.textContent = i; lbl.classList.add('active'); }
+    else            { dot.textContent = i; }
   }
   for (let i = 1; i <= 3; i++) {
     document.getElementById('line-' + i).classList.toggle('done', i < n);
@@ -702,84 +502,107 @@ function updateStepUI() {
   }
 }
 
-// ===================== VALIDATION =====================
+// ===== VALIDATE =====
 function validateStep() {
-  if (state.step === 1) {
-    if (!state.team) { alert('กรุณาเลือกทีมรับผิดชอบก่อน\nPlease select a team.'); return false; }
+  if (state.step === 1 && !state.team) {
+    alert('กรุณาเลือกทีมก่อน\nPlease select a team.'); return false;
   }
-  if (state.step === 2) {
-    if (!state.category) { alert('กรุณาเลือกประเภทงานก่อน\nPlease select a category.'); return false; }
+  if (state.step === 2 && !state.category) {
+    alert('กรุณาเลือกประเภทงาน\nPlease select a category.'); return false;
   }
   if (state.step === 3) {
     state.building    = document.getElementById('field-building').value;
     state.room        = document.getElementById('field-room').value;
     state.description = document.getElementById('field-desc').value.trim();
     state.department  = document.getElementById('field-dept').value;
-    if (!state.building) { alert('กรุณาเลือกอาคาร/โซน\nPlease select a building.'); return false; }
+    if (!state.building)    { alert('กรุณาเลือกอาคาร/โซน\nPlease select a building.'); return false; }
     if (!state.description) { alert('กรุณาอธิบายปัญหา\nPlease describe the issue.'); return false; }
   }
   return true;
 }
 
-// ===================== SUMMARY =====================
-const priorityLabel = { low: '🟢 ปกติ (Normal)', med: '🟡 เร่งด่วน (Urgent)', high: '🔴 ฉุกเฉิน (Emergency)' };
-
+// ===== SUMMARY =====
+const priLabel = { low:'🟢 ปกติ (Normal)', med:'🟡 เร่งด่วน (Urgent)', high:'🔴 ฉุกเฉิน (Emergency)' };
 function buildSummary() {
+  const photoHtml = state.photos.length > 0
+    ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'
+      + state.photos.map(p => '<img src="'+p.dataUrl+'" class="summary-thumb">').join('')
+      + '</div>'
+    : 'ไม่มี';
   const rows = [
     ['ทีม / Team', state.team],
     ['ประเภท / Category', state.category],
-    ['ความเร่งด่วน', priorityLabel[state.priority]],
+    ['ความเร่งด่วน', priLabel[state.priority]],
     ['อาคาร / Building', state.building],
     ['ห้อง / Room', state.room || '-'],
     ['แผนก / Department', state.department || '-'],
     ['รายละเอียด', state.description],
-    ['รูปภาพ / Photos', state.photos.length + ' รูป'],
     ['ผู้แจ้ง / Reporter', state.displayName || '-'],
   ];
-  document.getElementById('summary-content').innerHTML =
-    rows.map(([label, val]) =>
-      `<div class="summary-row"><span class="summary-label">${label}</span><span class="summary-value">${val}</span></div>`
-    ).join('');
+  let html = rows.map(([l,v]) =>
+    '<div class="summary-row"><span class="summary-label">'+l+'</span><span class="summary-value">'+v+'</span></div>'
+  ).join('');
+  html += '<div class="summary-row"><span class="summary-label">รูปภาพ / Photos</span><span class="summary-value">'+photoHtml+'</span></div>';
+  document.getElementById('summary-content').innerHTML = html;
 }
 
-// ===================== SUBMIT =====================
+// ===== SUBMIT =====
 async function submitForm() {
-  document.getElementById('overlay-loading').classList.remove('hidden');
+  const ticketId  = 'TK-' + Date.now();
+  const now       = new Date();
+  const thaiTime  = new Date(now.getTime() + 7*60*60*1000);
+  const timestamp = thaiTime.toISOString().replace('Z','+07:00');
 
-  // สร้าง Ticket ID และเวลาไทย UTC+7
-  const ticketId = 'TK-' + Date.now();
-  const now = new Date();
-  const thaiTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-  const timestamp = thaiTime.toISOString().replace('Z', '+07:00');
+  // แสดง loading
+  document.getElementById('overlay-loading').classList.remove('hidden');
+  document.getElementById('btn-next').disabled = true;
+
+  // Step 1: Upload รูป (ถ้ามี)
+  let imageUrl = '';
+  if (state.photos.length > 0) {
+    document.getElementById('loading-title').textContent = 'กำลังอัปโหลดรูปภาพ...';
+    document.getElementById('loading-sub').textContent   = 'Uploading photos...';
+    try {
+      const urls = await uploadPhotos(ticketId);
+      imageUrl = urls.join(',');
+      document.getElementById('loading-detail').textContent = 'อัปโหลดแล้ว '+urls.length+'/'+state.photos.length+' รูป';
+    } catch(e) {
+      console.error('Photo upload failed:', e);
+    }
+  }
+
+  // Step 2: ส่งข้อมูลไป n8n
+  document.getElementById('loading-title').textContent = 'กำลังส่งข้อมูล...';
+  document.getElementById('loading-sub').textContent   = 'Submitting request...';
+  document.getElementById('loading-detail').textContent = '';
 
   const payload = {
-    source:      'liff_form',
-    ticket_id:   ticketId,
-    team:        state.team,
-    team_code:   state.teamCode,
-    category:    state.category,
-    priority:    state.priority,
-    building:    state.building,
-    room:        state.room,
-    description: state.description,
-    department:  state.department,
-    userId:      state.userId,
-    displayName: state.displayName,
-    groupId:     state.groupId,
-    reporter_group_id:  state.groupId,
-    timestamp:   timestamp,
-    photoCount:  state.photos.length,
+    source:            'liff_form',
+    ticket_id:         ticketId,
+    team:              state.team,
+    team_code:         state.teamCode,
+    category:          state.category,
+    priority:          state.priority,
+    building:          state.building,
+    room:              state.room,
+    description:       state.description,
+    department:        state.department,
+    userId:            state.userId,
+    displayName:       state.displayName,
+    groupId:           state.groupId,
+    reporter_group_id: state.groupId,
+    timestamp:         timestamp,
+    image_url:         imageUrl,
+    photoCount:        state.photos.length,
   };
 
-  // ส่งข้อมูลแบบ fire-and-forget ไม่รอ response
-  fetch(N8N_WEBHOOK, {
-    method: 'POST',
-    mode: 'no-cors',
+  fetch(N8N_URL, {
+    method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ liff_data: payload })
-  }).catch(e => console.log('Submit error:', e));
+  }).catch(e => console.log('n8n error:', e));
 
-  // แสดง Success ทันทีใน 1.5 วินาที ไม่รอ n8n
+  // แสดง Success หลัง 1.5 วิ
   setTimeout(() => {
     document.getElementById('overlay-loading').classList.add('hidden');
     document.getElementById('ticket-badge').textContent = ticketId;
