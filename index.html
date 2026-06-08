@@ -658,21 +658,7 @@ async function submitForm() {
   document.getElementById('overlay-loading').classList.remove('hidden');
   document.getElementById('btn-next').disabled = true;
 
-  // Step 1: Upload รูป (ถ้ามี)
-  let imageUrl = '';
-  if (state.photos.length > 0) {
-    document.getElementById('loading-title').textContent = 'กำลังอัปโหลดรูปภาพ...';
-    document.getElementById('loading-sub').textContent   = 'Uploading photos...';
-    try {
-      const urls = await uploadPhotos(ticketId);
-      imageUrl = urls.join(',');
-      document.getElementById('loading-detail').textContent = 'อัปโหลดแล้ว '+urls.length+'/'+state.photos.length+' รูป';
-    } catch(e) {
-      console.error('Photo upload failed:', e);
-    }
-  }
-
-  // Step 2: ส่งข้อมูลไป n8n
+  // Step 1: ส่งข้อมูล Ticket ไป n8n ก่อน
   document.getElementById('loading-title').textContent = 'กำลังส่งข้อมูล...';
   document.getElementById('loading-sub').textContent   = 'Submitting request...';
   document.getElementById('loading-detail').textContent = '';
@@ -697,18 +683,37 @@ async function submitForm() {
     photoCount:        state.photos.length,
   };
 
+  // ส่ง Ticket ไป n8n
   fetch(N8N_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ liff_data: payload })
   }).catch(e => console.log('n8n error:', e));
 
-  // แสดง Success หลัง 1.5 วิ
+  // รอ 3 วินาที ให้ n8n บันทึก Ticket ลง Sheet ก่อน แล้วค่อย upload รูป
+  if (state.photos.length > 0) {
+    document.getElementById('loading-title').textContent = 'กำลังเตรียมอัปโหลดรูป...';
+    document.getElementById('loading-sub').textContent   = 'Preparing photos...';
+    await new Promise(function(resolve){ setTimeout(resolve, 3000); });
+
+    document.getElementById('loading-title').textContent = 'กำลังอัปโหลดรูปภาพ...';
+    document.getElementById('loading-sub').textContent   = 'Uploading photos...';
+    try {
+      const urls = await uploadPhotos(ticketId);
+      if (urls.length > 0) {
+        document.getElementById('loading-detail').textContent = 'อัปโหลดรูปแล้ว '+urls.length+' รูป ✅';
+      }
+    } catch(e) {
+      console.error('Photo upload failed:', e);
+    }
+  }
+
+  // แสดง Success
   setTimeout(() => {
     document.getElementById('overlay-loading').classList.add('hidden');
     document.getElementById('ticket-badge').textContent = ticketId;
     document.getElementById('overlay-success').classList.remove('hidden');
-  }, 1500);
+  }, 500);
 }
 
 function closeLIFF() {
