@@ -672,18 +672,49 @@ async function loadData(silent=false){
     const d=await res.json();
     if(!d.values){tickets=[];renderAll();return;}
     const prev=new Set(lastIds);
-    tickets=d.values.map(r=>({
-      ticket_id:r[0]||'',created_at:r[1]||'',department:r[2]||'',reported_by:r[3]||'',
-      category:r[4]||'',location:r[5]||'',room:r[6]||'',description:r[7]||'',
-      priority:r[8]||'low',status:r[9]||'pending',assigned_to:r[10]||'',
-      assigned_at:r[11]||'',resolved_at:r[12]||'',notes:r[17]||'',
-      team:r[19]||'',building:r[20]||'',displayName:r[22]||'',
-      accepted_at:r[25]||'',rejected_at:r[26]||'',rejected_by:r[27]||'',
-      reject_reason:r[28]||'',response_min:r[29]||'',completion_min:r[30]||'',
-      rating:r[16]||'',
-      image_url:r[15]||'',
-      _new:false
-    })).filter(t=>t.ticket_id);
+    tickets=d.values.map(r=>{
+      // คอลัมน์ตาม Sheet: A=ticket_id B=created_at C=department D=reported_by
+      // E=category F=location G=room H=description I=priority J=status
+      // K=assigned_to L=assigned_at M=resolved_at N=duration_min O=sla_status
+      // P=image_url Q=rating R=notes S=reporter_group_id T=team U=building
+      // V=userId W=displayName X=groupId Y=source Z=accepted_at
+      // AA=rejected_at AB=rejected_by AC=reject_reason AD=response_min AE=completion_min
+      const pri = String(r[8]||'').toLowerCase();
+      return {
+        ticket_id:    r[0]||'',
+        created_at:   r[1]||'',
+        department:   r[2]||'',
+        reported_by:  r[3]||'',
+        category:     r[4]||'',
+        location:     r[5]||'',
+        room:         r[6]||'',
+        description:  r[7]||'',
+        priority:     (pri==='high'||pri==='med'||pri==='low')?pri:'low',
+        status:       r[9]||'pending',
+        assigned_to:  r[10]||'',
+        assigned_at:  r[11]||'',
+        resolved_at:  r[12]||'',
+        duration_min: r[13]||'',
+        sla_status:   r[14]||'',
+        image_url:    r[15]||'',
+        rating:       r[16]||'',
+        notes:        r[17]||'',
+        reporter_group_id: r[18]||'',
+        team:         r[19]||'',
+        building:     r[20]||'',
+        userId:       r[21]||'',
+        displayName:  r[22]||'',
+        groupId:      r[23]||'',
+        source:       r[24]||'',
+        accepted_at:  r[25]||'',
+        rejected_at:  r[26]||'',
+        rejected_by:  r[27]||'',
+        reject_reason:r[28]||'',
+        response_min: r[29]||'',
+        completion_min:r[30]||'',
+        _new:         false
+      };
+    }).filter(t=>t.ticket_id);
     lastIds=new Set(tickets.map(t=>t.ticket_id));
     if(!firstLoad){
       const newT=tickets.filter(t=>!prev.has(t.ticket_id));
@@ -1145,7 +1176,7 @@ function openDetail(id){
       <div><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':'ยังไม่ได้รับการประเมิน'}</div></div>
       ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
-      ${mkDetailImages(t)}}
+      ${mkDetailImages(t)}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at} โดย ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
     </div>`;
