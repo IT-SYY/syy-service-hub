@@ -408,7 +408,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
   </div>
   <div class="team-filter">
     <div style="font-size:10px;color:#64748B;margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองทีม</div>
-    <select class="team-select" id="team-filter" onchange="onTeam()">
+    <select class="team-select" id="team-filter" title="กรองทีม" onchange="onTeam()">
       <option value="all">ทุกทีม</option>
       <option value="IT Support">IT Support</option>
       <option value="Engineering">Engineering</option>
@@ -526,19 +526,19 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
       <div class="filter-bar">
-        <select class="fsel" id="f-status" onchange="renderTicketsPage()">
+        <select class="fsel" id="f-status" title="กรองสถานะ" onchange="renderTicketsPage()">
           <option value="all">ทุกสถานะ</option>
           <option value="pending">⏳ รอดำเนินการ / มอบหมายแล้ว</option>
           <option value="in_progress">🔄 กำลังดำเนินการ</option>
           <option value="done">✅ เสร็จสิ้น</option>
         </select>
-        <select class="fsel" id="f-priority" onchange="renderTicketsPage()">
+        <select class="fsel" id="f-priority" title="กรองความเร่งด่วน" onchange="renderTicketsPage()">
           <option value="all">ทุกความเร่งด่วน</option>
           <option value="high">🔴 ฉุกเฉิน</option>
           <option value="med">🟡 เร่งด่วน</option>
           <option value="low">🟢 ปกติ</option>
         </select>
-        <select class="fsel" id="f-category" onchange="renderTicketsPage()"><option value="all">ทุกประเภท</option></select>
+        <select class="fsel" id="f-category" title="กรองประเภทงาน" onchange="renderTicketsPage()"><option value="all">ทุกประเภท</option></select>
       </div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
         <thead><tr>
@@ -563,8 +563,8 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
       <div class="filter-bar">
-        <select class="fsel" id="h-member" onchange="renderHistory()"><option value="all">ทุกคน</option><option>Chana</option><option>Farid</option><option>Radthaphol</option><option>Pongsakorn</option><option>Nianas</option></select>
-        <select class="fsel" id="h-cat" onchange="renderHistory()"><option value="all">ทุกประเภท</option></select>
+        <select class="fsel" id="h-member" title="กรองสมาชิก" onchange="renderHistory()"><option value="all">ทุกคน</option><option>Chana</option><option>Farid</option><option>Radthaphol</option><option>Pongsakorn</option><option>Nianas</option></select>
+        <select class="fsel" id="h-cat" title="กรองประเภท" onchange="renderHistory()"><option value="all">ทุกประเภท</option></select>
       </div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
         <thead><tr><th>Ticket ID</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th><th>รายละเอียด</th><th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>⭐ คะแนน</th><th>หมายเหตุ</th></tr></thead>
@@ -595,7 +595,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
     <div class="modal-ttl">🔧 มอบหมายงาน<button class="modal-x" onclick="closeM('m-assign')">×</button></div>
     <div class="info-box" id="m-assign-info"></div>
     <div class="modal-field"><label class="modal-lbl">มอบหมายให้</label>
-      <select class="modal-sel" id="m-assign-member">
+      <select class="modal-sel" id="m-assign-member" title="เลือกสมาชิก">
         <option value="">— เลือกสมาชิก —</option>
         <option value="Chana">Chana — IT Manager</option>
         <option value="Farid">Farid — IT Project Supervisor</option>
@@ -774,23 +774,28 @@ function renderCharts(){
 
 // ===== KANBAN =====
 // ===== IMAGE HELPERS =====
+var imgStore = []; // เก็บ URL รูปสำหรับ onclick
 function mkCardImage(t){
   if(!t.image_url) return '';
-  const url = t.image_url.split(',')[0];
+  var url = t.image_url.split(',')[0];
   if(!url) return '';
+  imgStore.push(url);
+  var idx = imgStore.length - 1;
   return '<div style="margin-bottom:6px">'
     + '<img style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:pointer" '
     + 'src="'+url+'" '
-    + 'onclick="event.stopPropagation();openImgViewer(''+url+'')">'
+    + 'onclick="event.stopPropagation();openImgViewer(imgStore['+idx+'])">'
     + '</div>';
 }
 
 function mkDetailImages(t){
   if(!t.image_url) return '';
-  const urls = t.image_url.split(',').filter(Boolean);
+  var urls = t.image_url.split(',').filter(Boolean);
   if(!urls.length) return '';
-  let imgs = urls.map(function(u){
-    return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(''+u+'')">';
+  var imgs = urls.map(function(u){
+    imgStore.push(u);
+    var i = imgStore.length - 1;
+    return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(imgStore['+i+'])">';
   }).join('');
   return '<div style="grid-column:1/-1"><div class="detail-lbl">📷 รูปภาพ</div>'
     + '<div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
