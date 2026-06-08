@@ -689,30 +689,33 @@ async function loadData(silent=false){
         location:     r[5]||'',
         room:         r[6]||'',
         description:  r[7]||'',
-        priority:     (pri==='high'||pri==='med'||pri==='low')?pri:'low',
-        status:       r[9]||'pending',
-        assigned_to:  r[10]||'',
-        assigned_at:  r[11]||'',
-        resolved_at:  r[12]||'',
-        duration_min: r[13]||'',
-        sla_status:   r[14]||'',
-        image_url:    r[15]||'',
-        rating:       r[16]||'',
-        notes:        r[17]||'',
+        priority:      (pri==='high'||pri==='med'||pri==='low')?pri:'low',
+        status:        r[9]||'pending',
+        assigned_to:   r[10]||'',
+        assigned_at:   r[11]||'',
+        resolved_at:   r[12]||'',
+        duration_min:  r[13]||'',
+        sla_status:    r[14]||'',
+        image_url:     r[15]||'',
+        rating:        r[16]||'',
+        notes:         r[17]||'',
         reporter_group_id: r[18]||'',
-        team:         r[19]||'',
-        building:     r[20]||'',
-        userId:       r[21]||'',
-        displayName:  r[22]||'',
-        groupId:      r[23]||'',
-        source:       r[24]||'',
-        accepted_at:  r[25]||'',
-        rejected_at:  r[26]||'',
-        rejected_by:  r[27]||'',
-        reject_reason:r[28]||'',
-        response_min: r[29]||'',
+        team:          r[19]||'',
+        building:      r[20]||'',
+        userId:        r[21]||'',
+        displayName:   r[22]||'',
+        groupId:       r[23]||'',
+        source:        r[24]||'',
+        accepted_at:   r[25]||'',
+        rejected_at:   r[26]||'',
+        rejected_by:   r[27]||'',
+        reject_reason: r[28]||'',
+        response_min:  r[29]||'',
         completion_min:r[30]||'',
-        _new:         false
+        // computed fields — ใช้ fallback ให้ครบ
+        reported_by:   r[3]||r[22]||'',        // reported_by หรือ displayName
+        location:      r[5]||r[20]||'',         // location หรือ building
+        _new:          false
       };
     }).filter(t=>t.ticket_id);
     lastIds=new Set(tickets.map(t=>t.ticket_id));
@@ -1001,7 +1004,7 @@ function renderTicketsPage(){
       <td style="font-size:10px">${t.category||'—'}</td>
       <td style="font-size:10px">${loc||'—'}</td>
       <td style="font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.description||'—'}</td>
-      <td style="font-size:10px">${t.displayName||t.reported_by||'—'}</td>
+      <td style="font-size:10px">${t.displayName||t.reported_by||t.userId||'—'}</td>
       <td><span class="pri-badge ${pc}">${pl}</span></td>
       <td><span class="sbadge ${sc}">${sl}</span></td>
       <td style="font-size:10px">${t.assigned_to||'—'}</td>
@@ -1126,12 +1129,17 @@ function updateCats(){
 // ===== UTILS =====
 function tsISO(str){
   if(!str) return new Date().toISOString();
+  str = String(str).trim();
   if(str.includes('T')) return str;
   var parts = str.split(' ');
-  var dp = (parts[0]||'').split('/');
-  var tp = parts[1]||'00:00:00';
-  if(dp.length<3) return str;
-  return dp[2]+'-'+dp[1]+'-'+dp[0]+'T'+tp+'+07:00';
+  var datePart = parts[0]||'';
+  var timePart = parts[1]||'00:00:00';
+  var dp = datePart.split('/');
+  if(dp.length<3) return new Date().toISOString();
+  // format: dd/MM/yyyy
+  var d=dp[0], m=dp[1], y=dp[2];
+  if(y.length===2) y='20'+y; // แก้ 2-digit year
+  return y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0')+'T'+timePart+'+07:00';
 }
 
 function thaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
@@ -1176,7 +1184,7 @@ function openDetail(id){
       <div><div class="detail-lbl">ทีม</div><div class="detail-val">${t.team||t.department||'—'}</div></div>
       <div><div class="detail-lbl">ประเภท</div><div class="detail-val">${t.category||'—'}</div></div>
       <div><div class="detail-lbl">สถานที่</div><div class="detail-val">${t.building||t.location||'—'} ${t.room?'ห้อง '+t.room:''}</div></div>
-      <div><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||'—'}</div></div>
+      <div><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||t.userId||'—'}</div></div>
       <div><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
       <div><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}</div></div>
       <div><div class="detail-lbl">มอบหมายเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
@@ -1185,6 +1193,7 @@ function openDetail(id){
       ${t.response_min?`<div><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${t.response_min} นาที</div></div>`:''}
       <div><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':'ยังไม่ได้รับการประเมิน'}</div></div>
       ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
+      ${t.duration_min?`<div><div class="detail-lbl">⏱ เวลารวมทั้งหมด</div><div class="detail-val" style="color:var(--text2)">${t.duration_min} นาที (แจ้ง→เสร็จ)</div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
       ${mkDetailImages(t)}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
@@ -1243,7 +1252,14 @@ async function doDone(){
   const ts=thaiTime();
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,notes:note||''})})).json();
-    if(r.success){t.status='done';t.resolved_at=ts;if(note)t.notes=note;const st=t.accepted_at||t.assigned_at;t.completion_min=st?String(Math.round((new Date(tsISO(ts))-new Date(tsISO(st)))/60000)):'';closeM('m-done');renderAll();toast(`ปิดงาน ${currentId} เรียบร้อย`,'🎉','success');}
+    if(r.success){
+    t.status='done';t.resolved_at=ts;if(note)t.notes=note;
+    // คำนวณเวลา
+    const stTime=t.accepted_at||t.assigned_at;
+    if(stTime){ t.completion_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(stTime)))/60000))); }
+    if(t.created_at){ t.duration_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.created_at)))/60000))); }
+    closeM('m-done');renderAll();toast('ปิดงาน '+currentId+' เรียบร้อย','🎉','success');
+  }
     else toast('บันทึกไม่สำเร็จ','❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันปิดงาน';
