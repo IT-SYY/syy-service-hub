@@ -300,7 +300,7 @@
 // ===== CONFIG =====
 const LIFF_ID    = '2010241158-ll8R9q4T';
 const N8N_URL    = 'https://syy-service-hub.app.n8n.cloud/webhook/liff-form';
-const GAS_URL    = 'https://script.google.com/macros/s/AKfycbx3DovxjjOPBS8dDljIBXF4MkzLnsmQgV2EQhZNEYZdasZbBhWMl_mg-M5ddFJKAAsAfA/exec';
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
 const IMG_URL    = 'https://syy-service-hub.app.n8n.cloud/webhook/image-upload'; // n8n รับรูปส่งต่อ GAS
 const MAX_PHOTOS = 5;
 const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน upload)
@@ -489,49 +489,43 @@ function removePhoto(idx, el) {
 function uploadPhotoXHR(ticketId, base64, index) {
   return new Promise(function(resolve) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', IMG_URL, true); // ส่งผ่าน n8n หลีกเลี่ยง CORS
-    // text/plain ไม่ trigger CORS preflight
-    xhr.setRequestHeader('Content-Type', 'application/json'); // n8n รับ JSON ได้ปกติ
-    xhr.timeout = 60000; // 60 วินาที
+    xhr.open('POST', IMG_URL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 60000;
 
     xhr.onreadystatechange = function() {
       if (xhr.readyState !== 4) return;
-      if (xhr.status === 0) {
-        // CORS blocked หรือ network error — ส่ง no-cors fallback
-        console.warn('XHR blocked, sending no-cors fallback');
-        fetch(GAS_URL, {
-          method: 'POST',
-          mode:   'no-cors',
-          body:   JSON.stringify({
-            action: 'upload_image', ticket_id: ticketId,
-            base64: base64, mimeType: 'image/jpeg',
-            fileName: ticketId+'_'+index+'.jpg'
-          })
-        }).catch(function(){});
-        resolve('');
-        return;
-      }
-      try {
-        var data = JSON.parse(xhr.responseText);
-        resolve(data.imageUrl || '');
-      } catch(e) {
-        // GAS อาจ redirect — responseURL อาจเป็น URL จริง
-        console.warn('Parse failed:', xhr.responseText.substring(0,100));
+      console.log('Upload status:', xhr.status, xhr.responseText.substring(0,200));
+      if (xhr.status === 200 || xhr.status === 201) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          if (Array.isArray(data)) data = data[0];
+          var url = data.imageUrl || (data.json && data.json.imageUrl) || '';
+          console.log('imageUrl:', url);
+          resolve(url);
+        } catch(e) {
+          console.warn('Parse error:', e.message);
+          resolve('');
+        }
+      } else {
+        console.warn('Upload failed, status:', xhr.status);
         resolve('');
       }
     };
-    xhr.ontimeout = function(){ resolve(''); };
-    xhr.onerror   = function(){ resolve(''); };
+    xhr.ontimeout = function(){ console.warn('timeout'); resolve(''); };
+    xhr.onerror   = function(){ console.warn('error'); resolve(''); };
 
     xhr.send(JSON.stringify({
       action:    'upload_image',
       ticket_id: ticketId,
       base64:    base64,
       mimeType:  'image/jpeg',
-      fileName:  ticketId + '_' + index + '.jpg'
+      fileName:  ticketId + '_' + index + '.jpg',
+      skip_sheet: true
     }));
   });
 }
+
 
 async function uploadPhotos(ticketId) {
   if (state.photos.length === 0) return [];
