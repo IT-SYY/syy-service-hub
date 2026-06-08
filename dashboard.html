@@ -1124,6 +1124,16 @@ function updateCats(){
 
 
 // ===== UTILS =====
+function tsISO(str){
+  if(!str) return new Date().toISOString();
+  if(str.includes('T')) return str;
+  var parts = str.split(' ');
+  var dp = (parts[0]||'').split('/');
+  var tp = parts[1]||'00:00:00';
+  if(dp.length<3) return str;
+  return dp[2]+'-'+dp[1]+'-'+dp[0]+'T'+tp+'+07:00';
+}
+
 function thaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
 
 // ===== MODALS =====
@@ -1211,7 +1221,7 @@ async function doAccept(){
   const ts=thaiTime();
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts})})).json();
-    if(r.success){t.status='in_progress';t.accepted_at=ts;closeM('m-accept');renderAll();toast(`รับงาน ${currentId} เรียบร้อย`,'✅','success');}
+    if(r.success){t.status='in_progress';t.accepted_at=ts;t.response_min=t.assigned_at?String(Math.round((new Date(tsISO(ts))-new Date(tsISO(t.assigned_at)))/60000)):'';closeM('m-accept');renderAll();toast(`รับงาน ${currentId} เรียบร้อย`,'✅','success');}
     else toast('บันทึกไม่สำเร็จ','❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
 }
@@ -1233,7 +1243,7 @@ async function doDone(){
   const ts=thaiTime();
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,notes:note||''})})).json();
-    if(r.success){t.status='done';t.resolved_at=ts;if(note)t.notes=note;closeM('m-done');renderAll();toast(`ปิดงาน ${currentId} เรียบร้อย`,'🎉','success');}
+    if(r.success){t.status='done';t.resolved_at=ts;if(note)t.notes=note;const st=t.accepted_at||t.assigned_at;t.completion_min=st?String(Math.round((new Date(tsISO(ts))-new Date(tsISO(st)))/60000)):'';closeM('m-done');renderAll();toast(`ปิดงาน ${currentId} เรียบร้อย`,'🎉','success');}
     else toast('บันทึกไม่สำเร็จ','❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันปิดงาน';
