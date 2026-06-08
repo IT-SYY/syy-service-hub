@@ -484,43 +484,51 @@ function removePhoto(idx, el) {
 }
 
 // ===== UPLOAD PHOTOS TO DRIVE =====
-// ส่งรูปผ่าน n8n webhook ไปยัง GAS (หลีกเลี่ยง CORS)
-// n8n จะรับแล้วส่งต่อไป GAS upload_image
+// GAS รับ Content-Type: text/plain ได้โดยไม่ต้องมี CORS preflight
 function uploadPhotoXHR(ticketId, base64, index) {
   return new Promise(function(resolve) {
-    // ลอง fetch ปกติก่อน (รองรับ CORS แล้วใน GAS ที่ deploy ล่าสุด)
-    fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        action:    'upload_image',
-        ticket_id: ticketId,
-        base64:    base64,
-        mimeType:  'image/jpeg',
-        fileName:  ticketId + '_' + index + '.jpg'
-      })
-    })
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      resolve(data.imageUrl || '');
-    })
-    .catch(function(err){
-      console.warn('fetch failed, try no-cors fallback:', err);
-      // fallback: ส่งแบบ no-cors (จะไม่รู้ผลลัพธ์ แต่อย่างน้อยข้อมูลไปถึง GAS)
-      fetch(GAS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action:    'upload_image',
-          ticket_id: ticketId,
-          base64:    base64,
-          mimeType:  'image/jpeg',
-          fileName:  ticketId + '_' + index + '.jpg'
-        })
-      }).catch(function(){});
-      resolve('pending'); // รูปถูกส่งไปแต่ยังไม่รู้ URL
-    });
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', GAS_URL, true);
+    // text/plain ไม่ trigger CORS preflight
+    xhr.setRequestHeader('Content-Type', 'text/plain;charset=UTF-8');
+    xhr.timeout = 60000; // 60 วินาที
+
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 0) {
+        // CORS blocked หรือ network error — ส่ง no-cors fallback
+        console.warn('XHR blocked, sending no-cors fallback');
+        fetch(GAS_URL, {
+          method: 'POST',
+          mode:   'no-cors',
+          body:   JSON.stringify({
+            action: 'upload_image', ticket_id: ticketId,
+            base64: base64, mimeType: 'image/jpeg',
+            fileName: ticketId+'_'+index+'.jpg'
+          })
+        }).catch(function(){});
+        resolve('');
+        return;
+      }
+      try {
+        var data = JSON.parse(xhr.responseText);
+        resolve(data.imageUrl || '');
+      } catch(e) {
+        // GAS อาจ redirect — responseURL อาจเป็น URL จริง
+        console.warn('Parse failed:', xhr.responseText.substring(0,100));
+        resolve('');
+      }
+    };
+    xhr.ontimeout = function(){ resolve(''); };
+    xhr.onerror   = function(){ resolve(''); };
+
+    xhr.send(JSON.stringify({
+      action:    'upload_image',
+      ticket_id: ticketId,
+      base64:    base64,
+      mimeType:  'image/jpeg',
+      fileName:  ticketId + '_' + index + '.jpg'
+    }));
   });
 }
 
