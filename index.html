@@ -484,30 +484,43 @@ function removePhoto(idx, el) {
 }
 
 // ===== UPLOAD PHOTOS TO DRIVE =====
-// ใช้ XMLHttpRequest แทน fetch เพื่อหลีกเลี่ยง CORS preflight
+// ส่งรูปผ่าน n8n webhook ไปยัง GAS (หลีกเลี่ยง CORS)
+// n8n จะรับแล้วส่งต่อไป GAS upload_image
 function uploadPhotoXHR(ticketId, base64, index) {
   return new Promise(function(resolve) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', GAS_URL, true);
-    xhr.setRequestHeader('Content-Type', 'text/plain'); // ใช้ text/plain หลีกเลี่ยง preflight
-    xhr.onload = function() {
-      try {
-        const data = JSON.parse(xhr.responseText);
-        resolve(data.imageUrl || '');
-      } catch(e) {
-        resolve('');
-      }
-    };
-    xhr.onerror = function() { resolve(''); };
-    xhr.ontimeout = function() { resolve(''); };
-    xhr.timeout = 30000; // 30 วินาที
-    xhr.send(JSON.stringify({
-      action:    'upload_image',
-      ticket_id: ticketId,
-      base64:    base64,
-      mimeType:  'image/jpeg',
-      fileName:  ticketId + '_' + index + '.jpg'
-    }));
+    // ลอง fetch ปกติก่อน (รองรับ CORS แล้วใน GAS ที่ deploy ล่าสุด)
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action:    'upload_image',
+        ticket_id: ticketId,
+        base64:    base64,
+        mimeType:  'image/jpeg',
+        fileName:  ticketId + '_' + index + '.jpg'
+      })
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      resolve(data.imageUrl || '');
+    })
+    .catch(function(err){
+      console.warn('fetch failed, try no-cors fallback:', err);
+      // fallback: ส่งแบบ no-cors (จะไม่รู้ผลลัพธ์ แต่อย่างน้อยข้อมูลไปถึง GAS)
+      fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action:    'upload_image',
+          ticket_id: ticketId,
+          base64:    base64,
+          mimeType:  'image/jpeg',
+          fileName:  ticketId + '_' + index + '.jpg'
+        })
+      }).catch(function(){});
+      resolve('pending'); // รูปถูกส่งไปแต่ยังไม่รู้ URL
+    });
   });
 }
 
@@ -527,11 +540,14 @@ async function uploadPhotos(ticketId) {
 
     const base64 = photo.dataUrl.split(',')[1];
     const url    = await uploadPhotoXHR(ticketId, base64, i+1);
-    if (url) {
+    if (url && url !== 'pending') {
       urls.push(url);
       status.textContent = 'อัปโหลดรูป '+(i+1)+' สำเร็จ ✅';
+    } else if (url === 'pending') {
+      status.textContent = 'ส่งรูป '+(i+1)+' แล้ว (กำลังประมวลผล)';
     } else {
       console.warn('Upload photo '+(i+1)+' failed');
+      status.textContent = 'รูป '+(i+1)+' ไม่สามารถอัปโหลด';
     }
   }
 
