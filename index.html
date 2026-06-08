@@ -255,7 +255,7 @@
       <div class="photo-area" onclick="document.getElementById('photo-input').click()">
         <div class="photo-icon">📷</div>
         <div class="photo-text">กดเพื่อถ่ายรูปหรือเลือกรูป<br><strong>Tap to add photos</strong></div>
-        <div class="photo-sub">รองรับ JPG, PNG · สูงสุด 5 รูป · ขนาดไม่เกิน 5MB/รูป</div>
+        <div class="photo-sub">รองรับ JPG, PNG · สูงสุด 5 รูป · บีบอัดอัตโนมัติเหมือน LINE 🗜️</div>
       </div>
       <input type="file" id="photo-input" class="hidden-input" accept="image/*" multiple onchange="handlePhotos(this)">
       <div class="photo-preview" id="photo-preview"></div>
@@ -302,7 +302,7 @@ const LIFF_ID    = '2010241158-ll8R9q4T';
 const N8N_URL    = 'https://syy-service-hub.app.n8n.cloud/webhook/liff-form';
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycbx3DovxjjOPBS8dDljIBXF4MkzLnsmQgV2EQhZNEYZdasZbBhWMl_mg-M5ddFJKAAsAfA/exec';
 const MAX_PHOTOS = 5;
-const MAX_SIZE   = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน upload)
 
 // ===== STATE =====
 let state = {
@@ -380,70 +380,132 @@ function selectPriority(p, el) {
   state.priority = p;
 }
 
+// ===== COMPRESS IMAGE (เหมือน LINE ย่อรูปก่อนส่ง) =====
+function compressImage(file, maxWidth, maxHeight, quality) {
+  maxWidth  = maxWidth  || 1280;
+  maxHeight = maxHeight || 1280;
+  quality   = quality   || 0.75;
+  return new Promise(function(resolve) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        // คำนวณขนาดใหม่ คงอัตราส่วน
+        let w = img.width;
+        let h = img.height;
+        if (w > maxWidth || h > maxHeight) {
+          const ratio = Math.min(maxWidth / w, maxHeight / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        // วาดบน Canvas
+        const canvas  = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        const ctx     = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        // แปลงเป็น JPEG พร้อม quality
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        const origKB     = Math.round(file.size / 1024);
+        const compKB     = Math.round((compressed.length * 3/4) / 1024);
+        console.log('Compress: '+origKB+'KB → '+compKB+'KB ('+w+'×'+h+'px)');
+        resolve({ dataUrl: compressed, type: 'image/jpeg', origKB: origKB, compKB: compKB });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // ===== PHOTOS =====
-function handlePhotos(input) {
+async function handlePhotos(input) {
   const files   = Array.from(input.files);
   const preview = document.getElementById('photo-preview');
-  // จำกัดจำนวน
+
   if (state.photos.length + files.length > MAX_PHOTOS) {
     alert('สูงสุด '+MAX_PHOTOS+' รูปต่อ Ticket ครับ\nMax '+MAX_PHOTOS+' photos per ticket.');
     input.value = '';
     return;
   }
-  files.forEach(file => {
-    if (file.size > MAX_SIZE) {
-      alert('รูป "'+file.name+'" ขนาดเกิน 5MB ครับ');
-      return;
+
+  // แสดง progress ระหว่าง compress
+  const prog   = document.getElementById('upload-progress');
+  const bar    = document.getElementById('upload-bar');
+  const status = document.getElementById('upload-status');
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    // ไม่จำกัดขนาด เพราะจะย่อให้เอง แต่ถ้าเกิน 20MB ก็ reject
+    if (file.size > 20 * 1024 * 1024) {
+      alert('รูป "'+file.name+'" ใหญ่เกิน 20MB ครับ กรุณาเลือกรูปใหม่');
+      continue;
     }
-    const reader = new FileReader();
-    reader.onload = e => {
-      const base64full = e.target.result; // data:image/jpeg;base64,....
-      state.photos.push({ dataUrl: base64full, name: file.name, type: file.type });
-      const wrap    = document.createElement('div');
-      wrap.className = 'photo-thumb-wrap';
-      const idx     = state.photos.length - 1;
-      wrap.innerHTML = '<img src="'+base64full+'" class="photo-thumb">'
-        + '<button class="photo-remove" onclick="removePhoto('+idx+',this.parentNode)">×</button>';
-      preview.appendChild(wrap);
-    };
-    reader.readAsDataURL(file);
-  });
+
+    prog.classList.add('show');
+    status.textContent = 'กำลังบีบอัดรูป '+(i+1)+'/'+files.length+'...';
+    bar.style.width    = Math.round((i / files.length) * 50) + '%';
+
+    // ย่อรูป เหมือน LINE (1280px max, quality 0.75)
+    const compressed = await compressImage(file, 1280, 1280, 0.75);
+    status.textContent = 'บีบอัดแล้ว: '+compressed.origKB+'KB → '+compressed.compKB+'KB ✅';
+
+    state.photos.push({
+      dataUrl: compressed.dataUrl,
+      name:    file.name,
+      type:    'image/jpeg',
+      origKB:  compressed.origKB,
+      compKB:  compressed.compKB
+    });
+
+    // แสดง thumbnail พร้อม info ขนาด
+    const wrap     = document.createElement('div');
+    wrap.className = 'photo-thumb-wrap';
+    const idx      = state.photos.length - 1;
+    wrap.innerHTML = '<img src="'+compressed.dataUrl+'" class="photo-thumb">'
+      + '<button class="photo-remove" onclick="removePhoto('+idx+',this.parentNode)">×</button>'
+      + '<div style="font-size:9px;text-align:center;color:var(--text-muted);margin-top:2px">'+compressed.compKB+'KB</div>';
+    preview.appendChild(wrap);
+  }
+
+  bar.style.width    = '50%';
+  status.textContent = 'พร้อมส่ง — กด Submit เพื่ออัปโหลด';
   input.value = '';
 }
 
 function removePhoto(idx, el) {
   state.photos.splice(idx, 1);
   el.remove();
-  // อัปเดต index ปุ่มลบ
-  document.querySelectorAll('.photo-remove').forEach((btn, i) => {
+  document.querySelectorAll('.photo-remove').forEach(function(btn, i) {
     btn.setAttribute('onclick', 'removePhoto('+i+',this.parentNode)');
   });
+  if (state.photos.length === 0) {
+    document.getElementById('upload-progress').classList.remove('show');
+  }
 }
 
 // ===== UPLOAD PHOTOS TO DRIVE =====
 async function uploadPhotos(ticketId) {
   if (state.photos.length === 0) return [];
-  const urls  = [];
-  const prog  = document.getElementById('upload-progress');
-  const bar   = document.getElementById('upload-bar');
+  const urls   = [];
+  const prog   = document.getElementById('upload-progress');
+  const bar    = document.getElementById('upload-bar');
   const status = document.getElementById('upload-status');
   prog.classList.add('show');
 
   for (let i = 0; i < state.photos.length; i++) {
-    const photo  = state.photos[i];
-    status.textContent = 'กำลังอัปโหลดรูป '+(i+1)+'/'+state.photos.length+'...';
-    bar.style.width = Math.round(((i) / state.photos.length) * 100) + '%';
+    const photo = state.photos[i];
+    status.textContent = 'กำลังอัปโหลดรูป '+(i+1)+'/'+state.photos.length+' ('+photo.compKB+'KB)...';
+    bar.style.width    = Math.round(50 + (i / state.photos.length) * 50) + '%';
 
-    // แปลง dataUrl → base64 string เท่านั้น
     const base64 = photo.dataUrl.split(',')[1];
     try {
-      const res = await fetch(GAS_URL, {
+      const res  = await fetch(GAS_URL, {
         method: 'POST',
-        body: JSON.stringify({
+        body:   JSON.stringify({
           action:    'upload_image',
           ticket_id: ticketId,
           base64:    base64,
-          mimeType:  photo.type || 'image/jpeg',
+          mimeType:  'image/jpeg',
           fileName:  ticketId + '_' + (i+1) + '.jpg'
         })
       });
@@ -452,11 +514,11 @@ async function uploadPhotos(ticketId) {
         urls.push(data.imageUrl);
       }
     } catch(e) {
-      console.error('Upload photo error:', e);
+      console.error('Upload error:', e);
     }
   }
-  bar.style.width = '100%';
-  status.textContent = 'อัปโหลดรูปเสร็จแล้ว ✅';
+  bar.style.width    = '100%';
+  status.textContent = 'อัปโหลดเสร็จแล้ว '+urls.length+'/'+state.photos.length+' รูป ✅';
   return urls;
 }
 
