@@ -773,6 +773,29 @@ function renderCharts(){
 }
 
 // ===== KANBAN =====
+// ===== IMAGE HELPERS =====
+function mkCardImage(t){
+  if(!t.image_url) return '';
+  const url = t.image_url.split(',')[0];
+  if(!url) return '';
+  return '<div style="margin-bottom:6px">'
+    + '<img style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:pointer" '
+    + 'src="'+url+'" '
+    + 'onclick="event.stopPropagation();openImgViewer(''+url+'')">'
+    + '</div>';
+}
+
+function mkDetailImages(t){
+  if(!t.image_url) return '';
+  const urls = t.image_url.split(',').filter(Boolean);
+  if(!urls.length) return '';
+  let imgs = urls.map(function(u){
+    return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(''+u+'')">';
+  }).join('');
+  return '<div style="grid-column:1/-1"><div class="detail-lbl">📷 รูปภาพ</div>'
+    + '<div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
+}
+
 // ===== IMAGE VIEWER =====
 function openImgViewer(url){
   document.getElementById('img-viewer-src').src  = url;
@@ -877,7 +900,7 @@ function mkCard(t){
       ${ratingHtml}
     </div>
     <div class="kb-desc">${desc||'ไม่มีรายละเอียด'}</div>
-    ${t.image_url?'<div style="margin-bottom:6px"><img style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:pointer" src="'+t.image_url.split(',')[0]+'" onclick="event.stopPropagation();openImgViewer(\'"+t.image_url.split(',')[0]+'\')"></div>':''}
+    ${mkCardImage(t)}
     <div class="kb-meta">
       <span>📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
       <span>${assignee} &nbsp;·&nbsp; 🕐 ${ts}</span>
@@ -1117,7 +1140,7 @@ function openDetail(id){
       <div><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':'ยังไม่ได้รับการประเมิน'}</div></div>
       ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
-      ${t.image_url?`<div style="grid-column:1/-1"><div class="detail-lbl">📷 รูปภาพ</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${t.image_url.split(',').filter(Boolean).map(u=>'<img class="img-thumb" src="'+u+'" onclick="openImgViewer(\'"+u+'\')">'  ).join('')}</div></div>`:''}
+      ${mkDetailImages(t)}}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at} โดย ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
     </div>`;
