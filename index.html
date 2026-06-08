@@ -484,6 +484,33 @@ function removePhoto(idx, el) {
 }
 
 // ===== UPLOAD PHOTOS TO DRIVE =====
+// ใช้ XMLHttpRequest แทน fetch เพื่อหลีกเลี่ยง CORS preflight
+function uploadPhotoXHR(ticketId, base64, index) {
+  return new Promise(function(resolve) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', GAS_URL, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain'); // ใช้ text/plain หลีกเลี่ยง preflight
+    xhr.onload = function() {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        resolve(data.imageUrl || '');
+      } catch(e) {
+        resolve('');
+      }
+    };
+    xhr.onerror = function() { resolve(''); };
+    xhr.ontimeout = function() { resolve(''); };
+    xhr.timeout = 30000; // 30 วินาที
+    xhr.send(JSON.stringify({
+      action:    'upload_image',
+      ticket_id: ticketId,
+      base64:    base64,
+      mimeType:  'image/jpeg',
+      fileName:  ticketId + '_' + index + '.jpg'
+    }));
+  });
+}
+
 async function uploadPhotos(ticketId) {
   if (state.photos.length === 0) return [];
   const urls   = [];
@@ -494,31 +521,24 @@ async function uploadPhotos(ticketId) {
 
   for (let i = 0; i < state.photos.length; i++) {
     const photo = state.photos[i];
-    status.textContent = 'กำลังอัปโหลดรูป '+(i+1)+'/'+state.photos.length+' ('+photo.compKB+'KB)...';
-    bar.style.width    = Math.round(50 + (i / state.photos.length) * 50) + '%';
+    const kb    = photo.compKB || '?';
+    status.textContent = 'กำลังอัปโหลดรูป '+(i+1)+'/'+state.photos.length+' ('+kb+'KB)...';
+    bar.style.width    = Math.round(50 + (i / state.photos.length) * 45) + '%';
 
     const base64 = photo.dataUrl.split(',')[1];
-    try {
-      const res  = await fetch(GAS_URL, {
-        method: 'POST',
-        body:   JSON.stringify({
-          action:    'upload_image',
-          ticket_id: ticketId,
-          base64:    base64,
-          mimeType:  'image/jpeg',
-          fileName:  ticketId + '_' + (i+1) + '.jpg'
-        })
-      });
-      const data = await res.json();
-      if (data.success && data.imageUrl) {
-        urls.push(data.imageUrl);
-      }
-    } catch(e) {
-      console.error('Upload error:', e);
+    const url    = await uploadPhotoXHR(ticketId, base64, i+1);
+    if (url) {
+      urls.push(url);
+      status.textContent = 'อัปโหลดรูป '+(i+1)+' สำเร็จ ✅';
+    } else {
+      console.warn('Upload photo '+(i+1)+' failed');
     }
   }
+
   bar.style.width    = '100%';
-  status.textContent = 'อัปโหลดเสร็จแล้ว '+urls.length+'/'+state.photos.length+' รูป ✅';
+  status.textContent = urls.length > 0
+    ? 'อัปโหลดเสร็จแล้ว '+urls.length+'/'+state.photos.length+' รูป ✅'
+    : 'ไม่สามารถอัปโหลดรูปได้ — ข้อมูลจะถูกส่งโดยไม่มีรูป';
   return urls;
 }
 
