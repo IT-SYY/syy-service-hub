@@ -931,7 +931,10 @@ function renderKanban(){
   const b=getBase();
   const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
   const inprog=b.filter(t=>t.status==='in_progress');
-  const done=b.filter(t=>t.status==='done').slice(0,15);
+  // เรียงล่าสุดก่อน แล้วค่อย slice
+  const done=b.filter(t=>t.status==='done')
+    .sort((a,c)=>(c.resolved_at||c.created_at||'').localeCompare(a.resolved_at||a.created_at||''))
+    .slice(0,20);
 
   document.getElementById('kb-count-pending').textContent=pend.length;
   document.getElementById('kb-count-inprog').textContent=inprog.length;
@@ -1384,9 +1387,15 @@ async function doAccept(){
   const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts})})).json();
-    if(r.success){t.status='in_progress';t.accepted_at=ts;t.response_min=t.assigned_at?String(Math.round((new Date(tsISO(ts))-new Date(tsISO(t.assigned_at)))/60000)):'';closeM('m-accept');renderAll();toast(`รับงาน ${currentId} เรียบร้อย`,'✅','success');}
-    else toast('บันทึกไม่สำเร็จ','❌','error');
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts,timestamp:ts})})).json();
+    if(r.success){
+      t.status='in_progress';
+      t.accepted_at=ts;
+      t.response_min=t.assigned_at?String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.assigned_at)))/60000))):'';
+      closeM('m-accept');
+      renderAll();
+      toast('รับงาน '+currentId+' เรียบร้อย','✅','success');
+    } else toast('บันทึกไม่สำเร็จ','❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
 }
 async function doReject(){
@@ -1396,8 +1405,16 @@ async function doReject(){
   const ts=thaiTime();
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason})})).json();
-    if(r.success){t.status='pending';t.assigned_to='';t.assigned_at='';t.rejected_at=ts;t.reject_reason=reason;closeM('m-accept');renderAll();toast(`ปฏิเสธงาน ${currentId} — กรุณามอบหมายใหม่`,'⚠️','info');}
-    else toast('บันทึกไม่สำเร็จ','❌','error');
+    if(r.success){
+      t.status='pending';
+      t.assigned_to='';
+      t.assigned_at='';
+      t.rejected_at=ts;
+      t.reject_reason=reason;
+      closeM('m-accept');
+      renderAll();
+      toast('ปฏิเสธงาน '+currentId+' — กรุณามอบหมายใหม่','⚠️','info');
+    } else toast('บันทึกไม่สำเร็จ','❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
 }
 async function doDone(){
@@ -1406,16 +1423,24 @@ async function doDone(){
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,notes:note||''})})).json();
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||''})})).json();
     if(r.success){
-    t.status='done';t.resolved_at=ts;if(note)t.notes=note;
-    // คำนวณเวลา
-    const stTime=t.accepted_at||t.assigned_at;
-    if(stTime){ t.completion_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(stTime)))/60000))); }
-    if(t.created_at){ t.duration_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.created_at)))/60000))); }
-    closeM('m-done');renderAll();toast('ปิดงาน '+currentId+' เรียบร้อย','🎉','success');
-  }
-    else toast('บันทึกไม่สำเร็จ','❌','error');
+      t.status='done';
+      t.resolved_at=ts;
+      if(note) t.notes=note;
+      // คำนวณเวลา
+      const stTime=t.accepted_at||t.assigned_at;
+      if(stTime){ t.completion_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(stTime)))/60000))); }
+      if(t.created_at){ t.duration_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.created_at)))/60000))); }
+      // เลื่อน Ticket นี้ไปต้น array เพื่อให้ขึ้นกรอบเสร็จสิ้นทันที
+      const idx=tickets.findIndex(x=>x.ticket_id===currentId);
+      if(idx>0){ tickets.splice(idx,1); tickets.unshift(t); }
+      closeM('m-done');
+      renderAll();
+      toast('ปิดงาน '+currentId+' เรียบร้อย','🎉','success');
+    } else {
+      toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
+    }
   }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันปิดงาน';
 }
