@@ -1013,24 +1013,27 @@ function mkCard(t){
 function renderTechList(){
   const base=getBase();
   document.getElementById('tech-list').innerHTML=MEMBERS.map(m=>{
-    const inprog = base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
-    const waiting= base.filter(t=>t.assigned_to===m.name&&t.status==='assigned'); // ค้างรับ
-    const done   = base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
+    const inprog  = base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
+    // ค้างรับ = assigned (มอบหมายแล้วแต่ยังไม่กดรับ) หรือ in_progress ที่ยังไม่มี accepted_at
+    const waiting = base.filter(t=>t.assigned_to===m.name&&(t.status==='assigned'||(t.status==='in_progress'&&!t.accepted_at)));
+    const done    = base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
 
     // นับงานล่าช้า
     let lateCount=0;
     inprog.forEach(t=>{
-      const lv=lateLevel(elapsedSince(t.accepted_at||t.assigned_at||t.created_at), t.priority);
+      const ref = t.accepted_at||t.assigned_at||t.created_at;
+      const lv  = lateLevel(elapsedSince(ref), t.priority);
       if(lv.level==='danger') lateCount++;
     });
-    waiting.forEach(t=>{
-      // ค้างรับ — นับจากเวลาที่มอบหมาย หรือเวลาแจ้งถ้าไม่มี
+    // ค้างรับที่เกินเกณฑ์
+    base.filter(t=>t.assigned_to===m.name&&t.status==='assigned').forEach(t=>{
       const lv=lateLevel(elapsedSince(t.assigned_at||t.created_at), t.priority);
       if(lv.level==='danger') lateCount++;
     });
 
     const activeCount = inprog.length;
-    const waitCount   = waiting.length;
+    // waitCount = งาน assigned ที่ยังไม่กดรับ
+    const waitCount   = base.filter(t=>t.assigned_to===m.name&&t.status==='assigned').length;
 
     // สร้าง badge สถานะ
     let badges='';
@@ -1039,7 +1042,7 @@ function renderTechList(){
     if(activeCount>0) badges+=`<span class="tech-badge tech-badge-active">🔧 ทำอยู่ ${activeCount}</span>`;
     if(!badges)       badges=`<span class="tech-badge tech-badge-idle">✓ ว่าง</span>`;
 
-    const dotClass = lateCount>0?'late':activeCount>0?'busy':'online';
+    const dotClass = lateCount>0?'late':activeCount>0||waitCount>0?'busy':'online';
 
     return `<div class="tech-item ${lateCount>0?'tech-item-late':''}" onclick="goToMemberTasks('${m.name}')" title="กดดูงานของ ${m.name}">
       <div class="tech-av ${lateCount>0?'av-late':''}">${m.name[0]}</div>
