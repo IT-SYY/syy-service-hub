@@ -1019,8 +1019,15 @@ function renderTechList(){
 
     // นับงานล่าช้า
     let lateCount=0;
-    inprog.forEach(t=>{ const lv=lateLevel(elapsedSince(t.accepted_at), t.priority); if(lv.level==='danger') lateCount++; });
-    waiting.forEach(t=>{ const lv=lateLevel(elapsedSince(t.assigned_at), t.priority); if(lv.level==='danger') lateCount++; });
+    inprog.forEach(t=>{
+      const lv=lateLevel(elapsedSince(t.accepted_at||t.assigned_at||t.created_at), t.priority);
+      if(lv.level==='danger') lateCount++;
+    });
+    waiting.forEach(t=>{
+      // ค้างรับ — นับจากเวลาที่มอบหมาย หรือเวลาแจ้งถ้าไม่มี
+      const lv=lateLevel(elapsedSince(t.assigned_at||t.created_at), t.priority);
+      if(lv.level==='danger') lateCount++;
+    });
 
     const activeCount = inprog.length;
     const waitCount   = waiting.length;
@@ -1137,8 +1144,8 @@ function renderTechGrid(){
 
     // นับงานล่าช้า
     let lateCount=0;
-    inprog.forEach(t=>{ if(lateLevel(elapsedSince(t.accepted_at),t.priority).level==='danger') lateCount++; });
-    waiting.forEach(t=>{ if(lateLevel(elapsedSince(t.assigned_at),t.priority).level==='danger') lateCount++; });
+    inprog.forEach(t=>{ if(lateLevel(elapsedSince(t.accepted_at||t.assigned_at||t.created_at),t.priority).level==='danger') lateCount++; });
+    waiting.forEach(t=>{ if(lateLevel(elapsedSince(t.assigned_at||t.created_at),t.priority).level==='danger') lateCount++; });
 
     const lateBanner = lateCount>0
       ? `<div class="tech-card-alert">🔴 มีงานล่าช้า ${lateCount} งาน</div>`
@@ -1268,11 +1275,10 @@ function thaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600000);return
 
 // คำนวณเวลาที่ผ่านไปจากเวลาที่กำหนด (เช่น เริ่มงานมาแล้วกี่ชั่วโมง)
 function elapsedSince(str){
-  if(!str) return null;
+  if(!str || str==='' || str==='undefined' || str==='null') return null;
   try{
     var start = new Date(tsISO(str)).getTime();
-    var now   = new Date(new Date().getTime() + 7*3600000 - new Date().getTimezoneOffset()*60000*0).getTime();
-    // ใช้เวลาปัจจุบันเทียบกับ start (start เป็น +07:00 อยู่แล้ว)
+    if(isNaN(start)) return null;
     var diffMin = Math.floor((Date.now() - start) / 60000);
     if(diffMin < 0) diffMin = 0;
     return diffMin;
