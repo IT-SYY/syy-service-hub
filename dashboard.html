@@ -174,8 +174,11 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .tech-item:hover{border-color:var(--green);background:var(--green-dim);transform:translateX(2px);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .tech-item-late{border-color:#FCA5A5;background:#FEF2F2;}
 .tech-item-late:hover{border-color:#EF4444;background:#FEE2E2;}
+.tech-item-wait{border-color:#FDE68A;background:#FFFBEB;}
+.tech-item-wait:hover{border-color:#F59E0B;background:#FEF3C7;}
 .tech-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#FFF;flex-shrink:0;}
 .tech-av.av-late{background:linear-gradient(135deg,#EF4444,#DC2626);animation:avPulse 2s infinite;}
+.tech-av.av-wait{background:linear-gradient(135deg,#F59E0B,#D97706);animation:avPulse 2.5s infinite;}
 @keyframes avPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 5px rgba(239,68,68,0)}}
 .tech-info{flex:1;min-width:0;}
 .tech-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px;}
@@ -1013,39 +1016,42 @@ function mkCard(t){
 function renderTechList(){
   const base=getBase();
   document.getElementById('tech-list').innerHTML=MEMBERS.map(m=>{
-    const inprog  = base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
-    // ค้างรับ = assigned (มอบหมายแล้วแต่ยังไม่กดรับ) หรือ in_progress ที่ยังไม่มี accepted_at
-    const waiting = base.filter(t=>t.assigned_to===m.name&&(t.status==='assigned'||(t.status==='in_progress'&&!t.accepted_at)));
-    const done    = base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
+    const inprog   = base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
+    const assigned = base.filter(t=>t.assigned_to===m.name&&t.status==='assigned'); // ค้างรับ
+    const done     = base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
 
-    // นับงานล่าช้า
-    let lateCount=0;
+    // นับงานกำลังทำที่ล่าช้า
+    let lateInprog=0;
     inprog.forEach(t=>{
-      const ref = t.accepted_at||t.assigned_at||t.created_at;
-      const lv  = lateLevel(elapsedSince(ref), t.priority);
-      if(lv.level==='danger') lateCount++;
-    });
-    // ค้างรับที่เกินเกณฑ์
-    base.filter(t=>t.assigned_to===m.name&&t.status==='assigned').forEach(t=>{
-      const lv=lateLevel(elapsedSince(t.assigned_at||t.created_at), t.priority);
-      if(lv.level==='danger') lateCount++;
+      const ref=t.accepted_at||t.assigned_at||t.created_at;
+      if(lateLevel(elapsedSince(ref),t.priority).level==='danger') lateInprog++;
     });
 
-    const activeCount = inprog.length;
-    // waitCount = งาน assigned ที่ยังไม่กดรับ
-    const waitCount   = base.filter(t=>t.assigned_to===m.name&&t.status==='assigned').length;
+    // นับงานค้างรับที่เกินเกณฑ์
+    let lateAssigned=0;
+    assigned.forEach(t=>{
+      if(lateLevel(elapsedSince(t.assigned_at||t.created_at),t.priority).level==='danger') lateAssigned++;
+    });
 
-    // สร้าง badge สถานะ
+    const lateTotal  = lateInprog + lateAssigned;
+    const activeCount= inprog.length;
+    const waitCount  = assigned.length; // มีงานค้างรับ = badge ⏳ ทันที
+
+    // สร้าง badge
     let badges='';
-    if(lateCount>0)   badges+=`<span class="tech-badge tech-badge-late">🔴 ล่าช้า ${lateCount}</span>`;
-    if(waitCount>0)   badges+=`<span class="tech-badge tech-badge-wait">⏳ ค้างรับ ${waitCount}</span>`;
-    if(activeCount>0) badges+=`<span class="tech-badge tech-badge-active">🔧 ทำอยู่ ${activeCount}</span>`;
-    if(!badges)       badges=`<span class="tech-badge tech-badge-idle">✓ ว่าง</span>`;
+    if(lateTotal>0)  badges+=`<span class="tech-badge tech-badge-late">🔴 ล่าช้า ${lateTotal}</span>`;
+    if(waitCount>0)  badges+=`<span class="tech-badge tech-badge-wait">⏳ ค้างรับ ${waitCount}</span>`;
+    if(activeCount>0)badges+=`<span class="tech-badge tech-badge-active">🔧 ทำอยู่ ${activeCount}</span>`;
+    if(!badges)      badges=`<span class="tech-badge tech-badge-idle">✓ ว่าง</span>`;
 
-    const dotClass = lateCount>0?'late':activeCount>0||waitCount>0?'busy':'online';
+    // dot สี: แดง=ล่าช้า, ส้ม=มีงาน, เขียว=ว่าง
+    const dotClass = lateTotal>0?'late':(activeCount>0||waitCount>0)?'busy':'online';
+    // avatar: แดงเต้นเมื่อล่าช้า, ส้มเมื่อมีงานค้างรับ
+    const avClass  = lateTotal>0?'av-late':waitCount>0?'av-wait':'';
+    const itemClass= lateTotal>0?'tech-item-late':waitCount>0?'tech-item-wait':'';
 
-    return `<div class="tech-item ${lateCount>0?'tech-item-late':''}" onclick="goToMemberTasks('${m.name}')" title="กดดูงานของ ${m.name}">
-      <div class="tech-av ${lateCount>0?'av-late':''}">${m.name[0]}</div>
+    return `<div class="tech-item ${itemClass}" onclick="goToMemberTasks('${m.name}')" title="กดดูงานของ ${m.name}">
+      <div class="tech-av ${avClass}">${m.name[0]}</div>
       <div class="tech-info">
         <div class="tech-name">${m.name} <span class="tech-go">›</span></div>
         <div class="tech-role">${m.role}</div>
