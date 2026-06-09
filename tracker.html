@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SYY Service Hub — ติดตามสถานะงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#10B981;--green2:#059669;--green-l:#E8FBF0;--green-m:#D0F5E3;
+  --blue:#3B82F6;--blue-l:#EFF6FF;
+  --orange:#F59E0B;--orange-l:#FFFBEB;
+  --purple:#8B5CF6;--purple-l:#F5F3FF;
+  --red:#EF4444;--red-l:#FEF2F2;
+  --navy:#0F172A;--text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --border:#E2E8F0;--bg:#DDE3EC;--bg2:#F8FAFC;--white:#FFF;
+  --shadow:0 1px 3px rgba(15,23,42,0.08);--shadow-md:0 4px 16px rgba(15,23,42,0.10);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0F172A 0%,#1E3A5F 100%);padding:20px 20px 32px;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:rgba(16,185,129,0.08);}
+.header::after{content:'';position:absolute;bottom:-30px;left:20px;width:120px;height:120px;border-radius:50%;background:rgba(59,130,246,0.06);}
+.header-inner{position:relative;z-index:1;}
+.header-logo{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.logo-icon{width:42px;height:42px;border-radius:12px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(16,185,129,0.4);}
+.logo-txt{font-size:15px;font-weight:700;color:#FFF;}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.6);}
+.header-title{font-size:22px;font-weight:700;color:#FFF;margin-bottom:4px;}
+.header-sub{font-size:13px;color:rgba(255,255,255,0.7);}
+
+/* SEARCH BOX */
+.search-wrap{background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;margin-top:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(8px);}
+.search-wrap:focus-within{border-color:var(--green);background:rgba(255,255,255,0.15);}
+.search-icon{font-size:16px;flex-shrink:0;}
+.search-input{background:none;border:none;color:#FFF;font-family:'Sarabun',sans-serif;font-size:14px;outline:none;flex:1;}
+.search-input::placeholder{color:rgba(255,255,255,0.5);}
+.search-btn{background:var(--green);border:none;border-radius:8px;color:#FFF;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;padding:7px 16px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.search-btn:hover{background:var(--green2);transform:scale(1.02);}
+.search-hint{font-size:11px;color:rgba(255,255,255,0.5);margin-top:8px;}
+
+/* FILTER TABS */
+.filter-tabs{display:flex;gap:6px;padding:14px 16px;overflow-x:auto;background:var(--white);border-bottom:1px solid var(--border);box-shadow:var(--shadow);}
+.filter-tab{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.filter-tab.active{border-color:var(--green);background:var(--green-l);color:var(--green);}
+.filter-tab-count{font-size:10px;font-weight:700;background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:10px;}
+.filter-tab.active .filter-tab-count{background:rgba(16,185,129,0.2);}
+
+/* CONTENT */
+.content{padding:14px;}
+
+/* TICKET CARD */
+.ticket-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;cursor:pointer;transition:all 0.2s;}
+.ticket-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:#CBD5E1;}
+.ticket-card-header{padding:13px 14px 10px;border-bottom:1px solid var(--bg2);}
+.ticket-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.ticket-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);font-weight:600;}
+.ticket-badges{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.s-pending{background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;}
+.s-assigned{background:#EDE9FE;color:#7C3AED;border:1px solid #DDD6FE;}
+.s-inprog{background:#DBEAFE;color:#2563EB;border:1px solid #BFDBFE;}
+.s-done{background:#D1FAE5;color:#059669;border:1px solid #A7F3D0;}
+.s-rejected{background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;}
+.pri-badge{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;}
+.pri-high{background:var(--red-l);color:var(--red);}
+.pri-med{background:var(--orange-l);color:var(--orange);}
+.pri-low{background:var(--green-l);color:var(--green2);}
+.ticket-desc{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:8px;}
+.ticket-meta{display:flex;flex-wrap:wrap;gap:8px;}
+.meta-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);}
+
+/* TIMELINE IN CARD */
+.ticket-timeline{padding:10px 14px 12px;}
+.timeline-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.tl-wrap{position:relative;padding-left:20px;}
+.tl-step{position:relative;margin-bottom:10px;}
+.tl-step:last-child{margin-bottom:0;}
+.tl-step::before{content:'';position:absolute;left:-15px;top:6px;bottom:-10px;width:2px;background:var(--border);}
+.tl-step:last-child::before{display:none;}
+.tl-dot{position:absolute;left:-20px;top:3px;width:10px;height:10px;border-radius:50%;border:2px solid var(--white);box-shadow:0 0 0 1.5px var(--border);background:var(--bg2);}
+.tl-dot.done{background:var(--green);box-shadow:0 0 0 1.5px var(--green);}
+.tl-dot.active{background:var(--blue);box-shadow:0 0 0 1.5px var(--blue);animation:tlPulse 1.5s infinite;}
+@keyframes tlPulse{0%,100%{box-shadow:0 0 0 1.5px var(--blue)}50%{box-shadow:0 0 0 4px rgba(59,130,246,0.2)}}
+.tl-dot.rejected{background:var(--red);box-shadow:0 0 0 1.5px var(--red);}
+.tl-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.4;}
+.tl-label.pending-step{color:var(--text3);}
+.tl-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+
+/* RATING */
+.rating-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--bg2);}
+.rating-stars{font-size:14px;}
+.rating-lbl{font-size:11px;color:var(--text2);}
+
+/* TIMER BADGE */
+.timer-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-top:6px;}
+.timer-ok{background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;}
+.timer-warn{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;}
+.timer-late{background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;}
+.timer-done{background:#F0FDF4;color:#059669;border:1px solid #A7F3D0;}
+
+/* EMPTY / LOADING */
+.empty-box{text-align:center;padding:48px 20px;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--text2);line-height:1.6;}
+.loading-box{text-align:center;padding:48px 20px;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;color:var(--text2);}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.stat-card{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:var(--shadow);text-align:center;}
+.stat-num{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:3px;}
+
+/* DETAIL MODAL */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.show{display:flex;}
+.modal{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:20px;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-ttl{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.modal-x{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.detail-cell{background:var(--bg2);border-radius:10px;padding:10px 12px;}
+.detail-lbl{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;}
+.detail-val{font-size:13px;font-weight:600;color:var(--text);}
+.detail-full{grid-column:1/-1;}
+.img-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.img-thumb{width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid var(--border);cursor:pointer;transition:all 0.15s;}
+.img-thumb:hover{transform:scale(1.05);}
+.img-viewer{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:300;display:none;align-items:center;justify-content:center;}
+.img-viewer.show{display:flex;}
+.img-viewer img{max-width:95vw;max-height:90vh;border-radius:8px;}
+.img-viewer-close{position:absolute;top:16px;right:16px;background:none;border:none;color:#FFF;font-size:30px;cursor:pointer;}
+
+/* BOTTOM CTA */
+.bottom-cta{background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;}
+.cta-title{font-size:14px;font-weight:700;color:#FFF;margin-bottom:6px;}
+.cta-sub{font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:14px;}
+.cta-btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);border:none;border-radius:10px;color:#FFF;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;padding:11px 22px;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(16,185,129,0.4);transition:all 0.2s;}
+.cta-btn:hover{background:var(--green2);transform:translateY(-1px);}
+
+/* RESULT HEADER */
+.result-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.result-ttl{font-size:13px;font-weight:700;color:var(--text);}
+.result-count{font-size:12px;color:var(--text2);}
+
+/* REFRESH BTN */
+.refresh-btn{display:flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;color:var(--text2);font-family:'Sarabun',sans-serif;font-size:12px;padding:7px 14px;cursor:pointer;transition:all 0.2s;}
+.refresh-btn:hover{border-color:var(--green);color:var(--green);}
+
+@media(min-width:520px){
+  .stats-row{grid-template-columns:repeat(4,1fr);}
+  .overlay{align-items:center;}
+  .modal{border-radius:20px;max-height:85vh;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <div class="logo-icon">🔧</div>
+      <div>
+        <div class="logo-txt">SYY Service Hub</div>
+        <div class="logo-sub">Santhiya Collection</div>
+      </div>
+    </div>
+    <div class="header-title">📋 ติดตามสถานะงาน</div>
+    <div class="header-sub">Track your maintenance request status</div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" id="search-input"
+        placeholder="ค้นหาด้วย Ticket ID, ชื่อผู้แจ้ง, รายละเอียด..."
+        oninput="onSearch()" autocomplete="off">
+      <button class="search-btn" onclick="doSearch()">ค้นหา</button>
+    </div>
+    <div class="search-hint">💡 พิมพ์ชื่อของคุณหรือ Ticket ID เพื่อค้นหางานที่แจ้งไว้</div>
+  </div>
+</div>
+
+<!-- FILTER TABS -->
+<div class="filter-tabs">
+  <div class="filter-tab active" data-f="all" onclick="setFilter('all',this)">
+    ทั้งหมด <span class="filter-tab-count" id="fc-all">0</span>
+  </div>
+  <div class="filter-tab" data-f="pending" onclick="setFilter('pending',this)">
+    ⏳ รอดำเนินการ <span class="filter-tab-count" id="fc-pending">0</span>
+  </div>
+  <div class="filter-tab" data-f="in_progress" onclick="setFilter('in_progress',this)">
+    🔄 กำลังซ่อม <span class="filter-tab-count" id="fc-inprog">0</span>
+  </div>
+  <div class="filter-tab" data-f="done" onclick="setFilter('done',this)">
+    ✅ เสร็จสิ้น <span class="filter-tab-count" id="fc-done">0</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- STATS -->
+  <div class="stats-row" id="stats-row" style="display:none">
+    <div class="stat-card">
+      <div class="stat-num" id="s-total" style="color:var(--blue)">0</div>
+      <div class="stat-lbl">ทั้งหมด</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="s-pend" style="color:var(--orange)">0</div>
+      <div class="stat-lbl">รอดำเนินการ</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="s-prog" style="color:var(--purple)">0</div>
+      <div class="stat-lbl">กำลังซ่อม</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="s-done" style="color:var(--green)">0</div>
+      <div class="stat-lbl">เสร็จสิ้น</div>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div id="ticket-list">
+    <!-- Initial empty state -->
+    <div class="empty-box">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">ค้นหา Ticket ของคุณ</div>
+      <div class="empty-sub">พิมพ์ชื่อของคุณหรือ Ticket ID<br>ในช่องค้นหาด้านบน<br><br>หรือกดปุ่มด้านล่างเพื่อโหลดทุก Ticket</div>
+      <br>
+      <button class="refresh-btn" style="margin:0 auto" onclick="loadAll()">📋 ดูทุก Ticket</button>
+    </div>
+  </div>
+
+  <!-- CTA LINE -->
+  <div class="bottom-cta">
+    <div class="cta-title">🔔 แจ้งงานซ่อมใหม่</div>
+    <div class="cta-sub">กดปุ่มด้านล่างเพื่อส่งแจ้งซ่อมผ่าน LINE</div>
+    <a class="cta-btn" href="https://line.me/ti/p/@408thdjl" target="_blank">
+      <span>💬</span> แจ้งซ่อมผ่าน LINE
+    </a>
+  </div>
+
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="overlay" onclick="closeDetail(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-ttl">
+      <span>📋 รายละเอียดงาน</span>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER -->
+<div class="img-viewer" id="img-viewer" onclick="closeImgViewer()">
+  <button class="img-viewer-close" onclick="closeImgViewer()">×</button>
+  <img id="img-viewer-src" src="" alt="">
+</div>
+
+<script>
+// ===== CONFIG =====
+const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
+const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
+const BASE     = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
+const LIFF_URL = 'https://liff.line.me/2010241158-ll8R9q4T';
+
+// ===== STATE =====
+let allTickets = [];
+let filteredTickets = [];
+let currentFilter = 'all';
+let searchQuery = '';
+let imgStoreT = [];
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  // ดึง query param จาก URL (เช่น ?q=Chana หรือ ?id=TK-xxx)
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q') || params.get('name') || '';
+  const id = params.get('id') || params.get('ticket') || '';
+  if (q) {
+    document.getElementById('search-input').value = q;
+    searchQuery = q.toLowerCase();
+    loadData();
+  } else if (id) {
+    document.getElementById('search-input').value = id;
+    searchQuery = id.toLowerCase();
+    loadData();
+  }
+});
+
+// ===== LOAD DATA =====
+async function loadData() {
+  showLoading();
+  try {
+    const res = await fetch(`${BASE}/TICKETS!A2:AE300?key=${API_KEY}`);
+    const d   = await res.json();
+    if (!d.values) { allTickets = []; render(); return; }
+    allTickets = d.values.map(r => ({
+      ticket_id:    r[0]||'',
+      created_at:   r[1]||'',
+      department:   r[2]||'',
+      reported_by:  r[3]||r[22]||'',
+      category:     r[4]||'',
+      location:     r[5]||r[20]||'',
+      room:         r[6]||'',
+      description:  r[7]||'',
+      priority:     r[8]||'low',
+      status:       r[9]||'pending',
+      assigned_to:  r[10]||'',
+      assigned_at:  r[11]||'',
+      resolved_at:  r[12]||'',
+      duration_min: r[13]||'',
+      image_url:    r[15]||'',
+      rating:       r[16]||'',
+      notes:        r[17]||'',
+      team:         r[19]||'',
+      building:     r[20]||'',
+      displayName:  r[22]||'',
+      accepted_at:  r[25]||'',
+      rejected_at:  r[26]||'',
+      reject_reason:r[28]||'',
+      response_min: r[29]||'',
+      completion_min:r[30]||'',
+    })).filter(t => t.ticket_id);
+    updateCounts();
+    render();
+  } catch(e) {
+    console.error(e);
+    showError();
+  }
+}
+
+function loadAll() {
+  searchQuery = '';
+  document.getElementById('search-input').value = '';
+  loadData();
+}
+
+// ===== SEARCH =====
+function onSearch() {
+  searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+  if (allTickets.length > 0) render();
+}
+
+function doSearch() {
+  searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+  loadData();
+}
+
+// ===== FILTER =====
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ===== RENDER =====
+function getFiltered() {
+  return allTickets.filter(t => {
+    const sm = currentFilter === 'all'
+      || (currentFilter === 'pending' && (t.status === 'pending' || t.status === 'assigned'))
+      || t.status === currentFilter;
+    const q = searchQuery;
+    const sq = !q || t.ticket_id.toLowerCase().includes(q)
+      || t.description.toLowerCase().includes(q)
+      || (t.reported_by||'').toLowerCase().includes(q)
+      || (t.displayName||'').toLowerCase().includes(q)
+      || (t.category||'').toLowerCase().includes(q)
+      || (t.location||'').toLowerCase().includes(q);
+    return sm && sq;
+  });
+}
+
+function render() {
+  imgStoreT = [];
+  const data = getFiltered();
+  filteredTickets = data;
+  updateStats();
+  const list = document.getElementById('ticket-list');
+  if (!data.length) {
+    list.innerHTML = `
+      <div class="empty-box">
+        <div class="empty-icon">${searchQuery ? '🔍' : '📭'}</div>
+        <div class="empty-title">${searchQuery ? 'ไม่พบ Ticket ที่ค้นหา' : 'ยังไม่มี Ticket'}</div>
+        <div class="empty-sub">${searchQuery ? 'ลองค้นหาด้วยชื่ออื่นหรือ Ticket ID' : 'กดปุ่มด้านบนเพื่อโหลดข้อมูล'}</div>
+      </div>`;
+    document.getElementById('stats-row').style.display = 'none';
+    return;
+  }
+  document.getElementById('stats-row').style.display = 'grid';
+  // sort: pending/in_progress ก่อน, done ทีหลัง
+  data.sort((a,b) => {
+    const ord = {pending:0, assigned:0, in_progress:1, done:2, rejected:3};
+    return (ord[a.status]||0) - (ord[b.status]||0);
+  });
+  const resultCount = data.length;
+  list.innerHTML = `
+    <div class="result-hdr">
+      <div class="result-ttl">ผลการค้นหา</div>
+      <div class="result-count">${resultCount} รายการ</div>
+    </div>
+    ${data.map(t => mkTicketCard(t)).join('')}`;
+}
+
+function updateCounts() {
+  const all = allTickets;
+  document.getElementById('fc-all').textContent = all.length;
+  document.getElementById('fc-pending').textContent = all.filter(t=>t.status==='pending'||t.status==='assigned').length;
+  document.getElementById('fc-inprog').textContent = all.filter(t=>t.status==='in_progress').length;
+  document.getElementById('fc-done').textContent = all.filter(t=>t.status==='done').length;
+}
+
+function updateStats() {
+  const d = filteredTickets;
+  document.getElementById('s-total').textContent = d.length;
+  document.getElementById('s-pend').textContent  = d.filter(t=>t.status==='pending'||t.status==='assigned').length;
+  document.getElementById('s-prog').textContent  = d.filter(t=>t.status==='in_progress').length;
+  document.getElementById('s-done').textContent  = d.filter(t=>t.status==='done').length;
+}
+
+// ===== TICKET CARD =====
+function mkTicketCard(t) {
+  const loc = [t.building||t.location, t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+  const sc  = statusClass(t.status);
+  const sl  = statusLabel(t.status);
+  const pl  = t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ';
+  const pc  = t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low';
+  const reporter = t.displayName||t.reported_by||'—';
+  const desc = t.description.length>80 ? t.description.substring(0,80)+'…' : t.description;
+
+  // Timer
+  let timerHtml = '';
+  if (t.status==='in_progress' && t.accepted_at) {
+    const mins = elapsedSince(t.accepted_at);
+    const lt   = lateLevel(mins, t.priority);
+    const cls  = lt.level==='danger'?'timer-late':lt.level==='warn'?'timer-warn':'timer-ok';
+    timerHtml = `<div class="timer-badge ${cls}">⏱️ กำลังซ่อมมา ${fmtDuration(mins)}${lt.label?' · '+lt.label:''}</div>`;
+  } else if ((t.status==='pending'||t.status==='assigned') && t.created_at) {
+    const mins = elapsedSince(t.created_at);
+    const lt   = lateLevel(mins, t.priority);
+    if (lt.level === 'danger') timerHtml = `<div class="timer-badge timer-late">⚠️ ยังไม่ได้รับงาน ${fmtDuration(mins)}</div>`;
+  } else if (t.status==='done' && t.completion_min) {
+    timerHtml = `<div class="timer-badge timer-done">✅ ใช้เวลา ${fmtDuration(parseInt(t.completion_min))}</div>`;
+  }
+
+  // Timeline minimal
+  const tlHtml = mkTimeline(t);
+
+  // Rating
+  let ratingHtml = '';
+  if (t.status==='done') {
+    if (t.rating && parseInt(t.rating)>0) {
+      ratingHtml = `<div class="rating-row">
+        <span class="rating-stars">${'⭐'.repeat(parseInt(t.rating))}</span>
+        <span class="rating-lbl">คะแนน ${t.rating}/5</span>
+      </div>`;
+    } else {
+      ratingHtml = `<div class="rating-row"><span class="rating-lbl" style="color:var(--text3)">ยังไม่ได้ให้คะแนน</span></div>`;
+    }
+  }
+
+  return `
+  <div class="ticket-card" onclick="openDetail('${t.ticket_id}')">
+    <div class="ticket-card-header">
+      <div class="ticket-card-top">
+        <div>
+          <div class="ticket-id">${t.ticket_id}</div>
+          <div class="ticket-desc">${desc||'ไม่มีรายละเอียด'}</div>
+        </div>
+        <div class="ticket-badges">
+          <span class="status-badge ${sc}">${sl}</span>
+        </div>
+      </div>
+      <div class="ticket-meta">
+        <span class="meta-item">🏷️ ${t.category||'—'}</span>
+        <span class="meta-item">📍 ${loc||'—'}</span>
+        <span class="meta-item">👤 ${reporter}</span>
+        <span class="meta-item">🕐 ${t.created_at.substring(0,16)}</span>
+        <span class="meta-item"><span class="pri-badge ${pc}">${pl}</span></span>
+      </div>
+      ${timerHtml}
+      ${ratingHtml}
+    </div>
+    <div class="ticket-timeline">
+      <div class="timeline-title">ความคืบหน้า</div>
+      ${tlHtml}
+    </div>
+  </div>`;
+}
+
+// ===== TIMELINE =====
+function mkTimeline(t) {
+  const steps = [
+    {
+      key: 'created',
+      done: true,
+      active: false,
+      label: '📝 แจ้งงาน',
+      time: t.created_at.substring(0,16),
+      sub: (t.displayName||t.reported_by)
+    },
+    {
+      key: 'assigned',
+      done: t.status==='assigned'||t.status==='in_progress'||t.status==='done',
+      active: t.status==='assigned',
+      label: '🔧 มอบหมายช่าง',
+      time: t.assigned_at?t.assigned_at.substring(0,16):'',
+      sub: t.assigned_to?'ผู้รับงาน: '+t.assigned_to:''
+    },
+    {
+      key: 'inprog',
+      done: t.status==='in_progress'||t.status==='done',
+      active: t.status==='in_progress',
+      rejected: t.rejected_at ? true : false,
+      label: t.rejected_at ? '❌ ถูกปฏิเสธ' : '🔄 รับงาน / กำลังซ่อม',
+      time: t.accepted_at?t.accepted_at.substring(0,16):(t.rejected_at?t.rejected_at.substring(0,16):''),
+      sub: t.rejected_at?(t.reject_reason||''):(t.assigned_to?'ผู้ซ่อม: '+t.assigned_to:'')
+    },
+    {
+      key: 'done',
+      done: t.status==='done',
+      active: false,
+      label: '✅ ซ่อมเสร็จสิ้น',
+      time: t.resolved_at?t.resolved_at.substring(0,16):'',
+      sub: t.notes||''
+    },
+  ];
+
+  return `<div class="tl-wrap">${steps.map(s => {
+    const dotCls = s.rejected?'rejected':s.done?'done':s.active?'active':'';
+    const lblCls = (!s.done&&!s.active)?'pending-step':'';
+    return `<div class="tl-step">
+      <div class="tl-dot ${dotCls}"></div>
+      <div class="tl-label ${lblCls}">${s.label}${s.sub?` <span style="font-weight:400;color:var(--text2)">(${s.sub})</span>`:''}</div>
+      ${s.time?`<div class="tl-time">${s.time}</div>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ===== DETAIL MODAL =====
+function openDetail(id) {
+  const t = allTickets.find(x => x.ticket_id === id);
+  if (!t) return;
+  imgStoreT = [];
+  const loc = [t.building||t.location, t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+  const sc  = statusClass(t.status);
+  const sl  = statusLabel(t.status);
+
+  // Images
+  let imgHtml = '';
+  if (t.image_url) {
+    const urls = t.image_url.split(',').filter(Boolean);
+    if (urls.length) {
+      imgStoreT = urls;
+      imgHtml = `<div class="img-grid">${urls.map((u,i) =>
+        `<img class="img-thumb" src="${u}" onclick="event.stopPropagation();openImgViewer(${i})" alt="รูปภาพ ${i+1}">`
+      ).join('')}</div>`;
+    }
+  }
+
+  // Rating
+  let ratingHtml = '—';
+  if (t.status==='done') {
+    ratingHtml = t.rating&&parseInt(t.rating)>0
+      ? '⭐'.repeat(parseInt(t.rating))+' ('+t.rating+'/5)'
+      : 'ยังไม่ได้ให้คะแนน';
+  }
+
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue);font-weight:600">${t.ticket_id}</span>
+      <span class="status-badge ${sc}">${sl}</span>
+      <span class="pri-badge ${t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low'}">${t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ'}</span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-cell"><div class="detail-lbl">ทีม</div><div class="detail-val">${t.team||t.department||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">ประเภทงาน</div><div class="detail-val">${t.category||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">สถานที่</div><div class="detail-val">${loc||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||'—'}</div></div>
+      <div class="detail-cell detail-full"><div class="detail-lbl">รายละเอียด</div><div class="detail-val" style="font-weight:400">${t.description||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-size:12px;font-family:'JetBrains Mono',monospace">${t.created_at||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">รับงานเมื่อ</div><div class="detail-val" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--green)">${t.accepted_at||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">เสร็จเมื่อ</div><div class="detail-val" style="font-size:12px;font-family:'JetBrains Mono',monospace">${t.resolved_at||'—'}</div></div>
+      ${t.response_min?`<div class="detail-cell"><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${fmtDuration(parseInt(t.response_min))}</div></div>`:''}
+      ${t.completion_min?`<div class="detail-cell"><div class="detail-lbl">⏱ เวลาซ่อม</div><div class="detail-val" style="color:var(--green)">${fmtDuration(parseInt(t.completion_min))}</div></div>`:''}
+      ${t.notes?`<div class="detail-cell detail-full"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val" style="font-weight:400">${t.notes}</div></div>`:''}
+      ${t.rejected_at?`<div class="detail-cell detail-full" style="background:var(--red-l);border:1px solid #FCA5A5"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
+      <div class="detail-cell"><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${ratingHtml}</div></div>
+    </div>
+    ${imgHtml?`<div style="margin-top:4px"><div class="detail-lbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📷 รูปภาพแนบ</div>${imgHtml}</div>`:''}
+    <div style="margin-top:16px">${mkTimeline(t)}</div>
+    ${t.status==='done'&&!t.rating?`
+    <div style="text-align:center;margin-top:16px;padding:16px;background:var(--green-l);border-radius:12px;border:1.5px solid var(--green-m)">
+      <div style="font-size:14px;font-weight:700;color:var(--green2);margin-bottom:6px">⭐ ให้คะแนนความพึงพอใจ</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">กดปุ่มดาวใน LINE เพื่อให้คะแนน</div>
+      <a href="https://line.me/ti/p/@408thdjl" target="_blank" class="cta-btn" style="font-size:13px;padding:8px 18px">💬 เปิด LINE</a>
+    </div>`:''}`;
+
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeDetail(e) {
+  if (e.target === document.getElementById('overlay')) closeModal();
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ===== IMAGE VIEWER =====
+function openImgViewer(i) {
+  const url = imgStoreT[i];
+  if (!url) return;
+  document.getElementById('img-viewer-src').src = url;
+  document.getElementById('img-viewer').classList.add('show');
+}
+function closeImgViewer() {
+  document.getElementById('img-viewer').classList.remove('show');
+  document.getElementById('img-viewer-src').src = '';
+}
+
+// ===== LOADING / ERROR =====
+function showLoading() {
+  document.getElementById('ticket-list').innerHTML = `
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <div class="loading-txt">กำลังโหลดข้อมูล...</div>
+    </div>`;
+}
+function showError() {
+  document.getElementById('ticket-list').innerHTML = `
+    <div class="empty-box">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-title">โหลดข้อมูลไม่สำเร็จ</div>
+      <div class="empty-sub">กรุณาลองใหม่อีกครั้ง</div>
+      <br><button class="refresh-btn" style="margin:0 auto" onclick="loadData()">↻ ลองใหม่</button>
+    </div>`;
+}
+
+// ===== UTILS =====
+function statusClass(s) {
+  return s==='pending'?'s-pending':s==='assigned'?'s-assigned':s==='in_progress'?'s-inprog':s==='done'?'s-done':'s-rejected';
+}
+function statusLabel(s) {
+  return s==='pending'?'⏳ รอดำเนินการ':s==='assigned'?'📋 มอบหมายแล้ว':s==='in_progress'?'🔄 กำลังซ่อม':s==='done'?'✅ เสร็จสิ้น':'❌ ปฏิเสธ';
+}
+function tsISO(str) {
+  if(!str) return new Date().toISOString();
+  str=String(str).trim();
+  if(str.includes('T')) return str;
+  var p=str.split(' '), dp=(p[0]||'').split('/');
+  if(dp.length<3) return new Date().toISOString();
+  var d=dp[0].padStart(2,'0'),m=dp[1].padStart(2,'0'),y=dp[2].length===2?'20'+dp[2]:dp[2];
+  var tp=(p[1]||'0:00:00').split(':');
+  return y+'-'+m+'-'+d+'T'+(tp[0]||'0').padStart(2,'0')+':'+(tp[1]||'00').padStart(2,'0')+':'+(tp[2]||'00').padStart(2,'0')+'+07:00';
+}
+function elapsedSince(str) {
+  if(!str) return null;
+  try{ var diff=Math.floor((Date.now()-new Date(tsISO(str)).getTime())/60000); return diff<0?0:diff; }catch(e){return null;}
+}
+function fmtDuration(min) {
+  if(min===null||min===undefined) return '';
+  if(min<1) return 'เพิ่งเริ่ม';
+  if(min<60) return min+' นาที';
+  var h=Math.floor(min/60),m=min%60;
+  if(h<24) return m>0?h+' ชม. '+m+' นาที':h+' ชม.';
+  var d=Math.floor(h/24),hh=h%24;
+  return hh>0?d+' วัน '+hh+' ชม.':d+' วัน';
+}
+function lateLevel(min, priority) {
+  if(min===null) return {late:false,level:'ok',label:''};
+  var threshold=priority==='high'?60:priority==='med'?240:480;
+  if(min>=threshold) return {late:true,level:'danger',label:'ล่าช้า'};
+  if(min>=threshold*0.66) return {late:true,level:'warn',label:'ใกล้ครบ'};
+  return {late:false,level:'ok',label:''};
+}
+</script>
+</body>
+</html>
