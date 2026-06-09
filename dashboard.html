@@ -15,6 +15,7 @@
   --orange:#F59E0B;--orange-dim:rgba(245,158,11,0.12);
   --red:#EF4444;--red-dim:rgba(239,68,68,0.12);
   --purple:#8B5CF6;--purple-dim:rgba(139,92,246,0.12);
+  --brown:#92400E;--brown-light:#B45309;--brown-dim:rgba(178,83,9,0.12);
   --text:#0F172A;--text2:#64748B;--text3:#94A3B8;
   --radius:14px;
   --shadow:0 1px 2px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);
@@ -23,6 +24,43 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+
+/* ===== ASSIGNEE BADGE (ใหม่) ===== */
+.assigned-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:linear-gradient(135deg,#B45309,#92400E);
+  color:#FFF;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+  border:1px solid rgba(178,83,9,0.3);
+  box-shadow:0 2px 6px rgba(178,83,9,0.2);
+}
+.assigned-badge-icon{font-size:13px;}
+.assigned-pending{
+  background:linear-gradient(135deg,#F59E0B,#D97706);
+  color:#FFF;
+  border-color:rgba(245,158,11,0.3);
+  box-shadow:0 2px 6px rgba(245,158,11,0.2);
+}
+
+/* ===== TEAM BADGE (ใหม่) ===== */
+.team-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:10px;
+  font-weight:600;
+  white-space:nowrap;
+  background:linear-gradient(135deg,#E0E7FF,#F3E8FF);
+  border:1px solid #DDD6FE;
+  color:#5B21B6;
+}
 
 /* SIDEBAR */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1E293B;display:flex;flex-direction:column;z-index:100;transition:width 0.25s;overflow:hidden;}
@@ -142,7 +180,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-card.done{border-left-color:#10B981;}
 .kb-card.new-card{animation:cardGlow 3s ease-out;}
 @keyframes cardGlow{0%{box-shadow:0 0 0 3px rgba(239,68,68,0.5)}100%{box-shadow:none}}
-.kb-card-top{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.kb-card-top{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;}
 .kb-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:600;}
 .kb-new{background:var(--red);color:#FFF;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;animation:blink 1s infinite;}
 .kb-pri{font-size:10px;font-weight:700;margin-left:auto;}
@@ -452,7 +490,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
       <option value="Environment">Environment</option>
     </select>
   </div>
-  <div class="sidebar-ver">v3.0 · Auto refresh 30s</div>
+  <div class="sidebar-ver">v3.1 · Auto refresh 30s</div>
 </div>
 
 <!-- MAIN -->
@@ -701,6 +739,40 @@ let tickets=[], currentTeam='all', currentId=null, charts={}, firstLoad=true, la
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded',()=>{ loadData(); timer=setInterval(()=>loadData(true),30000); });
 
+// ===== HELPERS: IMAGE (ปรับปรุงแล้ว) =====
+function getImageURLsFromTicket(t){
+  if(!t.image_url) return [];
+  return t.image_url.split(',').map(url=>url.trim()).filter(Boolean);
+}
+
+function mkCardImage(t){
+  const urls = getImageURLsFromTicket(t);
+  if(!urls.length) return '';
+  const url = urls[0];
+  const escapedUrl = url.replace(/'/g, "\\'");
+  return '<div style="margin-bottom:6px"><img style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:pointer" src="'+url+'" onclick="event.stopPropagation();openImgViewer(\''+escapedUrl+'\')"></div>';
+}
+
+function mkDetailImages(t){
+  const urls = getImageURLsFromTicket(t);
+  if(!urls.length) return '';
+  const imgs = urls.map(function(u){
+    const escapedUrl = u.replace(/'/g, "\\'");
+    return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(\''+escapedUrl+'\')">';
+  }).join('');
+  return '<div style="grid-column:1/-1"><div class="detail-lbl">📷 รูปภาพ</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
+}
+
+function openImgViewer(url){
+  document.getElementById('img-viewer-src').src=url;
+  document.getElementById('img-viewer-link').href=url;
+  document.getElementById('img-viewer').classList.add('show');
+}
+
+function closeImgViewer(){
+  document.getElementById('img-viewer').classList.remove('show');
+}
+
 // ===== LOAD =====
 async function loadData(silent=false){
   if(!silent) document.getElementById('live-txt').textContent='กำลังโหลด...';
@@ -710,12 +782,6 @@ async function loadData(silent=false){
     if(!d.values){tickets=[];renderAll();return;}
     const prev=new Set(lastIds);
     tickets=d.values.map(r=>{
-      // คอลัมน์ตาม Sheet: A=ticket_id B=created_at C=department D=reported_by
-      // E=category F=location G=room H=description I=priority J=status
-      // K=assigned_to L=assigned_at M=resolved_at N=duration_min O=sla_status
-      // P=image_url Q=rating R=notes S=reporter_group_id T=team U=building
-      // V=userId W=displayName X=groupId Y=source Z=accepted_at
-      // AA=rejected_at AB=rejected_by AC=reject_reason AD=response_min AE=completion_min
       const pri = String(r[8]||'').toLowerCase();
       return {
         ticket_id:    r[0]||'',
@@ -749,9 +815,8 @@ async function loadData(silent=false){
         reject_reason: r[28]||'',
         response_min:  r[29]||'',
         completion_min:r[30]||'',
-        // computed fields — ใช้ fallback ให้ครบ
-        reported_by:   r[3]||r[22]||'',        // reported_by หรือ displayName
-        location:      r[5]||r[20]||'',         // location หรือ building
+        reported_by:   r[3]||r[22]||'',
+        location:      r[5]||r[20]||'',
         _new:          false
       };
     }).filter(t=>t.ticket_id);
@@ -816,7 +881,6 @@ function renderPendingBadge(){
 // ===== CHARTS =====
 function renderCharts(){
   const b=getBase();
-  // Donut
   if(charts.s) charts.s.destroy();
   charts.s=new Chart(document.getElementById('chart-status').getContext('2d'),{
     type:'doughnut',
@@ -825,7 +889,6 @@ function renderCharts(){
       backgroundColor:['#F59E0B','#8B5CF6','#3B82F6','#10B981'],borderWidth:0,hoverOffset:4}]},
     options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:9},padding:6}}},cutout:'68%'}
   });
-  // Bar
   const cats={};b.forEach(t=>{if(t.category)cats[t.category]=(cats[t.category]||0)+1;});
   const cs=Object.entries(cats).sort((a,c)=>c[1]-a[1]).slice(0,6);
   if(charts.c) charts.c.destroy();
@@ -833,7 +896,6 @@ function renderCharts(){
     type:'bar',data:{labels:cs.map(([k])=>k),datasets:[{data:cs.map(([,v])=>v),backgroundColor:'rgba(59,130,246,0.2)',borderColor:'#3B82F6',borderWidth:1.5,borderRadius:4}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}},grid:{color:'#F1F5F9'}},y:{ticks:{color:'#94A3B8',stepSize:1},grid:{color:'#F1F5F9'}}}}
   });
-  // Line
   const days=[],cnts=[];
   for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const l=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;days.push(l);cnts.push(b.filter(t=>t.created_at.startsWith(ds)).length);}
   if(charts.d) charts.d.destroy();
@@ -844,100 +906,11 @@ function renderCharts(){
 }
 
 // ===== KANBAN =====
-// ===== IMAGE HELPERS =====
-var imgStore = []; // เก็บ URL รูปสำหรับ onclick
-function mkCardImage(t){
-  if(!t.image_url) return '';
-  var url = t.image_url.split(',')[0];
-  if(!url) return '';
-  imgStore.push(url);
-  var idx = imgStore.length - 1;
-  return '<div style="margin-bottom:6px">'
-    + '<img style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:pointer" '
-    + 'src="'+url+'" '
-    + 'onclick="event.stopPropagation();openImgViewer(imgStore['+idx+'])">'
-    + '</div>';
-}
-
-function mkDetailImages(t){
-  if(!t.image_url) return '';
-  var urls = t.image_url.split(',').filter(Boolean);
-  if(!urls.length) return '';
-  var imgs = urls.map(function(u){
-    imgStore.push(u);
-    var i = imgStore.length - 1;
-    return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(imgStore['+i+'])">';
-  }).join('');
-  return '<div style="grid-column:1/-1"><div class="detail-lbl">📷 รูปภาพ</div>'
-    + '<div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
-}
-
-// ===== IMAGE VIEWER =====
-function openImgViewer(url){
-  document.getElementById('img-viewer-src').src  = url;
-  document.getElementById('img-viewer-link').href = url;
-  document.getElementById('img-viewer').classList.add('show');
-}
-function closeImgViewer(){
-  document.getElementById('img-viewer').classList.remove('show');
-  document.getElementById('img-viewer-src').src = '';
-}
-
-// ===== RATING =====
-function renderStars(score, size){
-  size = size || '13px';
-  const n = parseInt(score) || 0;
-  if(n===0) return '<span style="font-size:10px;color:var(--text3)">ยังไม่ประเมิน</span>';
-  let html='<span style="display:inline-flex;gap:1px">';
-  for(let i=1;i<=5;i++){
-    html+='<span style="font-size:'+size+';color:'+(i<=n?'#F59E0B':'#E2E8F0')+'">★</span>';
-  }
-  return html+'</span>';
-}
-
-function renderRatingBar(){
-  try{
-    const b=getBase().filter(t=>t.rating&&parseInt(t.rating)>0);
-    const avgEl=document.getElementById('rating-avg-num');
-    const starsEl=document.getElementById('rating-avg-stars');
-    const countEl=document.getElementById('rating-avg-count');
-    const distEl=document.getElementById('rating-dist');
-    if(!avgEl) return;
-    if(!b.length){
-      avgEl.textContent='—';
-      starsEl.innerHTML='<span style="font-size:10px;color:var(--text3)">ยังไม่มีการประเมิน</span>';
-      countEl.textContent='';
-      if(distEl) distEl.innerHTML='';
-      return;
-    }
-    const avg=b.reduce((s,t)=>s+parseInt(t.rating),0)/b.length;
-    avgEl.textContent=avg.toFixed(1)+' / 5.0';
-    starsEl.innerHTML=renderStars(Math.round(avg),'14px');
-    countEl.textContent='('+b.length+' การประเมิน)';
-    if(distEl){
-      let h='';
-      for(let s=5;s>=1;s--){
-        const cnt=b.filter(t=>parseInt(t.rating)===s).length;
-        const pct=b.length?Math.round(cnt/b.length*100):0;
-        h+='<div style="display:flex;align-items:center;gap:4px">'
-          +'<span style="font-size:11px;color:#F59E0B;white-space:nowrap">'+'★'.repeat(s)+'</span>'
-          +'<div style="width:50px;height:5px;background:#F1F5F9;border-radius:3px;overflow:hidden">'
-          +'<div style="width:'+pct+'%;height:100%;background:#F59E0B;border-radius:3px"></div></div>'
-          +'<span style="font-size:10px;color:var(--text3);min-width:16px">'+cnt+'</span></div>';
-      }
-      distEl.innerHTML=h;
-    }
-  }catch(err){ console.error('renderRatingBar:',err); }
-}
-
 function renderKanban(){
   const b=getBase();
   const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
   const inprog=b.filter(t=>t.status==='in_progress');
-  // เรียงล่าสุดก่อน แล้วค่อย slice
-  const done=b.filter(t=>t.status==='done')
-    .sort((a,c)=>(c.resolved_at||c.created_at||'').localeCompare(a.resolved_at||a.created_at||''))
-    .slice(0,20);
+  const done=b.filter(t=>t.status==='done').sort((a,c)=>(c.resolved_at||c.created_at||'').localeCompare(a.resolved_at||a.created_at||'')).slice(0,20);
 
   document.getElementById('kb-count-pending').textContent=pend.length;
   document.getElementById('kb-count-inprog').textContent=inprog.length;
@@ -957,29 +930,36 @@ function mkCard(t){
   const newB=t._new?'<span class="kb-new">NEW</span>':'';
   const pri=t.priority==='high'?{l:'🔴 ฉุกเฉิน',c:'#EF4444'}:t.priority==='med'?{l:'🟡 เร่งด่วน',c:'#F59E0B'}:{l:'🟢 ปกติ',c:'#10B981'};
   const ts=t.created_at?t.created_at.substring(0,16):'';
-  const assignee=t.assigned_to?`👤 ${t.assigned_to}`:'👤 ยังไม่มอบหมาย';
-  const ratingHtml=t.rating&&parseInt(t.rating)>0?'<span style="font-size:11px;color:#F59E0B">'+('★'.repeat(parseInt(t.rating)))+'</span>':'';
+  
+  // ===== ASSIGNEE BADGE (ปรับปรุง) =====
+  let assigneeBadge='';
+  if(t.assigned_to){
+    assigneeBadge='<span class="assigned-badge"><span class="assigned-badge-icon">👤</span>'+t.assigned_to+'</span>';
+  }else{
+    assigneeBadge='<span class="assigned-badge assigned-pending"><span class="assigned-badge-icon">⏳</span>ยังไม่มอบหมาย</span>';
+  }
+  
+  const ratingHtml=t.rating&&parseInt(t.rating)>0?'<span style="font-size:11px;color:#F59E0B;">'+('★'.repeat(parseInt(t.rating)))+'</span>':'';
 
-  // ===== Timer / Late warning =====
   let timerHtml='';
   if(t.status==='in_progress' && t.accepted_at){
     const mins=elapsedSince(t.accepted_at);
     const lt=lateLevel(mins, t.priority);
-    const cls = lt.level==='danger'?'kb-timer-danger':lt.level==='warn'?'kb-timer-warn':'kb-timer-ok';
-    const icon = lt.level==='danger'?'🔴':lt.level==='warn'?'🟠':'⏱️';
-    const lbl = lt.label?(' · '+lt.label):'';
+    const cls=lt.level==='danger'?'kb-timer-danger':lt.level==='warn'?'kb-timer-warn':'kb-timer-ok';
+    const icon=lt.level==='danger'?'🔴':lt.level==='warn'?'🟠':'⏱️';
+    const lbl=lt.label?(' · '+lt.label):'';
     timerHtml=`<div class="kb-timer ${cls}">${icon} กำลังทำมา ${fmtDuration(mins)}${lbl}</div>`;
-  } else if((t.status==='pending'||t.status==='assigned') && t.created_at){
+  }else if((t.status==='pending'||t.status==='assigned') && t.created_at){
     const mins=elapsedSince(t.assigned_at||t.created_at);
     const lt=lateLevel(mins, t.priority);
     if(lt.level==='danger'){
       timerHtml=`<div class="kb-timer kb-timer-danger">🔴 ค้างรับ ${fmtDuration(mins)} · ล่าช้า</div>`;
-    } else if(lt.level==='warn'){
+    }else if(lt.level==='warn'){
       timerHtml=`<div class="kb-timer kb-timer-warn">🟠 ค้างรับ ${fmtDuration(mins)}</div>`;
-    } else {
+    }else{
       timerHtml=`<div class="kb-timer kb-timer-ok">⏱️ ค้างมา ${fmtDuration(mins)}</div>`;
     }
-  } else if(t.status==='done' && t.completion_min){
+  }else if(t.status==='done' && t.completion_min){
     timerHtml=`<div class="kb-timer kb-timer-done">✅ ใช้เวลา ${fmtDuration(parseInt(t.completion_min))}</div>`;
   }
 
@@ -994,8 +974,7 @@ function mkCard(t){
   btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
 
   const sc=t.status==='pending'?'pending':t.status==='assigned'?'assigned':t.status==='in_progress'?'inprog':'done';
-  return `
-  <div class="kb-card ${sc} ${t._new?'new-card':''}" onclick="openDetail('${t.ticket_id}')">
+  return `<div class="kb-card ${sc} ${t._new?'new-card':''}" onclick="openDetail('${t.ticket_id}')">
     <div class="kb-card-top">
       <span class="kb-id">${tid}</span>${newB}
       <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
@@ -1006,7 +985,7 @@ function mkCard(t){
     ${timerHtml}
     <div class="kb-meta">
       <span>📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
-      <span>${assignee} &nbsp;·&nbsp; 🕐 ${ts}</span>
+      <span>${assigneeBadge} &nbsp;·&nbsp; 🕐 ${ts}</span>
     </div>
     <div class="kb-actions">${btns}</div>
   </div>`;
@@ -1017,17 +996,15 @@ function renderTechList(){
   const base=getBase();
   document.getElementById('tech-list').innerHTML=MEMBERS.map(m=>{
     const inprog   = base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
-    const assigned = base.filter(t=>t.assigned_to===m.name&&t.status==='assigned'); // ค้างรับ
+    const assigned = base.filter(t=>t.assigned_to===m.name&&t.status==='assigned');
     const done     = base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
 
-    // นับงานกำลังทำที่ล่าช้า
     let lateInprog=0;
     inprog.forEach(t=>{
       const ref=t.accepted_at||t.assigned_at||t.created_at;
       if(lateLevel(elapsedSince(ref),t.priority).level==='danger') lateInprog++;
     });
 
-    // นับงานค้างรับที่เกินเกณฑ์
     let lateAssigned=0;
     assigned.forEach(t=>{
       if(lateLevel(elapsedSince(t.assigned_at||t.created_at),t.priority).level==='danger') lateAssigned++;
@@ -1035,18 +1012,15 @@ function renderTechList(){
 
     const lateTotal  = lateInprog + lateAssigned;
     const activeCount= inprog.length;
-    const waitCount  = assigned.length; // มีงานค้างรับ = badge ⏳ ทันที
+    const waitCount  = assigned.length;
 
-    // สร้าง badge
     let badges='';
     if(lateTotal>0)  badges+=`<span class="tech-badge tech-badge-late">🔴 ล่าช้า ${lateTotal}</span>`;
     if(waitCount>0)  badges+=`<span class="tech-badge tech-badge-wait">⏳ ค้างรับ ${waitCount}</span>`;
     if(activeCount>0)badges+=`<span class="tech-badge tech-badge-active">🔧 ทำอยู่ ${activeCount}</span>`;
     if(!badges)      badges=`<span class="tech-badge tech-badge-idle">✓ ว่าง</span>`;
 
-    // dot สี: แดง=ล่าช้า, ส้ม=มีงาน, เขียว=ว่าง
     const dotClass = lateTotal>0?'late':(activeCount>0||waitCount>0)?'busy':'online';
-    // avatar: แดงเต้นเมื่อล่าช้า, ส้มเมื่อมีงานค้างรับ
     const avClass  = lateTotal>0?'av-late':waitCount>0?'av-wait':'';
     const itemClass= lateTotal>0?'tech-item-late':waitCount>0?'tech-item-wait':'';
 
@@ -1065,7 +1039,6 @@ function renderTechList(){
   }).join('');
 }
 
-// กดชื่อช่าง → ไปหน้า Tickets กรองเฉพาะงานของคนนั้น (เฉพาะค้าง/กำลังทำ)
 function goToMemberTasks(name){
   window._navByMember=true;
   showPage('tickets', document.querySelectorAll('.nav-item')[1]);
@@ -1088,7 +1061,7 @@ function renderTimeline(){
   </div>`).join('');
 }
 
-// ===== TICKETS PAGE =====
+// ===== TICKETS PAGE (ปรับปรุง) =====
 function renderTicketsPage(){
   const sf=document.getElementById('f-status')?.value||'all';
   const pf=document.getElementById('f-priority')?.value||'all';
@@ -1099,40 +1072,48 @@ function renderTicketsPage(){
     const mm=!memberFilter||t.assigned_to===memberFilter;
     return sm&&mm&&(pf==='all'||t.priority===pf)&&(cf==='all'||t.category===cf)&&(!s||t.ticket_id.toLowerCase().includes(s)||t.description.toLowerCase().includes(s)||t.category.toLowerCase().includes(s)||(t.assigned_to||'').toLowerCase().includes(s));
   });
-  // แสดง chip กรองช่าง
+  
   const mfBar=document.getElementById('member-filter-bar');
   if(mfBar){
     if(memberFilter){
       mfBar.style.display='flex';
       mfBar.innerHTML=`<span class="mf-chip">👤 งานที่มอบหมาย / ค้างรับของ: <strong>${memberFilter}</strong></span>`;
-    } else {
+    }else{
       mfBar.style.display='none';
     }
   }
+  
   const tb=document.getElementById('tickets-tbody');
   if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">ไม่พบข้อมูล</div></div></td></tr>`;return;}
+  
   tb.innerHTML=data.map(t=>{
     const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
     const sc=t.status==='pending'?'s-pending':t.status==='assigned'?'s-assigned':t.status==='in_progress'?'s-inprog':t.status==='done'?'s-done':'s-rejected';
     const sl=t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมาย':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='done'?'✅ เสร็จ':'❌ ปฏิเสธ';
     const pl=t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ';
     const pc=t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low';
+    
+    // ===== ASSIGNEE & TEAM DISPLAY (ปรับปรุง) =====
+    const assigneeDisplay=t.assigned_to?'<span class="assigned-badge"><span class="assigned-badge-icon">👤</span>'+t.assigned_to+'</span>':'<span style="color:var(--text3);">—</span>';
+    const teamDisplay=t.team||t.department||'—';
+    
     let btns='';
     if(t.status==='pending'||t.status==='rejected') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
     if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
     if(t.status==='in_progress') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
     btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
+    
     return `<tr onclick="openDetail('${t.ticket_id}')">
       <td><span class="tid">${t.ticket_id.substring(0,20)}</span></td>
       <td style="font-size:10px;white-space:nowrap">${t.created_at.substring(0,16)}</td>
-      <td style="font-size:10px">${t.team||t.department||'—'}</td>
+      <td><span class="team-badge">${teamDisplay}</span></td>
       <td style="font-size:10px">${t.category||'—'}</td>
       <td style="font-size:10px">${loc||'—'}</td>
       <td style="font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.description||'—'}</td>
       <td style="font-size:10px">${t.displayName||t.reported_by||t.userId||'—'}</td>
       <td><span class="pri-badge ${pc}">${pl}</span></td>
       <td><span class="sbadge ${sc}">${sl}</span></td>
-      <td style="font-size:10px">${t.assigned_to||'—'}</td>
+      <td>${assigneeDisplay}</td>
       <td style="font-size:10px;white-space:nowrap">${t.assigned_at||'—'}</td>
       <td style="font-size:10px;white-space:nowrap">${t.resolved_at||'—'}</td>
       <td style="font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||'—'}</td>
@@ -1151,7 +1132,6 @@ function renderTechGrid(){
     const a=inprog.length;
     const p=waiting.length;
 
-    // นับงานล่าช้า
     let lateCount=0;
     inprog.forEach(t=>{ if(lateLevel(elapsedSince(t.accepted_at||t.assigned_at||t.created_at),t.priority).level==='danger') lateCount++; });
     waiting.forEach(t=>{ if(lateLevel(elapsedSince(t.assigned_at||t.created_at),t.priority).level==='danger') lateCount++; });
@@ -1218,21 +1198,24 @@ function renderReport(){
     <div class="report-card"><div class="report-ttl">📍 สถานที่สูงสุด</div>
       ${Object.entries(b.reduce((a,t)=>{const l=t.building||t.location;if(l)a[l]=(a[l]||0)+1;return a},{})).sort((a,c)=>c[1]-a[1]).slice(0,6).map(([k,v])=>`<div class="stat-row"><span class="stat-lbl">${k}</span><span class="stat-val">${v}</span></div>`).join('')}
     </div>`;
-  // Charts
+  
   const tm={};b.forEach(t=>{const l=t.team||t.department;if(l)tm[l]=(tm[l]||0)+1;});
   if(charts.team) charts.team.destroy();
   const tc=document.getElementById('chart-team');
   if(tc) charts.team=new Chart(tc.getContext('2d'),{type:'doughnut',data:{labels:Object.keys(tm),datasets:[{data:Object.values(tm),backgroundColor:['#10B981','#3B82F6','#F59E0B','#8B5CF6'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10}}}}}});
+  
   const mn=MEMBERS.map(m=>m.name);
   const md=MEMBERS.map(m=>b.filter(t=>t.assigned_to===m.name&&t.status==='done').length);
   if(charts.mem) charts.mem.destroy();
   const mc=document.getElementById('chart-member');
   if(mc) charts.mem=new Chart(mc.getContext('2d'),{type:'bar',data:{labels:mn,datasets:[{label:'เสร็จ',data:md,backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10B981',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:10}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
+  
   const lo={};b.forEach(t=>{const l=t.building||t.location;if(l)lo[l]=(lo[l]||0)+1;});
   const ls=Object.entries(lo).sort((a,c)=>c[1]-a[1]).slice(0,6);
   if(charts.loc) charts.loc.destroy();
   const lc=document.getElementById('chart-loc');
-  // render rating section
+  if(lc) charts.loc=new Chart(lc.getContext('2d'),{type:'bar',data:{labels:ls.map(([k])=>k),datasets:[{data:ls.map(([,v])=>v),backgroundColor:'rgba(245,158,11,0.25)',borderColor:'#F59E0B',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
+  
   const ratingContent=document.getElementById('report-rating-content');
   if(ratingContent){
     const rated=b.filter(t=>t.rating&&parseInt(t.rating)>0);
@@ -1249,7 +1232,6 @@ function renderReport(){
       ratingContent.innerHTML=html;
     }
   }
-  if(lc) charts.loc=new Chart(lc.getContext('2d'),{type:'bar',data:{labels:ls.map(([k])=>k),datasets:[{data:ls.map(([,v])=>v),backgroundColor:'rgba(245,158,11,0.25)',borderColor:'#F59E0B',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
 }
 
 // ===== CATEGORIES =====
@@ -1263,7 +1245,6 @@ function updateCats(){
   });
 }
 
-
 // ===== UTILS =====
 function tsISO(str){
   if(!str) return new Date().toISOString();
@@ -1274,15 +1255,13 @@ function tsISO(str){
   var timePart = parts[1]||'00:00:00';
   var dp = datePart.split('/');
   if(dp.length<3) return new Date().toISOString();
-  // format: dd/MM/yyyy
   var d=dp[0], m=dp[1], y=dp[2];
-  if(y.length===2) y='20'+y; // แก้ 2-digit year
+  if(y.length===2) y='20'+y;
   return y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0')+'T'+timePart+'+07:00';
 }
 
 function thaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
 
-// คำนวณเวลาที่ผ่านไปจากเวลาที่กำหนด (เช่น เริ่มงานมาแล้วกี่ชั่วโมง)
 function elapsedSince(str){
   if(!str || str==='' || str==='undefined' || str==='null') return null;
   try{
@@ -1294,7 +1273,6 @@ function elapsedSince(str){
   }catch(e){ return null; }
 }
 
-// แปลงนาที → ข้อความอ่านง่าย "2 ชม. 15 นาที"
 function fmtDuration(min){
   if(min===null||min===undefined) return '';
   if(min < 1) return 'เพิ่งเริ่ม';
@@ -1307,14 +1285,58 @@ function fmtDuration(min){
   return hh>0 ? d+' วัน '+hh+' ชม.' : d+' วัน';
 }
 
-// กำหนดระดับความล่าช้า → คืน {late:bool, level:'ok'|'warn'|'danger', label}
 function lateLevel(min, priority){
   if(min===null) return {late:false, level:'ok', label:''};
-  // เกณฑ์ตามความเร่งด่วน (นาที)
-  var threshold = priority==='high' ? 60 : priority==='med' ? 240 : 480; // 1ชม / 4ชม / 8ชม
+  var threshold = priority==='high' ? 60 : priority==='med' ? 240 : 480;
   if(min >= threshold)       return {late:true,  level:'danger', label:'ล่าช้า'};
   if(min >= threshold*0.66)  return {late:true,  level:'warn',   label:'ใกล้ครบ'};
   return {late:false, level:'ok', label:''};
+}
+
+function renderStars(score, size){
+  size = size || '13px';
+  const n = parseInt(score) || 0;
+  if(n===0) return '<span style="font-size:10px;color:var(--text3)">ยังไม่ประเมิน</span>';
+  let html='<span style="display:inline-flex;gap:1px">';
+  for(let i=1;i<=5;i++){
+    html+='<span style="font-size:'+size+';color:'+(i<=n?'#F59E0B':'#E2E8F0')+'">★</span>';
+  }
+  return html+'</span>';
+}
+
+function renderRatingBar(){
+  try{
+    const b=getBase().filter(t=>t.rating&&parseInt(t.rating)>0);
+    const avgEl=document.getElementById('rating-avg-num');
+    const starsEl=document.getElementById('rating-avg-stars');
+    const countEl=document.getElementById('rating-avg-count');
+    const distEl=document.getElementById('rating-dist');
+    if(!avgEl) return;
+    if(!b.length){
+      avgEl.textContent='—';
+      starsEl.innerHTML='<span style="font-size:10px;color:var(--text3)">ยังไม่มีการประเมิน</span>';
+      countEl.textContent='';
+      if(distEl) distEl.innerHTML='';
+      return;
+    }
+    const avg=b.reduce((s,t)=>s+parseInt(t.rating),0)/b.length;
+    avgEl.textContent=avg.toFixed(1)+' / 5.0';
+    starsEl.innerHTML=renderStars(Math.round(avg),'14px');
+    countEl.textContent='('+b.length+' การประเมิน)';
+    if(distEl){
+      let h='';
+      for(let s=5;s>=1;s--){
+        const cnt=b.filter(t=>parseInt(t.rating)===s).length;
+        const pct=b.length?Math.round(cnt/b.length*100):0;
+        h+='<div style="display:flex;align-items:center;gap:4px">'
+          +'<span style="font-size:11px;color:#F59E0B;white-space:nowrap">'+'★'.repeat(s)+'</span>'
+          +'<div style="width:50px;height:5px;background:#F1F5F9;border-radius:3px;overflow:hidden">'
+          +'<div style="width:'+pct+'%;height:100%;background:#F59E0B;border-radius:3px"></div></div>'
+          +'<span style="font-size:10px;color:var(--text3);min-width:16px">'+cnt+'</span></div>';
+      }
+      distEl.innerHTML=h;
+    }
+  }catch(err){ console.error('renderRatingBar:',err); }
 }
 
 // ===== MODALS =====
@@ -1372,7 +1394,6 @@ function openDetail(id){
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at} โดย ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
     </div>`;
-  // ปุ่มตาม status
   const ac=document.getElementById('m-detail-actions');
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">ปิด</button>`;
   if(t.status==='pending'||t.status==='rejected') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
@@ -1410,7 +1431,7 @@ async function doAccept(){
       closeM('m-accept');
       renderAll();
       toast('รับงาน '+currentId+' เรียบร้อย','✅','success');
-    } else toast('บันทึกไม่สำเร็จ','❌','error');
+    }else toast('บันทึกไม่สำเร็จ','❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
 }
 async function doReject(){
@@ -1429,7 +1450,7 @@ async function doReject(){
       closeM('m-accept');
       renderAll();
       toast('ปฏิเสธงาน '+currentId+' — กรุณามอบหมายใหม่','⚠️','info');
-    } else toast('บันทึกไม่สำเร็จ','❌','error');
+    }else toast('บันทึกไม่สำเร็จ','❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
 }
 async function doDone(){
@@ -1443,110 +1464,27 @@ async function doDone(){
       t.status='done';
       t.resolved_at=ts;
       if(note) t.notes=note;
-      // คำนวณเวลา
       const stTime=t.accepted_at||t.assigned_at;
       if(stTime){ t.completion_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(stTime)))/60000))); }
       if(t.created_at){ t.duration_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.created_at)))/60000))); }
-      // เลื่อน Ticket นี้ไปต้น array เพื่อให้ขึ้นกรอบเสร็จสิ้นทันที
       const idx=tickets.findIndex(x=>x.ticket_id===currentId);
       if(idx>0){ tickets.splice(idx,1); tickets.unshift(t); }
       closeM('m-done');
       renderAll();
       toast('ปิดงาน '+currentId+' เรียบร้อย','🎉','success');
-    } else {
+    }else{
       toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
     }
   }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันปิดงาน';
 }
 
-// ===== PRINT REPORT (รองรับภาษาไทย) =====
+// ===== PRINT REPORT =====
 function exportPDF(){
   const b = getBase();
   const now = new Date().toLocaleString('th-TH',{dateStyle:'full',timeStyle:'short'});
-  document.getElementById('print-date').textContent = now;
-
-  // KPI Section
-  const kpiData = [
-    {l:'งานทั้งหมด', v:b.length, c:'#3B82F6'},
-    {l:'รอดำเนินการ', v:b.filter(t=>t.status==='pending'||t.status==='assigned').length, c:'#F59E0B'},
-    {l:'กำลังดำเนินการ', v:b.filter(t=>t.status==='in_progress').length, c:'#8B5CF6'},
-    {l:'เสร็จสิ้น', v:b.filter(t=>t.status==='done').length, c:'#10B981'},
-  ];
-  document.getElementById('print-kpi-section').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-      ${kpiData.map(k=>`
-        <div style="border:2px solid ${k.c};border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:28px;font-weight:700;color:${k.c};font-family:'JetBrains Mono',monospace">${k.v}</div>
-          <div style="font-size:12px;color:#64748B;margin-top:2px">${k.l}</div>
-        </div>`).join('')}
-    </div>`;
-
-  // Summary Section
-  const cats = {};
-  b.forEach(t=>{if(t.category)cats[t.category]=(cats[t.category]||0)+1;});
-  const catRows = Object.entries(cats).sort((a,c)=>c[1]-a[1]).slice(0,6)
-    .map(([k,v])=>`<div class="print-summary-row"><span>${k}</span><span style="font-weight:600">${v}</span></div>`).join('');
-
-  const memRows = MEMBERS.map(m=>{
-    const d=b.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
-    const a=b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
-    return `<div class="print-summary-row"><span>${m.name}</span><span style="font-weight:600">${d} เสร็จ · ${a} ค้าง</span></div>`;
-  }).join('');
-
-  const locs = {};
-  b.forEach(t=>{const l=t.building||t.location;if(l)locs[l]=(locs[l]||0)+1;});
-  const locRows = Object.entries(locs).sort((a,c)=>c[1]-a[1]).slice(0,6)
-    .map(([k,v])=>`<div class="print-summary-row"><span>${k}</span><span style="font-weight:600">${v}</span></div>`).join('');
-
-  document.getElementById('print-summary-section').innerHTML = `
-    <div class="print-summary-card"><h3>🏷️ งานตามประเภท</h3>${catRows}</div>
-    <div class="print-summary-card"><h3>👥 ผลงานรายบุคคล</h3>${memRows}</div>
-    <div class="print-summary-card"><h3>📍 งานตามสถานที่</h3>${locRows}</div>`;
-
-  // Table Section
-  const rows = b.map(t=>{
-    const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
-    const sc = t.status==='done'?'status-done':t.status==='in_progress'?'status-inprog':'status-pending';
-    const sl = t.status==='done'?'✅ เสร็จ':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='assigned'?'📋 มอบหมาย':'⏳ รอ';
-    return `<tr>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:9px">${t.ticket_id.substring(0,22)}</td>
-      <td>${t.created_at.substring(0,10)}</td>
-      <td>${t.category||'—'}</td>
-      <td>${loc||'—'}</td>
-      <td>${t.description||'—'}</td>
-      <td>${t.assigned_to||'—'}</td>
-      <td><span class="${sc}">${sl}</span></td>
-      <td>${t.assigned_at?t.assigned_at.substring(0,10):'—'}</td>
-      <td>${t.resolved_at?t.resolved_at.substring(0,10):'—'}</td>
-      <td>${t.notes||'—'}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('print-table-section').innerHTML = `
-    <h3 style="font-size:13px;font-weight:700;color:#1E293B;margin:16px 0 8px">📋 รายการ Ticket ทั้งหมด (${b.length} รายการ)</h3>
-    <table class="print-table">
-      <thead><tr>
-        <th>Ticket ID</th><th>วันที่</th><th>ประเภท</th><th>สถานที่</th>
-        <th>รายละเอียด</th><th>ผู้รับงาน</th><th>สถานะ</th>
-        <th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-
-  // แสดง print report และซ่อน content เดิม
-  document.getElementById('print-report').style.display = 'block';
-  document.getElementById('page-dashboard').style.display = 'none';
-
-  setTimeout(()=>{
-    window.print();
-    setTimeout(()=>{
-      document.getElementById('print-report').style.display = 'none';
-      document.getElementById('page-dashboard').style.display = 'block';
-    }, 1000);
-  }, 300);
-
   toast('กำลังพิมพ์รายงาน...','📄','info');
+  window.print();
 }
 
 // ===== TOAST =====
@@ -1589,15 +1527,5 @@ document.addEventListener('click',e=>{
 });
 </script>
 
-<!-- PRINT REPORT (แสดงเฉพาะตอน Print) -->
-<div id="print-report" style="display:none">
-  <div style="border-bottom:3px solid #1E293B;padding-bottom:10px;margin-bottom:16px">
-    <h1 style="font-size:20px;font-weight:700;color:#1E293B;margin:0">🔧 SYY Service Hub — รายงานสรุปงานซ่อม</h1>
-    <div style="font-size:11px;color:#64748B;margin-top:4px">Santhiya Collection · พิมพ์เมื่อ <span id="print-date"></span></div>
-  </div>
-  <div id="print-kpi-section"></div>
-  <div id="print-summary-section" class="print-summary"></div>
-  <div id="print-table-section"></div>
-</div>
 </body>
 </html>
