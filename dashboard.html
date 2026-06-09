@@ -9,17 +9,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
-  --bg:#F0F2F5;--bg2:#FFF;--bg3:#F8FAFC;--border:#E2E8F0;
+  --bg:#DDE3EC;--bg2:#FFF;--bg3:#F8FAFC;--border:#D6DEE9;
   --green:#10B981;--green2:#059669;--green-dim:rgba(16,185,129,0.12);
   --blue:#3B82F6;--blue-dim:rgba(59,130,246,0.12);
   --orange:#F59E0B;--orange-dim:rgba(245,158,11,0.12);
   --red:#EF4444;--red-dim:rgba(239,68,68,0.12);
   --purple:#8B5CF6;--purple-dim:rgba(139,92,246,0.12);
-  --text:#1E293B;--text2:#64748B;--text3:#94A3B8;
-  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,0.08);--shadow-md:0 4px 12px rgba(0,0,0,0.1);
+  --text:#0F172A;--text2:#64748B;--text3:#94A3B8;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);
+  --shadow-md:0 4px 16px rgba(15,23,42,0.10);
+  --shadow-lg:0 10px 30px rgba(15,23,42,0.12);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
 
 /* SIDEBAR */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1E293B;display:flex;flex-direction:column;z-index:100;transition:width 0.25s;overflow:hidden;}
@@ -131,8 +134,8 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-col-body.done{background:#F0FDF4;}
 
 /* KANBAN CARD */
-.kb-card{background:#FFF;border-radius:10px;padding:12px 13px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.06);cursor:pointer;transition:all 0.15s;border-left:3px solid transparent;}
-.kb-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.kb-card{background:#FFF;border-radius:12px;padding:13px 14px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(15,23,42,0.05);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s;border-left:3px solid transparent;}
+.kb-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(15,23,42,0.12);border-color:#CBD5E1;}
 .kb-card.pending{border-left-color:#F59E0B;}
 .kb-card.assigned{border-left-color:#8B5CF6;}
 .kb-card.inprog{border-left-color:#3B82F6;}
@@ -167,18 +170,30 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 /* BOTTOM ROW */
 .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .tech-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
-.tech-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);transition:all 0.15s;}
-.tech-item:hover{border-color:var(--green);background:var(--green-dim);}
-.tech-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#FFF;flex-shrink:0;}
-.tech-info{flex:1;}
-.tech-name{font-size:12px;font-weight:600;}
-.tech-role{font-size:10px;color:var(--text2);}
-.tech-stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.tech-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);transition:all 0.15s;cursor:pointer;}
+.tech-item:hover{border-color:var(--green);background:var(--green-dim);transform:translateX(2px);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.tech-item-late{border-color:#FCA5A5;background:#FEF2F2;}
+.tech-item-late:hover{border-color:#EF4444;background:#FEE2E2;}
+.tech-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#FFF;flex-shrink:0;}
+.tech-av.av-late{background:linear-gradient(135deg,#EF4444,#DC2626);animation:avPulse 2s infinite;}
+@keyframes avPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 5px rgba(239,68,68,0)}}
+.tech-info{flex:1;min-width:0;}
+.tech-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.tech-go{color:var(--green);font-weight:700;font-size:15px;}
+.tech-role{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.tech-badges{display:flex;flex-wrap:wrap;gap:4px;}
+.tech-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.tech-badge-late{background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;animation:blink 1.2s infinite;}
+.tech-badge-wait{background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;}
+.tech-badge-active{background:#EDE9FE;color:#7C3AED;border:1px solid #DDD6FE;}
+.tech-badge-idle{background:#D1FAE5;color:#059669;border:1px solid #A7F3D0;}
+.tech-stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;}
 .tech-active{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--orange);font-weight:600;}
-.tech-done-stat{font-size:9px;color:var(--text3);}
-.tech-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tech-done-stat{font-size:10px;color:var(--text3);font-weight:600;}
+.tech-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .tech-dot.online{background:var(--green);}
 .tech-dot.busy{background:var(--orange);}
+.tech-dot.late{background:#EF4444;animation:blink 1s infinite;}
 .timeline{display:flex;flex-direction:column;margin-top:4px;max-height:220px;overflow-y:auto;}
 .tl-item{display:flex;gap:10px;padding-bottom:10px;position:relative;}
 .tl-item::before{content:'';position:absolute;left:5px;top:14px;bottom:0;width:1px;background:var(--border);}
@@ -186,6 +201,19 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .tl-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:2px;}
 .tl-action{font-size:11px;font-weight:600;}
 .tl-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+
+/* KANBAN CARD TIMER */
+.kb-timer{font-size:10px;font-weight:600;padding:4px 8px;border-radius:6px;margin-bottom:6px;display:inline-block;}
+.kb-timer-ok{background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;}
+.kb-timer-warn{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;}
+.kb-timer-danger{background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;font-weight:700;animation:blink 1.5s infinite;}
+.kb-timer-done{background:#F0FDF4;color:#059669;border:1px solid #A7F3D0;}
+
+/* MEMBER FILTER BAR */
+.member-filter-bar{display:flex;align-items:center;margin-bottom:10px;}
+.mf-chip{display:inline-flex;align-items:center;gap:8px;background:var(--blue-dim);color:var(--blue);border:1.5px solid var(--blue);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;}
+.mf-clear{cursor:pointer;background:rgba(255,255,255,0.6);padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;transition:all 0.15s;}
+.mf-clear:hover{background:#FFF;color:var(--red);}
 
 /* TICKETS PAGE TABLE */
 .tickets-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
@@ -215,13 +243,18 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 
 /* TECH GRID */
 .tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.tech-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;}
+.tech-card{background:#FFF;border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.tech-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.12);border-color:var(--green);}
+.tech-card-late{border-color:#FCA5A5;}
+.tech-card-late:hover{border-color:#EF4444;}
+.tech-card-alert{background:#FEE2E2;color:#DC2626;font-size:11px;font-weight:700;padding:5px;border-radius:8px;margin-bottom:10px;animation:blink 1.5s infinite;}
 .tech-card-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#FFF;margin:0 auto 10px;}
-.tech-card-name{font-size:13px;font-weight:700;margin-bottom:2px;}
-.tech-card-role{font-size:10px;color:var(--text2);margin-bottom:10px;}
+.tech-card-av.av-late{background:linear-gradient(135deg,#EF4444,#DC2626);animation:avPulse 2s infinite;}
+.tech-card-name{font-size:14px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.tech-card-role{font-size:10px;color:var(--text2);margin-bottom:12px;}
 .tech-card-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
 .tech-stat{background:var(--bg3);border-radius:8px;padding:8px 4px;}
-.tech-stat-num{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.tech-stat-num{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;}
 .tech-stat-lbl{font-size:9px;color:var(--text3);}
 
 /* REPORT */
@@ -540,6 +573,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
         </select>
         <select class="fsel" id="f-category" title="กรองประเภทงาน" onchange="renderTicketsPage()"><option value="all">ทุกประเภท</option></select>
       </div>
+      <div class="member-filter-bar" id="member-filter-bar" style="display:none"></div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
         <thead><tr>
           <th>Ticket ID</th><th>วันที่</th><th>ทีม</th><th>ประเภท</th><th>สถานที่</th>
@@ -659,7 +693,7 @@ const BASE    = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/value
 const MEMBERS = [{name:'Chana',role:'IT Manager'},{name:'Farid',role:'IT Project Supervisor'},{name:'Radthaphol',role:'IT Supervisor'},{name:'Pongsakorn',role:'IT Officer'},{name:'Nianas',role:'IT Officer'}];
 
 // ===== STATE =====
-let tickets=[], currentTeam='all', currentId=null, charts={}, firstLoad=true, lastIds=new Set(), timer=null;
+let tickets=[], currentTeam='all', currentId=null, charts={}, firstLoad=true, lastIds=new Set(), timer=null, memberFilter='';
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded',()=>{ loadData(); timer=setInterval(()=>loadData(true),30000); });
@@ -920,6 +954,29 @@ function mkCard(t){
   const assignee=t.assigned_to?`👤 ${t.assigned_to}`:'👤 ยังไม่มอบหมาย';
   const ratingHtml=t.rating&&parseInt(t.rating)>0?'<span style="font-size:11px;color:#F59E0B">'+('★'.repeat(parseInt(t.rating)))+'</span>':'';
 
+  // ===== Timer / Late warning =====
+  let timerHtml='';
+  if(t.status==='in_progress' && t.accepted_at){
+    const mins=elapsedSince(t.accepted_at);
+    const lt=lateLevel(mins, t.priority);
+    const cls = lt.level==='danger'?'kb-timer-danger':lt.level==='warn'?'kb-timer-warn':'kb-timer-ok';
+    const icon = lt.level==='danger'?'🔴':lt.level==='warn'?'🟠':'⏱️';
+    const lbl = lt.label?(' · '+lt.label):'';
+    timerHtml=`<div class="kb-timer ${cls}">${icon} กำลังทำมา ${fmtDuration(mins)}${lbl}</div>`;
+  } else if((t.status==='pending'||t.status==='assigned') && t.created_at){
+    const mins=elapsedSince(t.assigned_at||t.created_at);
+    const lt=lateLevel(mins, t.priority);
+    if(lt.level==='danger'){
+      timerHtml=`<div class="kb-timer kb-timer-danger">🔴 ค้างรับ ${fmtDuration(mins)} · ล่าช้า</div>`;
+    } else if(lt.level==='warn'){
+      timerHtml=`<div class="kb-timer kb-timer-warn">🟠 ค้างรับ ${fmtDuration(mins)}</div>`;
+    } else {
+      timerHtml=`<div class="kb-timer kb-timer-ok">⏱️ ค้างมา ${fmtDuration(mins)}</div>`;
+    }
+  } else if(t.status==='done' && t.completion_min){
+    timerHtml=`<div class="kb-timer kb-timer-done">✅ ใช้เวลา ${fmtDuration(parseInt(t.completion_min))}</div>`;
+  }
+
   let btns='';
   if(t.status==='pending'||t.status==='rejected'){
     btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
@@ -940,6 +997,7 @@ function mkCard(t){
     </div>
     <div class="kb-desc">${desc||'ไม่มีรายละเอียด'}</div>
     ${mkCardImage(t)}
+    ${timerHtml}
     <div class="kb-meta">
       <span>📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
       <span>${assignee} &nbsp;·&nbsp; 🕐 ${ts}</span>
@@ -950,16 +1008,53 @@ function mkCard(t){
 
 // ===== TECH LIST =====
 function renderTechList(){
+  const base=getBase();
   document.getElementById('tech-list').innerHTML=MEMBERS.map(m=>{
-    const a=getBase().filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
-    const d=getBase().filter(t=>t.assigned_to===m.name&&t.status==='done').length;
-    return `<div class="tech-item">
-      <div class="tech-av">${m.name[0]}</div>
-      <div class="tech-info"><div class="tech-name">${m.name}</div><div class="tech-role">${m.role}</div></div>
-      <div class="tech-stats"><div class="tech-active">${a} งานค้าง</div><div class="tech-done-stat">เสร็จ ${d} งาน</div></div>
-      <div class="tech-dot ${a>0?'busy':'online'}"></div>
+    const inprog = base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
+    const waiting= base.filter(t=>t.assigned_to===m.name&&t.status==='assigned'); // ค้างรับ
+    const done   = base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
+
+    // นับงานล่าช้า
+    let lateCount=0;
+    inprog.forEach(t=>{ const lv=lateLevel(elapsedSince(t.accepted_at), t.priority); if(lv.level==='danger') lateCount++; });
+    waiting.forEach(t=>{ const lv=lateLevel(elapsedSince(t.assigned_at), t.priority); if(lv.level==='danger') lateCount++; });
+
+    const activeCount = inprog.length;
+    const waitCount   = waiting.length;
+
+    // สร้าง badge สถานะ
+    let badges='';
+    if(lateCount>0)   badges+=`<span class="tech-badge tech-badge-late">🔴 ล่าช้า ${lateCount}</span>`;
+    if(waitCount>0)   badges+=`<span class="tech-badge tech-badge-wait">⏳ ค้างรับ ${waitCount}</span>`;
+    if(activeCount>0) badges+=`<span class="tech-badge tech-badge-active">🔧 ทำอยู่ ${activeCount}</span>`;
+    if(!badges)       badges=`<span class="tech-badge tech-badge-idle">✓ ว่าง</span>`;
+
+    const dotClass = lateCount>0?'late':activeCount>0?'busy':'online';
+
+    return `<div class="tech-item ${lateCount>0?'tech-item-late':''}" onclick="goToMemberTasks('${m.name}')" title="กดดูงานของ ${m.name}">
+      <div class="tech-av ${lateCount>0?'av-late':''}">${m.name[0]}</div>
+      <div class="tech-info">
+        <div class="tech-name">${m.name} <span class="tech-go">›</span></div>
+        <div class="tech-role">${m.role}</div>
+        <div class="tech-badges">${badges}</div>
+      </div>
+      <div class="tech-stats">
+        <div class="tech-done-stat">เสร็จ ${done}</div>
+      </div>
+      <div class="tech-dot ${dotClass}"></div>
     </div>`;
   }).join('');
+}
+
+// กดชื่อช่าง → ไปหน้า Tickets กรองเฉพาะงานของคนนั้น (เฉพาะค้าง/กำลังทำ)
+function goToMemberTasks(name){
+  window._navByMember=true;
+  showPage('tickets', document.querySelectorAll('.nav-item')[1]);
+  const si=document.getElementById('search-input');
+  if(si){ si.value=''; }
+  memberFilter=name;
+  renderTicketsPage();
+  toast('แสดงงานของ '+name,'👤','info');
 }
 
 // ===== TIMELINE =====
@@ -982,8 +1077,19 @@ function renderTicketsPage(){
   const s=(document.getElementById('search-input')?.value||'').toLowerCase();
   const data=getBase().filter(t=>{
     const sm=sf==='all'||(sf==='pending'&&(t.status==='pending'||t.status==='assigned'))||(sf==='in_progress'&&t.status==='in_progress')||t.status===sf;
-    return sm&&(pf==='all'||t.priority===pf)&&(cf==='all'||t.category===cf)&&(!s||t.ticket_id.toLowerCase().includes(s)||t.description.toLowerCase().includes(s)||t.category.toLowerCase().includes(s));
+    const mm=!memberFilter||t.assigned_to===memberFilter;
+    return sm&&mm&&(pf==='all'||t.priority===pf)&&(cf==='all'||t.category===cf)&&(!s||t.ticket_id.toLowerCase().includes(s)||t.description.toLowerCase().includes(s)||t.category.toLowerCase().includes(s)||(t.assigned_to||'').toLowerCase().includes(s));
   });
+  // แสดง chip กรองช่าง
+  const mfBar=document.getElementById('member-filter-bar');
+  if(mfBar){
+    if(memberFilter){
+      mfBar.style.display='flex';
+      mfBar.innerHTML=`<span class="mf-chip">👤 งานที่มอบหมาย / ค้างรับของ: <strong>${memberFilter}</strong></span>`;
+    } else {
+      mfBar.style.display='none';
+    }
+  }
   const tb=document.getElementById('tickets-tbody');
   if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">ไม่พบข้อมูล</div></div></td></tr>`;return;}
   tb.innerHTML=data.map(t=>{
@@ -1018,21 +1124,34 @@ function renderTicketsPage(){
 
 // ===== TECH GRID =====
 function renderTechGrid(){
+  const b=getBase();
   document.getElementById('tech-grid').innerHTML=MEMBERS.map(m=>{
-    const b=getBase();
-    const a=b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length;
+    const inprog = b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
+    const waiting= b.filter(t=>t.assigned_to===m.name&&t.status==='assigned');
     const d=b.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
-    const p=b.filter(t=>t.assigned_to===m.name&&t.status==='pending').length;
-    return `<div class="tech-card">
-      <div class="tech-card-av">${m.name[0]}</div>
-      <div class="tech-card-name">${m.name}</div>
+    const a=inprog.length;
+    const p=waiting.length;
+
+    // นับงานล่าช้า
+    let lateCount=0;
+    inprog.forEach(t=>{ if(lateLevel(elapsedSince(t.accepted_at),t.priority).level==='danger') lateCount++; });
+    waiting.forEach(t=>{ if(lateLevel(elapsedSince(t.assigned_at),t.priority).level==='danger') lateCount++; });
+
+    const lateBanner = lateCount>0
+      ? `<div class="tech-card-alert">🔴 มีงานล่าช้า ${lateCount} งาน</div>`
+      : '';
+
+    return `<div class="tech-card ${lateCount>0?'tech-card-late':''}" onclick="goToMemberTasks('${m.name}')" title="กดดูงานของ ${m.name}">
+      ${lateBanner}
+      <div class="tech-card-av ${lateCount>0?'av-late':''}">${m.name[0]}</div>
+      <div class="tech-card-name">${m.name} <span class="tech-go">›</span></div>
       <div class="tech-card-role">${m.role}</div>
       <div class="tech-card-stats">
-        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--orange)">${a}</div><div class="tech-stat-lbl">กำลังทำ</div></div>
+        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--purple)">${a}</div><div class="tech-stat-lbl">กำลังทำ</div></div>
+        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--orange)">${p}</div><div class="tech-stat-lbl">ค้างรับ</div></div>
         <div class="tech-stat"><div class="tech-stat-num" style="color:var(--green)">${d}</div><div class="tech-stat-lbl">เสร็จแล้ว</div></div>
-        <div class="tech-stat"><div class="tech-stat-num" style="color:var(--text3)">${p}</div><div class="tech-stat-lbl">รอรับงาน</div></div>
       </div>
-      <div class="tech-dot ${a>0?'busy':'online'}" style="margin:10px auto 0;display:block;"></div>
+      <div class="tech-dot ${lateCount>0?'late':a>0?'busy':'online'}" style="margin:10px auto 0;display:block;"></div>
     </div>`;
   }).join('');
 }
@@ -1143,6 +1262,42 @@ function tsISO(str){
 }
 
 function thaiTime(){const n=new Date(),th=new Date(n.getTime()+7*3600000);return `${String(th.getUTCDate()).padStart(2,'0')}/${String(th.getUTCMonth()+1).padStart(2,'0')}/${th.getUTCFullYear()} ${String(th.getUTCHours()).padStart(2,'0')}:${String(th.getUTCMinutes()).padStart(2,'0')}:${String(th.getUTCSeconds()).padStart(2,'0')}`;}
+
+// คำนวณเวลาที่ผ่านไปจากเวลาที่กำหนด (เช่น เริ่มงานมาแล้วกี่ชั่วโมง)
+function elapsedSince(str){
+  if(!str) return null;
+  try{
+    var start = new Date(tsISO(str)).getTime();
+    var now   = new Date(new Date().getTime() + 7*3600000 - new Date().getTimezoneOffset()*60000*0).getTime();
+    // ใช้เวลาปัจจุบันเทียบกับ start (start เป็น +07:00 อยู่แล้ว)
+    var diffMin = Math.floor((Date.now() - start) / 60000);
+    if(diffMin < 0) diffMin = 0;
+    return diffMin;
+  }catch(e){ return null; }
+}
+
+// แปลงนาที → ข้อความอ่านง่าย "2 ชม. 15 นาที"
+function fmtDuration(min){
+  if(min===null||min===undefined) return '';
+  if(min < 1) return 'เพิ่งเริ่ม';
+  if(min < 60) return min + ' นาที';
+  var h = Math.floor(min/60);
+  var m = min%60;
+  if(h < 24) return m>0 ? h+' ชม. '+m+' นาที' : h+' ชม.';
+  var d = Math.floor(h/24);
+  var hh = h%24;
+  return hh>0 ? d+' วัน '+hh+' ชม.' : d+' วัน';
+}
+
+// กำหนดระดับความล่าช้า → คืน {late:bool, level:'ok'|'warn'|'danger', label}
+function lateLevel(min, priority){
+  if(min===null) return {late:false, level:'ok', label:''};
+  // เกณฑ์ตามความเร่งด่วน (นาที)
+  var threshold = priority==='high' ? 60 : priority==='med' ? 240 : 480; // 1ชม / 4ชม / 8ชม
+  if(min >= threshold)       return {late:true,  level:'danger', label:'ล่าช้า'};
+  if(min >= threshold*0.66)  return {late:true,  level:'warn',   label:'ใกล้ครบ'};
+  return {late:false, level:'ok', label:''};
+}
 
 // ===== MODALS =====
 function openAssign(id){
@@ -1365,6 +1520,7 @@ function toast(msg,icon='✅',type='success'){
 
 // ===== PAGE NAV =====
 function showPage(p,el){
+  window._navByMember=false;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
@@ -1377,6 +1533,7 @@ function showPage(p,el){
   if(p==='report') renderReport();
 }
 function onTeam(){currentTeam=document.getElementById('team-filter').value;renderAll();}
+function clearMemberFilter(){memberFilter='';const si=document.getElementById('search-input');if(si)si.value='';renderTicketsPage();}
 function onSearch(){
   const ap=document.querySelector('.page.active')?.id;
   if(ap==='page-tickets') renderTicketsPage();
