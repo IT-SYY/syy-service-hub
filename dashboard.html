@@ -704,6 +704,11 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
     <div class="modal-ttl">🏁 ปิดงาน<button class="modal-x" onclick="closeM('m-done')">×</button></div>
     <div class="info-box" id="m-done-info"></div>
     <div class="modal-field"><label class="modal-lbl">หมายเหตุการซ่อม</label><textarea class="modal-ta" id="m-done-note" placeholder="เช่น เปลี่ยน AP ใหม่ ทดสอบแล้วปกติ..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl">📷 รูปหลังปิดงาน (ไม่บังคับ, สูงสุด 3 รูป)</label>
+      <input type="file" id="m-done-photos" accept="image/*" multiple style="display:none" onchange="donePickPhotos(this)">
+      <button type="button" style="width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;font-size:13px" onclick="document.getElementById('m-done-photos').click()">+ แตะเพื่อแนบรูปหลังงาน</button>
+      <div id="m-done-previews" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-done')">ยกเลิก</button><button class="btn-ok green" id="btn-done-ok" onclick="doDone()">✅ ยืนยันปิดงาน</button></div>
   </div>
 </div>
@@ -740,6 +745,46 @@ let tickets=[], currentTeam='all', currentId=null, charts={}, firstLoad=true, la
 document.addEventListener('DOMContentLoaded',()=>{ loadData(); timer=setInterval(()=>loadData(true),30000); });
 
 // ===== HELPERS: IMAGE (ปรับปรุงแล้ว) =====
+let donePhotos = []; // dataURL ของรูปหลังปิดงานที่รอ upload
+
+function compressToDataURL(file){
+  return new Promise(function(resolve,reject){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const img=new Image();
+      img.onload=function(){
+        const c=document.createElement('canvas');
+        const sc=Math.min(1,1280/Math.max(img.width,img.height));
+        c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg',0.75));
+      };
+      img.onerror=reject; img.src=e.target.result;
+    };
+    reader.onerror=reject; reader.readAsDataURL(file);
+  });
+}
+
+async function donePickPhotos(input){
+  const files=Array.from(input.files||[]);
+  for(const f of files){
+    if(donePhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
+    try{ donePhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+  }
+  input.value='';
+  renderDonePreviews();
+}
+
+function doneRemovePhoto(i){ donePhotos.splice(i,1); renderDonePreviews(); }
+
+function renderDonePreviews(){
+  const box=document.getElementById('m-done-previews');
+  box.innerHTML=donePhotos.map(function(d,i){
+    return '<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)">'+
+      '<button type="button" onclick="doneRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>';
+  }).join('');
+}
+
 function getImageURLsFromTicket(t){
   if(!t.image_url) return [];
   return t.image_url.split(',').map(url=>url.trim()).filter(Boolean);
@@ -754,13 +799,16 @@ function mkCardImage(t){
 }
 
 function mkDetailImages(t){
-  const urls = getImageURLsFromTicket(t);
-  if(!urls.length) return '';
-  const imgs = urls.map(function(u){
-    const escapedUrl = u.replace(/'/g, "\\'");
-    return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(\''+escapedUrl+'\')">';
-  }).join('');
-  return '<div style="grid-column:1/-1"><div class="detail-lbl">📷 รูปภาพ</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
+  const mk=function(csv,label){
+    const urls=(csv||'').split(',').map(function(u){return u.trim();}).filter(Boolean);
+    if(!urls.length) return '';
+    const imgs=urls.map(function(u){
+      const escapedUrl=u.replace(/'/g,"\\'");
+      return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(\''+escapedUrl+'\')">';
+    }).join('');
+    return '<div style="grid-column:1/-1"><div class="detail-lbl">'+label+'</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
+  };
+  return mk(t.image_url,'📷 รูปตอนแจ้งงาน') + mk(t.done_image_url,'🏁 รูปหลังปิดงาน');
 }
 
 function openImgViewer(url){
@@ -777,7 +825,7 @@ function closeImgViewer(){
 async function loadData(silent=false){
   if(!silent) document.getElementById('live-txt').textContent='กำลังโหลด...';
   try{
-    const res=await fetch(`${BASE}/TICKETS!A2:AE300?key=${API_KEY}`);
+    const res=await fetch(`${BASE}/TICKETS!A2:AF300?key=${API_KEY}`);
     const d=await res.json();
     if(!d.values){tickets=[];renderAll();return;}
     const prev=new Set(lastIds);
@@ -815,6 +863,7 @@ async function loadData(silent=false){
         reject_reason: r[28]||'',
         response_min:  r[29]||'',
         completion_min:r[30]||'',
+        done_image_url:r[31]||'',
         reported_by:   r[3]||r[22]||'',
         location:      r[5]||r[20]||'',
         _new:          false
@@ -1362,6 +1411,7 @@ function openDone(id){
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-done-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
   document.getElementById('m-done-note').value='';
+  donePhotos=[]; renderDonePreviews();
   document.getElementById('m-done').classList.add('show');
 }
 function openDetail(id){
@@ -1458,12 +1508,30 @@ async function doDone(){
   const btn=document.getElementById('btn-done-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
+  // อัปโหลดรูปหลังงาน (ถ้ามี) — GAS เขียนลงคอลัมน์ done_image_url ให้เอง
+  const uploadedUrls=[];
+  for(let i=0;i<donePhotos.length;i++){
+    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+donePhotos.length+'...';
+    try{
+      const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+        action:'upload_image', ticket_id:currentId,
+        base64:donePhotos[i].split(',')[1], mimeType:'image/jpeg',
+        fileName:currentId+'_done_'+(i+1)+'_'+Date.now()+'.jpg',
+        column:'done_image_url', skip_sheet:false
+      })})).json();
+      if(r.success&&r.imageUrl) uploadedUrls.push(r.imageUrl);
+      else toast('รูป '+(i+1)+' อัปโหลดไม่สำเร็จ','⚠️','info');
+    }catch(e){ toast('รูป '+(i+1)+' อัปโหลดไม่สำเร็จ','⚠️','info'); }
+  }
+  btn.textContent='กำลังบันทึก...';
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||''})})).json();
     if(r.success){
       t.status='done';
       t.resolved_at=ts;
       if(note) t.notes=note;
+      if(uploadedUrls.length) t.done_image_url=(t.done_image_url?t.done_image_url+',':'')+uploadedUrls.join(',');
+      donePhotos=[];
       const stTime=t.accepted_at||t.assigned_at;
       if(stTime){ t.completion_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(stTime)))/60000))); }
       if(t.created_at){ t.duration_min=String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.created_at)))/60000))); }
