@@ -301,7 +301,7 @@
 const LIFF_ID    = '2010241158-ll8R9q4T';
 const N8N_URL    = 'https://syy-service-hub.app.n8n.cloud/webhook/liff-form';
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
-const IMG_URL    = 'https://syy-service-hub.app.n8n.cloud/webhook/image-upload'; // n8n รับรูปส่งต่อ GAS
+// อัปโหลดรูปส่งตรงไป GAS (ไม่ผ่าน n8n) เพื่อให้ได้ imageUrl ตอบกลับมาแน่นอน
 const MAX_PHOTOS = 5;
 const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน upload)
 
@@ -489,8 +489,8 @@ function removePhoto(idx, el) {
 function uploadPhotoXHR(ticketId, base64, index) {
   return new Promise(function(resolve) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', IMG_URL, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.open('POST', GAS_URL, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain');
     xhr.timeout = 60000;
 
     xhr.onreadystatechange = function() {
