@@ -1334,6 +1334,14 @@ function fmtDuration(min){
   return hh>0 ? d+' วัน '+hh+' ชม.' : d+' วัน';
 }
 
+// แปลงค่านาที (จากคอลัมน์ response_min/completion_min/duration_min) เป็นข้อความอ่านง่าย
+function fmtMins(v){
+  const n=Number(v);
+  if(!isFinite(n)) return v;
+  if(n<1) return 'ไม่ถึง 1 นาที';
+  return fmtDuration(n);
+}
+
 function lateLevel(min, priority){
   if(min===null) return {late:false, level:'ok', label:''};
   var threshold = priority==='high' ? 60 : priority==='med' ? 240 : 480;
@@ -1435,10 +1443,10 @@ function openDetail(id){
       <div><div class="detail-lbl">มอบหมายเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
       <div><div class="detail-lbl">รับงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at||'—'}</div></div>
       <div><div class="detail-lbl">เสร็จงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
-      ${t.response_min?`<div><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${t.response_min} นาที</div></div>`:''}
+      ${t.response_min?`<div><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${fmtMins(t.response_min)}</div></div>`:''}
       <div><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':'ยังไม่ได้รับการประเมิน'}</div></div>
-      ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${t.completion_min} นาที</div></div>`:''}
-      ${t.duration_min?`<div><div class="detail-lbl">⏱ เวลารวมทั้งหมด</div><div class="detail-val" style="color:var(--text2)">${t.duration_min} นาที (แจ้ง→เสร็จ)</div></div>`:''}
+      ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${fmtMins(t.completion_min)}</div></div>`:''}
+      ${t.duration_min?`<div><div class="detail-lbl">⏱ เวลารวมทั้งหมด</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} (แจ้ง→เสร็จ)</div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
       ${mkDetailImages(t)}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
