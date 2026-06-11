@@ -139,7 +139,8 @@
     <div class="overlay-sub">ทีมงานจะดำเนินการโดยเร็ว<br>Your request has been submitted.</div>
     <div class="ticket-badge" id="ticket-badge">TK-XXXXXX</div>
     <br><br>
-    <button class="btn-next" style="width:100%" onclick="closeLIFF()">ปิดหน้านี้ / Close</button>
+    <button class="btn-next" style="width:100%;background:#2563EB" onclick="openTracker()">📊 ติดตามงานนี้ / Track this ticket</button>
+    <button class="btn-next" style="width:100%;margin-top:8px;background:transparent;border:1.5px solid var(--border);color:var(--text-muted)" onclick="closeLIFF()">ปิดหน้านี้ / Close</button>
   </div>
 </div>
 
@@ -710,12 +711,18 @@ async function submitForm() {
   setTimeout(() => {
     document.getElementById('overlay-loading').classList.add('hidden');
     document.getElementById('ticket-badge').textContent = ticketId;
+    window._lastTicketId = ticketId;
     document.getElementById('overlay-success').classList.remove('hidden');
   }, 1000);
 }
 
 function closeLIFF() {
   try { liff.closeWindow(); } catch(e) { window.close(); }
+}
+function openTracker(){
+  const url='https://it-syy.github.io/syy-service-hub/tracker.html?id='+encodeURIComponent(window._lastTicketId||'');
+  if (typeof liff!=='undefined' && liff.isInClient && liff.isInClient()) liff.openWindow({url:url, external:false});
+  else window.open(url,'_blank');
 }
 </script>
 </body>
