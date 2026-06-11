@@ -657,6 +657,10 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
       <div class="report-grid" id="report-grid"><div class="loading"><div class="spinner"></div></div></div>
+      <div class="report-card" id="leaderboard-card" style="margin-top:10px">
+        <div class="report-ttl">🏆 Leaderboard ประจำเดือนนี้ <span style="font-weight:400;font-size:11px;color:var(--text3)">(จัดอันดับจากงานที่ปิดในเดือนปัจจุบัน)</span></div>
+        <div id="leaderboard-body"></div>
+      </div>
       <div class="charts-row" style="margin-top:10px">
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สัดส่วนงานตามทีม</div></div><canvas id="chart-team" height="180"></canvas></div>
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl">ผลงานรายบุคคล</div></div><canvas id="chart-member" height="180"></canvas></div>
@@ -1253,7 +1257,38 @@ function renderHistory(){
 }
 
 // ===== REPORT =====
+function renderLeaderboard(){
+  const now=new Date();
+  const mKey=String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear(); // mm/yyyy
+  const done=getBase().filter(t=>{
+    if(t.status!=='done'||!t.resolved_at) return false;
+    const m=String(t.resolved_at).match(/\d{1,2}\/(\d{1,2})\/(\d{4})/);
+    return m && (String(m[1]).padStart(2,'0')+'/'+m[2])===mKey;
+  });
+  const per={};
+  done.forEach(t=>{
+    const n=t.assigned_to||'ไม่ระบุ';
+    if(!per[n]) per[n]={count:0,minSum:0,minN:0,rateSum:0,rateN:0};
+    per[n].count++;
+    const cm=Number(t.completion_min); if(isFinite(cm)&&cm>0){per[n].minSum+=cm;per[n].minN++;}
+    const rt=Number(t.rating); if(isFinite(rt)&&rt>0){per[n].rateSum+=rt;per[n].rateN++;}
+  });
+  const medals=['🥇','🥈','🥉','4','5','6','7','8'];
+  const board=Object.keys(per).map(n=>({name:n,s:per[n]})).sort((a,c)=>c.s.count-a.s.count).slice(0,8);
+  const body=document.getElementById('leaderboard-body');
+  if(!board.length){ body.innerHTML='<div class="stat-row"><span class="stat-lbl">เดือนนี้ยังไม่มีงานที่ปิด</span></div>'; return; }
+  body.innerHTML=board.map((e,i)=>{
+    const avgT=e.s.minN?fmtMins(Math.round(e.s.minSum/e.s.minN)):'-';
+    const avgR=e.s.rateN?(e.s.rateSum/e.s.rateN).toFixed(1)+' ⭐':'-';
+    return `<div class="stat-row" style="${i===0?'background:var(--orange-dim);border-radius:8px;padding:8px 10px;':''}">
+      <span class="stat-lbl" style="cursor:pointer;${i===0?'font-weight:700;color:var(--text);':''}" onclick="goToMemberTasks('${e.name.replace(/'/g,"\\'")}')">${medals[i]||(i+1)} ${e.name}</span>
+      <span class="stat-val" style="font-size:13px">${e.s.count} งาน · ${avgT} · ${avgR}</span>
+    </div>`;
+  }).join('');
+}
+
 function renderReport(){
+  renderLeaderboard();
   const b=getBase();
   const done=b.filter(t=>t.status==='done');
   document.getElementById('report-grid').innerHTML=`
