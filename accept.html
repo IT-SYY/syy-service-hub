@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SYY Service Hub — รับงาน</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+  :root{
+    --green:#06C755;--green-dark:#04A040;--green-light:#E8FBF0;
+    --navy:#0A1628;--text:#1A1A2E;--text-muted:#6B7280;--border:#E5E7EB;
+    --radius:14px;--shadow:0 4px 24px rgba(0,0,0,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Sarabun',sans-serif;background:#F0F4F8;min-height:100vh;color:var(--text);padding-bottom:90px;}
+  .header{background:linear-gradient(135deg,#06C755 0%,#04903C 100%);padding:20px 20px 24px;position:relative;overflow:hidden;}
+  .header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.1);}
+  .header-inner{position:relative;z-index:1;}
+  .header h1{font-size:21px;font-weight:700;color:white;line-height:1.3;}
+  .header p{font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;}
+  .user-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.2);border-radius:30px;padding:7px 14px;margin-top:12px;width:fit-content;}
+  .user-avatar{width:26px;height:26px;border-radius:50%;background:white;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green-dark);}
+  .user-avatar img{width:100%;height:100%;object-fit:cover;}
+  .user-name{font-size:13px;color:white;font-weight:500;}
+  .content{padding:16px 16px 0;}
+  .card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px;}
+  .card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .card-title span{background:var(--green-light);color:var(--green-dark);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+  .tk-list{display:flex;flex-direction:column;gap:8px;max-height:330px;overflow-y:auto;}
+  .tk-item{border:2px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:all .15s;position:relative;background:white;}
+  .tk-item:active{transform:scale(0.98);}
+  .tk-item.selected{border-color:var(--green);background:var(--green-light);}
+  .tk-item.selected::after{content:'✓';position:absolute;top:8px;right:10px;width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;}
+  .tk-id{font-size:13px;font-weight:700;color:var(--green-dark);}
+  .tk-meta{font-size:12px;color:var(--text);margin-top:3px;}
+  .tk-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .tk-badge{display:inline-block;font-size:10px;font-weight:600;border-radius:10px;padding:1px 8px;margin-left:6px;vertical-align:middle;}
+  .tk-badge.assigned{background:#FEF3C7;color:#92400E;}
+  .tk-badge.in_progress{background:#DBEAFE;color:#1D4ED8;}
+  .empty{font-size:13px;color:var(--text-muted);text-align:center;padding:18px 0;}
+  .field{margin-bottom:4px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:7px;}
+  .field label .opt{font-weight:400;color:var(--text-muted);}
+  textarea{width:100%;min-height:84px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none;resize:vertical;}
+  textarea:focus{border-color:var(--green);}
+  .photo-btn{width:100%;padding:13px;border:1.5px dashed #9CA3AF;border-radius:10px;background:#FAFBFC;color:var(--text-muted);font-size:13px;font-family:'Sarabun',sans-serif;cursor:pointer;}
+  .previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .pv-wrap{position:relative;}
+  .pv-wrap img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1.5px solid var(--border);}
+  .pv-x{position:absolute;top:-7px;right:-7px;width:21px;height:21px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:12px;cursor:pointer;line-height:1;}
+  .footer-bar{position:fixed;left:0;right:0;bottom:0;background:white;border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:50;}
+  .btn-submit{width:100%;padding:15px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:16px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;transition:all .15s;}
+  .btn-submit:disabled{background:#9CA3AF;}
+  .btn-submit:active{transform:scale(0.98);}
+  .overlay{position:fixed;inset:0;background:rgba(10,22,40,0.55);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;}
+  .overlay.show{display:flex;}
+  .done-card{background:white;border-radius:18px;padding:30px 24px;text-align:center;max-width:330px;width:100%;}
+  .done-icon{width:72px;height:72px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 14px;}
+  .done-card h2{font-size:18px;font-weight:700;color:var(--navy);}
+  .done-card p{font-size:13px;color:var(--text-muted);margin-top:6px;line-height:1.6;}
+  .done-id{display:inline-block;background:var(--green-light);color:var(--green-dark);font-weight:700;font-size:14px;border-radius:20px;padding:6px 16px;margin-top:12px;}
+  .btn-close{margin-top:18px;width:100%;padding:13px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:15px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;}
+  .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;font-size:13px;border-radius:30px;padding:10px 18px;z-index:200;display:none;max-width:88%;}
+  .toast.show{display:block;}
+  .loading{text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;}
+</style>
+</head>
+<body>
+
+<div class="header"><div class="header-inner">
+  <h1>📥 รับงาน / Accept Job</h1>
+  <p>เลือกงานที่ได้รับมอบหมาย แล้วกดรับงานหรือปฏิเสธ</p>
+  <div class="user-chip" id="user-chip" style="display:none">
+    <div class="user-avatar" id="user-avatar">👤</div>
+    <div class="user-name" id="user-name">—</div>
+  </div>
+</div></div>
+
+<div class="content">
+  <div class="card">
+    <div class="card-title"><span>1</span>เลือกงานที่ต้องการปิด</div>
+    <div id="tk-list" class="tk-list"><div class="loading">⏳ กำลังโหลดรายการงาน...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>2</span>เหตุผล <span style="background:none;color:var(--text-muted);font-weight:400;font-size:12px;width:auto;height:auto">(กรอกเฉพาะกรณีปฏิเสธงาน)</span></div>
+    <div class="field">
+      <textarea id="note" placeholder="เช่น ติดงานอื่นอยู่ / ไม่ใช่งานในความรับผิดชอบ..."></textarea>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-bar" style="display:flex;gap:10px">
+  <button class="btn-submit" id="btn-reject" onclick="submitAction('reject')" disabled style="background:transparent;border:2px solid #DC2626;color:#DC2626;flex:1">❌ ปฏิเสธ</button>
+  <button class="btn-submit" id="btn-submit" onclick="submitAction('accept')" disabled style="flex:1.6">✅ รับงาน</button>
+</div>
+
+<div class="overlay" id="success">
+  <div class="done-card">
+    <div class="done-icon">🎉</div>
+    <h2 id="s-title">รับงานเรียบร้อย!</h2>
+    <p id="s-desc">ระบบเปลี่ยนสถานะงานเป็น "กำลังดำเนินงาน" แล้ว</p>
+    <div class="done-id" id="s-ticket">—</div>
+    <button class="btn-close" onclick="closeApp()">ปิดหน้าต่าง</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================== CONFIG ==================
+const LIFF_ID  = '2010241158-gyoKxceO';
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
+const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
+const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
+// ============================================
+
+let profile = null;
+let openTickets = [];
+let selectedId = '';
+let photos = [];
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+function thaiTime(){
+  const t=new Date(Date.now()+7*3600000);
+  const p=n=>String(n).padStart(2,'0');
+  return p(t.getUTCDate())+'/'+p(t.getUTCMonth()+1)+'/'+t.getUTCFullYear()+' '+p(t.getUTCHours())+':'+p(t.getUTCMinutes())+':'+p(t.getUTCSeconds());
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', async function(){
+  try{
+    await liff.init({ liffId: LIFF_ID });
+    if(!liff.isLoggedIn()){ liff.login(); return; }
+    profile = await liff.getProfile();
+    document.getElementById('user-name').textContent = profile.displayName || '—';
+    if(profile.pictureUrl) document.getElementById('user-avatar').innerHTML = '<img src="'+profile.pictureUrl+'">';
+    document.getElementById('user-chip').style.display='flex';
+  }catch(e){ console.log('LIFF init error:', e); }
+  await loadTickets();
+});
+
+// อ่าน ticket_id จาก query (?ticket_id=TK-xxx) รองรับทั้งกรณีปกติและ liff.state
+function getTicketIdFromQuery(){
+  const sp = new URLSearchParams(location.search);
+  if(sp.get('ticket_id')) return sp.get('ticket_id');
+  const st = sp.get('liff.state');
+  if(st){
+    const sp2 = new URLSearchParams(st.replace(/^[?\/]+/,'?'));
+    if(sp2.get('ticket_id')) return sp2.get('ticket_id');
+  }
+  return '';
+}
+
+// ===== LOAD OPEN TICKETS =====
+async function loadTickets(){
+  const box=document.getElementById('tk-list');
+  try{
+    const res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/TICKETS!A2:AF300?key='+API_KEY);
+    const d=await res.json();
+    const rows=d.values||[];
+    openTickets = rows.map(function(r){
+      return {
+        ticket_id:r[0]||'', category:r[4]||'', room:r[6]||'', description:r[7]||'',
+        status:r[9]||'', assigned_to:r[10]||'', building:r[20]||'', location:r[5]||''
+      };
+    }).filter(function(t){ return t.ticket_id && t.status==='assigned'; }).reverse();
+
+    if(!openTickets.length){
+      box.innerHTML='<div class="empty">ไม่มีงานรอตอบรับ 🎉</div>';
+      return;
+    }
+    box.innerHTML = openTickets.map(function(t){
+      const place=(t.building||t.location||'')+(t.room?' ห้อง '+t.room:'');
+      const badge=t.status==='in_progress'?'<span class="tk-badge in_progress">กำลังซ่อม</span>':'<span class="tk-badge assigned">มอบหมายแล้ว</span>';
+      return '<div class="tk-item" id="tk-'+t.ticket_id+'" onclick="selectTicket(\''+t.ticket_id+'\')">'+
+        '<div class="tk-id">'+t.ticket_id+badge+'</div>'+
+        '<div class="tk-meta">'+(t.category||'ไม่ระบุ')+' · '+place+'</div>'+
+        '<div class="tk-sub">ผู้รับงาน: '+(t.assigned_to||'ไม่ระบุ')+(t.description?' · '+t.description.substring(0,40):'')+'</div></div>';
+    }).join('');
+
+    // ถ้าเปิดมาพร้อม ?ticket_id= ให้เลือกอัตโนมัติ
+    const pre=getTicketIdFromQuery();
+    if(pre && openTickets.some(function(t){return t.ticket_id===pre;})){
+      selectTicket(pre);
+      const el=document.getElementById('tk-'+pre);
+      if(el) el.scrollIntoView({block:'center'});
+    }
+  }catch(e){
+    box.innerHTML='<div class="empty">โหลดรายการไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</div>';
+  }
+}
+
+function selectTicket(id){
+  selectedId=id;
+  document.querySelectorAll('.tk-item').forEach(function(el){el.classList.remove('selected');});
+  const el=document.getElementById('tk-'+id);
+  if(el) el.classList.add('selected');
+  document.getElementById('btn-submit').disabled=false;
+  document.getElementById('btn-reject').disabled=false;
+}
+
+// ===== SUBMIT (accept / reject) =====
+function postGAS(payload){
+  return new Promise(function(resolve){
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST', GAS_URL, true);
+    xhr.setRequestHeader('Content-Type','text/plain');
+    xhr.timeout=30000;
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState!==4) return;
+      try{ resolve(JSON.parse(xhr.responseText)); }catch(e){ resolve({success:false,error:'bad response'}); }
+    };
+    xhr.ontimeout=function(){ resolve({success:false,error:'timeout'}); };
+    xhr.onerror=function(){ resolve({success:false,error:'network'}); };
+    xhr.send(JSON.stringify(payload));
+  });
+}
+
+async function submitAction(kind){
+  if(!selectedId){ toast('กรุณาเลือกงานก่อน'); return; }
+  const note=document.getElementById('note').value.trim();
+  const who=profile&&profile.displayName?profile.displayName:'ไม่ระบุ';
+  if(kind==='reject'&&!note){ toast('กรุณาระบุเหตุผลที่ปฏิเสธงาน'); return; }
+
+  const bA=document.getElementById('btn-submit'), bR=document.getElementById('btn-reject');
+  bA.disabled=true; bR.disabled=true;
+  (kind==='accept'?bA:bR).textContent='กำลังบันทึก...';
+
+  const ts=thaiTime();
+  let r;
+  if(kind==='accept'){
+    r=await postGAS({action:'accept',ticket_id:selectedId,accepted_at:ts,timestamp:ts});
+  }else{
+    r=await postGAS({action:'reject',ticket_id:selectedId,rejected_at:ts,rejected_by:who,reject_reason:note});
+  }
+
+  if(r.success){
+    document.getElementById('s-ticket').textContent=selectedId;
+    if(kind==='accept'){
+      document.getElementById('s-title').textContent='รับงานเรียบร้อย!';
+      document.getElementById('s-desc').innerHTML='ระบบเปลี่ยนสถานะเป็น "กำลังดำเนินงาน" แล้ว<br>เสร็จงานเมื่อไหร่อย่าลืมปิดงานพร้อมแนบรูปนะครับ';
+    }else{
+      document.getElementById('s-title').textContent='ปฏิเสธงานแล้ว';
+      document.getElementById('s-desc').innerHTML='งานถูกส่งกลับไปรอมอบหมายใหม่<br>พร้อมบันทึกเหตุผลของคุณแล้ว';
+    }
+    document.getElementById('success').classList.add('show');
+  }else{
+    toast('บันทึกไม่สำเร็จ: '+(r.error||'ลองใหม่อีกครั้ง'));
+    bA.disabled=false; bR.disabled=false;
+  }
+  bA.textContent='✅ รับงาน'; bR.textContent='❌ ปฏิเสธ';
+}
+
+function closeApp(){
+  if(liff.isInClient()) liff.closeWindow();
+  else document.getElementById('success').classList.remove('show');
+}
+</script>
+</body>
+</html>
