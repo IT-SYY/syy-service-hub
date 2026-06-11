@@ -37,6 +37,7 @@
   .tk-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
   .tk-badge{display:inline-block;font-size:10px;font-weight:600;border-radius:10px;padding:1px 8px;margin-left:6px;vertical-align:middle;}
   .tk-badge.assigned{background:#FEF3C7;color:#92400E;}
+  .tk-badge.pending{background:#FEE2E2;color:#B91C1C;}
   .tk-badge.in_progress{background:#DBEAFE;color:#1D4ED8;}
   .empty{font-size:13px;color:var(--text-muted);text-align:center;padding:18px 0;}
   .field{margin-bottom:4px;}
@@ -79,7 +80,7 @@
 
 <div class="content">
   <div class="card">
-    <div class="card-title"><span>1</span>เลือกงานที่ต้องการปิด</div>
+    <div class="card-title"><span>1</span>เลือกงาน (งานใหม่ + งานที่มอบหมายให้)</div>
     <div id="tk-list" class="tk-list"><div class="loading">⏳ กำลังโหลดรายการงาน...</div></div>
   </div>
 
@@ -171,7 +172,7 @@ async function loadTickets(){
         ticket_id:r[0]||'', category:r[4]||'', room:r[6]||'', description:r[7]||'',
         status:r[9]||'', assigned_to:r[10]||'', building:r[20]||'', location:r[5]||''
       };
-    }).filter(function(t){ return t.ticket_id && t.status==='assigned'; }).reverse();
+    }).filter(function(t){ return t.ticket_id && (t.status==='pending'||t.status==='assigned'); }).reverse();
 
     if(!openTickets.length){
       box.innerHTML='<div class="empty">ไม่มีงานรอตอบรับ 🎉</div>';
@@ -179,7 +180,7 @@ async function loadTickets(){
     }
     box.innerHTML = openTickets.map(function(t){
       const place=(t.building||t.location||'')+(t.room?' ห้อง '+t.room:'');
-      const badge=t.status==='in_progress'?'<span class="tk-badge in_progress">กำลังซ่อม</span>':'<span class="tk-badge assigned">มอบหมายแล้ว</span>';
+      const badge=t.status==='pending'?'<span class="tk-badge pending">🆕 ยังไม่มอบหมาย — กดรับได้เลย</span>':'<span class="tk-badge assigned">มอบหมายแล้ว</span>';
       return '<div class="tk-item" id="tk-'+t.ticket_id+'" onclick="selectTicket(\''+t.ticket_id+'\')">'+
         '<div class="tk-id">'+t.ticket_id+badge+'</div>'+
         '<div class="tk-meta">'+(t.category||'ไม่ระบุ')+' · '+place+'</div>'+
@@ -226,6 +227,10 @@ function postGAS(payload){
 
 async function submitAction(kind){
   if(!selectedId){ toast('กรุณาเลือกงานก่อน'); return; }
+  const sel=openTickets.find(function(t){return t.ticket_id===selectedId;});
+  if(kind==='reject' && sel && sel.status==='pending'){
+    toast('งานนี้ยังไม่ถูกมอบหมาย จึงไม่ต้องปฏิเสธครับ'); return;
+  }
   const note=document.getElementById('note').value.trim();
   const who=profile&&profile.displayName?profile.displayName:'ไม่ระบุ';
   if(kind==='reject'&&!note){ toast('กรุณาระบุเหตุผลที่ปฏิเสธงาน'); return; }
@@ -237,7 +242,7 @@ async function submitAction(kind){
   const ts=thaiTime();
   let r;
   if(kind==='accept'){
-    r=await postGAS({action:'accept',ticket_id:selectedId,accepted_at:ts,timestamp:ts});
+    r=await postGAS({action:'accept',ticket_id:selectedId,accepted_at:ts,timestamp:ts,chat_accept_by:who});
   }else{
     r=await postGAS({action:'reject',ticket_id:selectedId,rejected_at:ts,rejected_by:who,reject_reason:note});
   }
