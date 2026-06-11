@@ -177,10 +177,10 @@ async function loadTickets(){
         ticket_id:r[0]||'', category:r[4]||'', room:r[6]||'', description:r[7]||'',
         status:r[9]||'', assigned_to:r[10]||'', building:r[20]||'', location:r[5]||''
       };
-    }).filter(function(t){ return t.ticket_id && (t.status==='assigned'||t.status==='in_progress'); }).reverse();
+    }).filter(function(t){ return t.ticket_id && t.status==='in_progress'; }).reverse();
 
     if(!openTickets.length){
-      box.innerHTML='<div class="empty">ไม่มีงานค้างที่รอปิด 🎉</div>';
+      box.innerHTML='<div class="empty">ไม่มีงานที่กำลังดำเนินงานอยู่ 🎉<br><span style="font-size:11px">งานต้องถูก "รับงาน" ก่อนจึงจะปิดได้</span></div>';
       return;
     }
     box.innerHTML = openTickets.map(function(t){
