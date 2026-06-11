@@ -299,7 +299,7 @@
 <script>
 // ===== CONFIG =====
 const LIFF_ID    = '2010241158-ll8R9q4T';
-const N8N_URL    = 'https://syy-service-hub.app.n8n.cloud/webhook/liff-form';
+// ส่ง ticket ตรงไป GAS (v5.0) — ไม่ใช้ n8n แล้ว
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
 // อัปโหลดรูปส่งตรงไป GAS (ไม่ผ่าน n8n) เพื่อให้ได้ imageUrl ตอบกลับมาแน่นอน
 const MAX_PHOTOS = 5;
@@ -672,7 +672,7 @@ async function submitForm() {
     }
   }
 
-  // Step 2: ส่ง Ticket ไป n8n พร้อม image_url
+  // Step 2: ส่ง Ticket ไป GAS พร้อม image_url
   document.getElementById('loading-title').textContent = 'กำลังส่งข้อมูล...';
   document.getElementById('loading-sub').textContent   = 'Submitting request...';
   document.getElementById('loading-detail').textContent = '';
@@ -697,12 +697,14 @@ async function submitForm() {
     photoCount:        state.photos.length,
   };
 
-  // ส่ง Ticket ไป n8n
-  fetch(N8N_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
+  // ส่ง Ticket ตรงไป GAS (text/plain เลี่ยง CORS preflight)
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ liff_data: payload })
-  }).catch(e => console.log('n8n error:', e));
+  }).then(r => r.json())
+    .then(d => console.log('create ticket:', d))
+    .catch(e => console.log('GAS error:', e));
 
   // แสดง Success
   setTimeout(() => {
