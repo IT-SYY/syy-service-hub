@@ -402,6 +402,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 .rating-badge { display:inline-flex; align-items:center; gap:4px; background:rgba(251,191,36,0.14); border:1px solid rgba(251,191,36,0.35); border-radius:20px; padding:2px 8px; }
 
 /* ===== PRINT STYLES ===== */
+.print-report{display:none;}
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #FFF !important; font-family: 'Prompt', 'Sarabun', sans-serif !important; }
@@ -411,9 +412,8 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
   .kanban-link { display: none !important; }
   .main { margin-left: 0 !important; }
   .content { padding: 0 !important; }
-  .page { display: block !important; }
-  #page-dashboard { display: block !important; }
-  #page-tickets, #page-technicians, #page-history, #page-report { display: none !important; }
+  .page { display: none !important; }
+  .print-report, .print-report * { color: #1E293B !important; }
   .print-show { display: block !important; }
 
   /* Print Report Container */
@@ -1584,10 +1584,40 @@ async function doDone(){
 
 // ===== PRINT REPORT =====
 function exportPDF(){
-  const b = getBase();
+  const b = getBase().slice().sort((a,c)=>dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)));
   const now = new Date().toLocaleString('th-TH',{dateStyle:'full',timeStyle:'short'});
+  const stLbl = {pending:['รอดำเนินการ','status-pending'],assigned:['มอบหมายแล้ว','status-pending'],in_progress:['กำลังซ่อม','status-inprog'],done:['เสร็จสิ้น','status-done'],rejected:['ปฏิเสธ','status-pending']};
+  const nP=b.filter(t=>t.status==='pending'||t.status==='assigned').length;
+  const nI=b.filter(t=>t.status==='in_progress').length;
+  const nD=b.filter(t=>t.status==='done').length;
+
+  let pr=document.getElementById('print-report');
+  if(!pr){ pr=document.createElement('div'); pr.id='print-report'; pr.className='print-report'; document.body.appendChild(pr); }
+  pr.innerHTML=`
+    <h1>🔧 SYY Service Hub — รายงานสรุปงานแจ้งซ่อม</h1>
+    <div class="print-sub">พิมพ์เมื่อ ${now} &nbsp;|&nbsp; ทั้งหมด ${b.length} รายการ · รอดำเนินการ ${nP} · กำลังซ่อม ${nI} · เสร็จสิ้น ${nD}</div>
+    <table class="print-table">
+      <thead><tr>
+        <th>Ticket</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th><th>ผู้แจ้ง</th><th>ผู้รับงาน</th><th>สถานะ</th><th>เวลารวม</th><th>หมายเหตุ</th>
+      </tr></thead>
+      <tbody>${b.map(t=>{
+        const st=stLbl[t.status]||[t.status,''];
+        const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim();
+        return '<tr>'+
+          '<td>'+t.ticket_id+'</td>'+
+          '<td>'+(t.created_at||'')+'</td>'+
+          '<td>'+(t.category||'-')+'</td>'+
+          '<td>'+(place||'-')+'</td>'+
+          '<td>'+(t.reported_by||'-')+'</td>'+
+          '<td>'+(t.assigned_to||'-')+'</td>'+
+          '<td><span class="'+st[1]+'">'+st[0]+'</span></td>'+
+          '<td>'+(t.duration_min?fmtMins(t.duration_min):'-')+'</td>'+
+          '<td>'+String(t.notes||'').substring(0,45)+'</td>'+
+        '</tr>';
+      }).join('')}</tbody>
+    </table>`;
   toast('กำลังพิมพ์รายงาน...','📄','info');
-  window.print();
+  setTimeout(()=>window.print(),250);
 }
 
 // ===== TOAST =====
