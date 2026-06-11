@@ -7,14 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --green:#10B981;--green2:#059669;--green-l:#E8FBF0;--green-m:#D0F5E3;
-  --blue:#3B82F6;--blue-l:#EFF6FF;
-  --orange:#F59E0B;--orange-l:#FFFBEB;
-  --purple:#8B5CF6;--purple-l:#F5F3FF;
-  --red:#EF4444;--red-l:#FEF2F2;
-  --navy:#0F172A;--text:#1E293B;--text2:#64748B;--text3:#94A3B8;
-  --border:#E2E8F0;--bg:#DDE3EC;--bg2:#F8FAFC;--white:#FFF;
-  --shadow:0 1px 3px rgba(15,23,42,0.08);--shadow-md:0 4px 16px rgba(15,23,42,0.10);
+  --green:#34D399;--green2:#10B981;--green-l:rgba(52,211,153,0.14);--green-m:rgba(52,211,153,0.22);
+  --blue:#60A5FA;--blue-l:rgba(96,165,250,0.14);
+  --orange:#FBBF24;--orange-l:rgba(251,191,36,0.13);
+  --purple:#A78BFA;--purple-l:rgba(167,139,250,0.14);
+  --red:#F87171;--red-l:rgba(248,113,113,0.14);
+  --navy:#0F172A;--text:#EEF2F9;--text2:#A9B5CC;--text3:#7A87A0;
+  --border:#3C4A68;--bg:#1A2130;--bg2:#2C3850;--white:#242E42;
+  --shadow:0 1px 3px rgba(0,0,0,0.3);--shadow-md:0 4px 16px rgba(0,0,0,0.45);
   --r:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -46,7 +46,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .filter-tabs{display:flex;gap:6px;padding:14px 16px;overflow-x:auto;background:var(--white);border-bottom:1px solid var(--border);box-shadow:var(--shadow);}
 .filter-tab{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
 .filter-tab.active{border-color:var(--green);background:var(--green-l);color:var(--green);}
-.filter-tab-count{font-size:10px;font-weight:700;background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:10px;}
+.filter-tab-count{font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);padding:2px 6px;border-radius:10px;}
 .filter-tab.active .filter-tab-count{background:rgba(16,185,129,0.2);}
 
 /* CONTENT */
@@ -54,17 +54,17 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 
 /* TICKET CARD */
 .ticket-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;cursor:pointer;transition:all 0.2s;}
-.ticket-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:#CBD5E1;}
+.ticket-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:#52617F;}
 .ticket-card-header{padding:13px 14px 10px;border-bottom:1px solid var(--bg2);}
 .ticket-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;}
 .ticket-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);font-weight:600;}
 .ticket-badges{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
-.s-pending{background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;}
-.s-assigned{background:#EDE9FE;color:#7C3AED;border:1px solid #DDD6FE;}
-.s-inprog{background:#DBEAFE;color:#2563EB;border:1px solid #BFDBFE;}
-.s-done{background:#D1FAE5;color:#059669;border:1px solid #A7F3D0;}
-.s-rejected{background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;}
+.s-pending{background:rgba(251,191,36,0.15);color:#FBBF24;border:1px solid rgba(251,191,36,0.35);}
+.s-assigned{background:rgba(167,139,250,0.15);color:#A78BFA;border:1px solid rgba(167,139,250,0.35);}
+.s-inprog{background:rgba(96,165,250,0.15);color:#60A5FA;border:1px solid rgba(96,165,250,0.35);}
+.s-done{background:rgba(52,211,153,0.15);color:#34D399;border:1px solid rgba(52,211,153,0.35);}
+.s-rejected{background:rgba(248,113,113,0.15);color:#F87171;border:1px solid rgba(248,113,113,0.35);}
 .pri-badge{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;}
 .pri-high{background:var(--red-l);color:var(--red);}
 .pri-med{background:var(--orange-l);color:var(--orange);}
@@ -97,10 +97,10 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 
 /* TIMER BADGE */
 .timer-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-top:6px;}
-.timer-ok{background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;}
-.timer-warn{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;}
-.timer-late{background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;}
-.timer-done{background:#F0FDF4;color:#059669;border:1px solid #A7F3D0;}
+.timer-ok{background:rgba(96,165,250,0.12);color:#60A5FA;border:1px solid rgba(96,165,250,0.32);}
+.timer-warn{background:rgba(251,191,36,0.12);color:#FBBF24;border:1px solid rgba(251,191,36,0.32);}
+.timer-late{background:rgba(248,113,113,0.12);color:#F87171;border:1px solid rgba(248,113,113,0.32);}
+.timer-done{background:rgba(52,211,153,0.12);color:#34D399;border:1px solid rgba(52,211,153,0.32);}
 
 /* EMPTY / LOADING */
 .empty-box{text-align:center;padding:48px 20px;}
@@ -114,7 +114,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 
 /* STATS ROW */
 .stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
-.stat-card{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:var(--shadow);text-align:center;}
+.stat-card{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:var(--shadow);text-align:center;cursor:pointer;transition:all .15s;}
+.stat-card:active{transform:scale(0.96);}
+.stat-card:hover{border-color:#52617F;}
 .stat-num{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;}
 .stat-lbl{font-size:11px;color:var(--text2);margin-top:3px;}
 
@@ -209,19 +211,19 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 
   <!-- STATS -->
   <div class="stats-row" id="stats-row" style="display:none">
-    <div class="stat-card">
+    <div class="stat-card" onclick="filterFromStat('all')">
       <div class="stat-num" id="s-total" style="color:var(--blue)">0</div>
       <div class="stat-lbl">ทั้งหมด</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" onclick="filterFromStat('pending')">
       <div class="stat-num" id="s-pend" style="color:var(--orange)">0</div>
       <div class="stat-lbl">รอดำเนินการ</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" onclick="filterFromStat('in_progress')">
       <div class="stat-num" id="s-prog" style="color:var(--purple)">0</div>
       <div class="stat-lbl">กำลังซ่อม</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" onclick="filterFromStat('done')">
       <div class="stat-num" id="s-done" style="color:var(--green)">0</div>
       <div class="stat-lbl">เสร็จสิ้น</div>
     </div>
@@ -291,19 +293,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (q) {
     document.getElementById('search-input').value = q;
     searchQuery = q.toLowerCase();
-    loadData();
   } else if (id) {
     document.getElementById('search-input').value = id;
     searchQuery = id.toLowerCase();
-    loadData();
   }
+  loadData(); // แสดงรายการทั้งหมดทันทีตั้งแต่เปิดหน้า
 });
 
 // ===== LOAD DATA =====
 async function loadData() {
   showLoading();
   try {
-    const res = await fetch(`${BASE}/TICKETS!A2:AE300?key=${API_KEY}`);
+    const res = await fetch(`${BASE}/TICKETS!A2:AF300?key=${API_KEY}`);
     const d   = await res.json();
     if (!d.values) { allTickets = []; render(); return; }
     allTickets = d.values.map(r => ({
@@ -322,6 +323,7 @@ async function loadData() {
       resolved_at:  r[12]||'',
       duration_min: r[13]||'',
       image_url:    r[15]||'',
+      done_image_url: r[31]||'',
       rating:       r[16]||'',
       notes:        r[17]||'',
       team:         r[19]||'',
@@ -359,6 +361,10 @@ function doSearch() {
 }
 
 // ===== FILTER =====
+function filterFromStat(f) {
+  const tab = document.querySelector('.filter-tab[data-f="'+f+'"]');
+  if (tab) setFilter(f, tab);
+}
 function setFilter(f, el) {
   currentFilter = f;
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -373,12 +379,15 @@ function getFiltered() {
       || (currentFilter === 'pending' && (t.status === 'pending' || t.status === 'assigned'))
       || t.status === currentFilter;
     const q = searchQuery;
-    const sq = !q || t.ticket_id.toLowerCase().includes(q)
-      || t.description.toLowerCase().includes(q)
-      || (t.reported_by||'').toLowerCase().includes(q)
-      || (t.displayName||'').toLowerCase().includes(q)
-      || (t.category||'').toLowerCase().includes(q)
-      || (t.location||'').toLowerCase().includes(q);
+    const statusThai = {pending:'รอดำเนินการ',assigned:'มอบหมายแล้ว',in_progress:'กำลังซ่อม กำลังดำเนินการ',done:'เสร็จสิ้น เสร็จ',rejected:'ปฏิเสธ'}[t.status]||'';
+    const haystack = [
+      t.ticket_id, t.description, t.reported_by, t.displayName,
+      t.category, t.location, t.building, t.room,
+      t.assigned_to, t.notes, t.priority,
+      t.created_at, t.resolved_at,
+      t.status, statusThai
+    ].map(x => String(x||'').toLowerCase()).join(' ');
+    const sq = !q || q.split(/\s+/).every(w => haystack.includes(w));
     return sm && sq;
   });
 }
@@ -400,11 +409,14 @@ function render() {
     return;
   }
   document.getElementById('stats-row').style.display = 'grid';
-  // sort: pending/in_progress ก่อน, done ทีหลัง
-  data.sort((a,b) => {
-    const ord = {pending:0, assigned:0, in_progress:1, done:2, rejected:3};
-    return (ord[a.status]||0) - (ord[b.status]||0);
-  });
+  // sort: เรียงตามวันที่แจ้ง ใหม่สุด (วันนี้) ขึ้นก่อน
+  const dmyKey = v => {
+    const m = String(v||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?/);
+    if (!m) return '';
+    const p = n => String(n||0).padStart(2,'0');
+    return m[3]+p(m[2])+p(m[1])+p(m[4])+p(m[5])+p(m[6]);
+  };
+  data.sort((a,b) => dmyKey(b.created_at).localeCompare(dmyKey(a.created_at)));
   const resultCount = data.length;
   list.innerHTML = `
     <div class="result-hdr">
@@ -560,14 +572,20 @@ function openDetail(id) {
 
   // Images
   let imgHtml = '';
-  if (t.image_url) {
-    const urls = t.image_url.split(',').filter(Boolean);
-    if (urls.length) {
-      imgStoreT = urls;
-      imgHtml = `<div class="img-grid">${urls.map((u,i) =>
-        `<img class="img-thumb" src="${u}" onclick="event.stopPropagation();openImgViewer(${i})" alt="รูปภาพ ${i+1}">`
+  const beforeUrls = (t.image_url||'').split(',').map(u=>u.trim()).filter(Boolean);
+  const afterUrls  = (t.done_image_url||'').split(',').map(u=>u.trim()).filter(Boolean);
+  imgStoreT = beforeUrls.concat(afterUrls);
+  if (beforeUrls.length) {
+    imgHtml += `<div class="timeline-title" style="margin-top:10px">📷 รูปตอนแจ้งงาน</div>
+      <div class="img-grid">${beforeUrls.map((u,i) =>
+        `<img class="img-thumb" src="${u}" onclick="event.stopPropagation();openImgViewer(${i})" alt="รูปแจ้งงาน ${i+1}">`
       ).join('')}</div>`;
-    }
+  }
+  if (afterUrls.length) {
+    imgHtml += `<div class="timeline-title" style="margin-top:10px">🏁 รูปหลังปิดงาน</div>
+      <div class="img-grid">${afterUrls.map((u,i) =>
+        `<img class="img-thumb" src="${u}" onclick="event.stopPropagation();openImgViewer(${beforeUrls.length+i})" alt="รูปหลังงาน ${i+1}">`
+      ).join('')}</div>`;
   }
 
   // Rating
