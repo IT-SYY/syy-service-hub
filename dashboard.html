@@ -1018,7 +1018,7 @@ function sparkSVG(vals, color){
 }
 function oldestAge(list){
   let mx=null;
-  list.forEach(t=>{const m=elapsedMins(t.created_at);if(m!==null&&(mx===null||m>mx))mx=m;});
+  list.forEach(t=>{const m=elapsedSince(t.created_at);if(m!==null&&(mx===null||m>mx))mx=m;});
   return mx;
 }
 function animateNum(id, to){
