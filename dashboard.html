@@ -22,6 +22,19 @@
   --shadow-md:0 4px 16px rgba(0,0,0,0.45);
   --shadow-lg:0 10px 30px rgba(0,0,0,0.55);
 }
+body.light{
+  --bg:#DDE3EC;--bg2:#FFFFFF;--bg3:#F1F5F9;--border:#D6DEE9;
+  --green:#10B981;--green2:#059669;--green-dim:rgba(16,185,129,0.12);
+  --blue:#3B82F6;--blue-dim:rgba(59,130,246,0.12);
+  --orange:#F59E0B;--orange-dim:rgba(245,158,11,0.12);
+  --red:#EF4444;--red-dim:rgba(239,68,68,0.12);
+  --purple:#8B5CF6;--purple-dim:rgba(139,92,246,0.12);
+  --brown:#92400E;--brown-light:#B45309;--brown-dim:rgba(178,83,9,0.12);
+  --text:#0F172A;--text2:#64748B;--text3:#94A3B8;
+  --shadow:0 1px 2px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);
+  --shadow-md:0 4px 16px rgba(15,23,42,0.10);
+  --shadow-lg:0 10px 30px rgba(15,23,42,0.12);
+}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
 
@@ -342,7 +355,9 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 .toast.info{border-left:3px solid var(--blue);}
 
 /* LOADING & EMPTY */
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 10px;gap:10px;}
+.loading{display:flex;flex-direction:column;align-items:stretch;justify-content:center;padding:14px 10px;gap:10px;}
+.skl{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--bg3) 25%,var(--border) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .empty-state{text-align:center;padding:24px 10px;color:var(--text3);}
@@ -402,6 +417,26 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 .rating-badge { display:inline-flex; align-items:center; gap:4px; background:rgba(251,191,36,0.14); border:1px solid rgba(251,191,36,0.35); border-radius:20px; padding:2px 8px; }
 
 /* ===== PRINT STYLES ===== */
+/* ===== TV / WALLBOARD MODE ===== */
+body.tv .sidebar,body.tv .topbar{display:none!important;}
+body.tv .main{margin-left:0!important;}
+body.tv .content{padding:22px 28px;}
+body.tv .kpi-num{font-size:46px;}
+body.tv .kpi-label{font-size:15px;}
+body.tv .kpi-sub{font-size:13px;}
+body.tv .kb-card{font-size:15px;}
+body.tv .chart-ttl,body.tv .report-ttl{font-size:16px;}
+.tv-exit{display:none;position:fixed;top:14px;right:14px;z-index:300;background:var(--bg2);border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:8px 14px;cursor:pointer;font-family:'Prompt',sans-serif;font-size:13px;box-shadow:var(--shadow-md);opacity:0.85;}
+body.tv .tv-exit{display:block;}
+/* ===== SKELETON ===== */
+.skel{position:relative;overflow:hidden;background:var(--bg3);border-radius:6px;display:inline-block;}
+.skel::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent);animation:skel 1.2s infinite;}
+body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,42,0.06),transparent);}
+@keyframes skel{100%{transform:translateX(100%);}}
+/* ===== HEATMAP ===== */
+.hm-grid{display:grid;grid-template-columns:44px repeat(8,1fr);gap:3px;margin-top:8px;}
+.hm-cell{height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text3);}
+.hm-lbl{font-size:10px;color:var(--text3);display:flex;align-items:center;}
 .print-report{display:none;}
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -504,6 +539,8 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
     <div class="topbar-search"><span style="color:var(--text3)">🔍</span><input type="text" placeholder="ค้นหา..." id="search-input" oninput="onSearch()"></div>
     <div class="live-dot"></div><span class="live-txt" id="live-txt">Live</span>
     <button class="btn-tb" onclick="loadData()">↻ Refresh</button>
+    <button class="btn-tb" id="theme-btn" onclick="toggleTheme()" title="สลับธีม">🌙</button>
+    <button class="btn-tb" id="tv-btn" onclick="toggleTV()" title="โหมดทีวี">📺</button>
     <button class="btn-tb" onclick="exportPDF()">📄 PDF</button>
   </div>
 
@@ -524,19 +561,19 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
           <div class="kpi-top"><div class="kpi-icon">⏳</div><div class="kpi-badge">Pending</div></div>
           <div class="kpi-num" id="k-pending">—</div>
           <div class="kpi-label">รอดำเนินการ</div>
-          <div class="kpi-sub">รอมอบหมาย + รอรับงาน</div>
+          <div class="kpi-sub" id="k-pending-sub">รอมอบหมาย + รอรับงาน</div>
         </div>
         <div class="kpi-card inprog" onclick="gotoTickets({status:'in_progress'})">
           <div class="kpi-top"><div class="kpi-icon">🔄</div><div class="kpi-badge">Active</div></div>
           <div class="kpi-num" id="k-inprog">—</div>
           <div class="kpi-label">กำลังดำเนินการ</div>
-          <div class="kpi-sub">รับงานแล้ว</div>
+          <div class="kpi-sub" id="k-inprog-sub">รับงานแล้ว</div>
         </div>
         <div class="kpi-card done" onclick="gotoTickets({status:'done'})">
           <div class="kpi-top"><div class="kpi-icon">✅</div><div class="kpi-badge">Done</div></div>
           <div class="kpi-num" id="k-done">—</div>
           <div class="kpi-label">เสร็จสิ้น</div>
-          <div class="kpi-sub">Completed</div>
+          <div class="kpi-sub" id="k-done-sub">Completed</div>
         </div>
       </div>
 
@@ -561,7 +598,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
             <span class="kb-col-count" id="kb-count-pending">0</span>
           </div>
           <div class="kb-col-body pending" id="kb-pending">
-            <div class="loading"><div class="spinner"></div></div>
+            <div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div>
           </div>
         </div>
         <!-- กำลังดำเนินการ -->
@@ -572,7 +609,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
             <span class="kb-col-count" id="kb-count-inprog">0</span>
           </div>
           <div class="kb-col-body inprog" id="kb-inprog">
-            <div class="loading"><div class="spinner"></div></div>
+            <div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div>
           </div>
         </div>
         <!-- เสร็จสิ้น -->
@@ -583,15 +620,15 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
             <span class="kb-col-count" id="kb-count-done">0</span>
           </div>
           <div class="kb-col-body done" id="kb-done">
-            <div class="loading"><div class="spinner"></div></div>
+            <div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div>
           </div>
         </div>
       </div>
 
       <!-- BOTTOM -->
       <div class="bottom-row">
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะทีม</div></div><div class="tech-list" id="tech-list"><div class="loading"><div class="spinner"></div></div></div></div>
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">กิจกรรมล่าสุด</div></div><div class="timeline" id="timeline"><div class="loading"><div class="spinner"></div></div></div></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะทีม</div></div><div class="tech-list" id="tech-list"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">กิจกรรมล่าสุด</div></div><div class="timeline" id="timeline"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div></div>
       </div>
     </div>
 
@@ -624,14 +661,14 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
           <th>รายละเอียด</th><th>ผู้แจ้ง</th><th>ความเร่งด่วน</th><th>สถานะ</th>
           <th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th><th>ดำเนินการ</th>
         </tr></thead>
-        <tbody id="tickets-tbody"><tr><td colspan="14"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        <tbody id="tickets-tbody"><tr><td colspan="14"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></td></tr></tbody>
       </table></div></div>
     </div>
 
     <!-- TECHNICIANS PAGE -->
     <div class="page" id="page-technicians">
       <div class="tickets-toolbar"><div class="toolbar-ttl">👥 ทีมช่าง IT Support</div></div>
-      <div class="tech-grid" id="tech-grid"><div class="loading"><div class="spinner"></div></div></div>
+      <div class="tech-grid" id="tech-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
     </div>
 
     <!-- HISTORY PAGE -->
@@ -646,7 +683,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
       </div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
         <thead><tr><th>Ticket ID</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th><th>รายละเอียด</th><th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>⭐ คะแนน</th><th>หมายเหตุ</th></tr></thead>
-        <tbody id="history-tbody"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        <tbody id="history-tbody"><tr><td colspan="9"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></td></tr></tbody>
       </table></div></div>
     </div>
 
@@ -656,10 +693,18 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
         <div class="toolbar-ttl">📈 รายงานสรุป</div>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
-      <div class="report-grid" id="report-grid"><div class="loading"><div class="spinner"></div></div></div>
+      <div class="report-grid" id="report-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
+      <div class="report-card" id="sla-card" style="margin-top:10px">
+        <div class="report-ttl">🎯 SLA — อัตราปิดงานตรงเวลา <span style="font-weight:400;font-size:11px;color:var(--text3)">(เป้า: ฉุกเฉิน 1 ชม. / เร่งด่วน 4 ชม. / ปกติ 8 ชม.)</span></div>
+        <div id="sla-body"></div>
+      </div>
       <div class="report-card" id="leaderboard-card" style="margin-top:10px">
         <div class="report-ttl">🏆 Leaderboard ประจำเดือนนี้ <span style="font-weight:400;font-size:11px;color:var(--text3)">(จัดอันดับจากงานที่ปิดในเดือนปัจจุบัน)</span></div>
         <div id="leaderboard-body"></div>
+      </div>
+      <div class="report-card" style="margin-top:10px">
+        <div class="report-ttl">🔥 Heatmap ช่วงเวลาแจ้งงาน <span style="font-weight:400;font-size:11px;color:var(--text3)">(วัน × ช่วงเวลา — ยิ่งเข้มยิ่งแจ้งเยอะ)</span></div>
+        <div id="heatmap-body"></div>
       </div>
       <div class="charts-row" style="margin-top:10px">
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สัดส่วนงานตามทีม</div></div><canvas id="chart-team" height="180"></canvas></div>
@@ -735,6 +780,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
   <a class="img-viewer-link" id="img-viewer-link" href="" target="_blank" onclick="event.stopPropagation()">เปิดรูปเต็ม ↗</a>
 </div>
 
+<button class="tv-exit" onclick="toggleTV()">✕ ออกจากโหมดทีวี</button>
 <div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">สำเร็จ</span></div>
 
 <script>
@@ -749,7 +795,45 @@ const MEMBERS = [{name:'Chana',role:'IT Manager'},{name:'Farid',role:'IT Project
 let tickets=[], currentTeam='all', currentId=null, charts={}, firstLoad=true, lastIds=new Set(), timer=null, memberFilter='';
 
 // ===== INIT =====
-document.addEventListener('DOMContentLoaded',()=>{ loadData(); timer=setInterval(()=>loadData(true),30000); });
+// ===== THEME TOGGLE =====
+function applyTheme(t){
+  document.body.classList.toggle('light',t==='light');
+  const btn=document.getElementById('theme-btn');
+  if(btn) btn.textContent = t==='light' ? '🌙' : '☀️';
+  try{localStorage.setItem('syy-theme',t);}catch(e){}
+}
+function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dark':'light');}
+try{ if(localStorage.getItem('syy-theme')==='light'){document.body.classList.add('light');} }catch(e){}
+
+// ===== TV / WALLBOARD MODE =====
+let tvTimer=null,tvIdx=0;
+const TV_PAGES=['dashboard','report'];
+function toggleTV(){
+  const on=!document.body.classList.contains('tv');
+  document.body.classList.toggle('tv',on);
+  if(on){
+    try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}catch(e){}
+    tvIdx=0; showPage('dashboard',null,true);
+    tvTimer=setInterval(()=>{tvIdx=(tvIdx+1)%TV_PAGES.length;showPage(TV_PAGES[tvIdx],null,true);},20000);
+    toast('โหมดทีวี: สลับหน้าอัตโนมัติทุก 20 วิ','📺','info');
+  }else{
+    clearInterval(tvTimer);tvTimer=null;
+    try{document.fullscreenElement&&document.exitFullscreen();}catch(e){}
+  }
+}
+document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement&&document.body.classList.contains('tv')) toggleTV(); });
+
+// ===== SKELETON (โหลดครั้งแรก) =====
+function showSkeletons(){
+  ['k-all','k-pending','k-inprog','k-done'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<span class="skel" style="width:46px;height:22px"></span>';
+  });
+  const ks=document.getElementById('k-sub');
+  if(ks) ks.innerHTML='<span class="skel" style="width:130px;height:11px"></span>';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{ applyTheme(document.body.classList.contains('light')?'light':'dark'); showSkeletons(); loadData(); timer=setInterval(()=>loadData(true),30000); });
 
 // ===== HELPERS: IMAGE (ปรับปรุงแล้ว) =====
 let donePhotos = []; // dataURL ของรูปหลังปิดงานที่รอ upload
@@ -919,14 +1003,78 @@ function renderAll(){
 function getBase(){return tickets.filter(t=>currentTeam==='all'||t.team===currentTeam||t.department===currentTeam);}
 
 // ===== KPI =====
+function trendTag(cur, prev){
+  if(prev===0 && cur===0) return '';
+  if(prev===0) return ' <span style="color:var(--green)">▲ ใหม่</span>';
+  const pct=Math.round((cur-prev)*100/prev);
+  if(pct===0) return ' <span style="color:var(--text3)">— เท่าสัปดาห์ก่อน</span>';
+  const up=pct>0;
+  return ` <span style="color:${up?'var(--green)':'var(--red)'}">${up?'▲':'▼'} ${Math.abs(pct)}%</span>`;
+}
+function sparkSVG(vals, color){
+  const w=64,h=18,max=Math.max(...vals,1);
+  const pts=vals.map((v,i)=>`${(i*(w/(vals.length-1))).toFixed(1)},${(h-2-(v/max)*(h-4)).toFixed(1)}`).join(' ');
+  return `<svg width="${w}" height="${h}" style="vertical-align:middle;margin-left:6px"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function oldestAge(list){
+  let mx=null;
+  list.forEach(t=>{const m=elapsedMins(t.created_at);if(m!==null&&(mx===null||m>mx))mx=m;});
+  return mx;
+}
+function animateNum(id, to){
+  // ถ้าค่าปัจจุบันเป็น skeleton/ขีด ให้ตั้งฐานเป็น 0 ก่อน
+  var _el=document.getElementById(id);
+  if(_el && isNaN(Number(_el.textContent))) _el.textContent='0';
+  const el=document.getElementById(id);
+  const from=parseInt(el.textContent)||0;
+  if(from===to){ el.textContent=to; return; }
+  const t0=performance.now(), dur=550;
+  function step(t){
+    const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(from+(to-from)*e);
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
 function renderKPI(){
   const b=getBase();
-  document.getElementById('k-all').textContent=b.length;
-  document.getElementById('k-pending').textContent=b.filter(t=>t.status==='pending'||t.status==='assigned').length;
-  document.getElementById('k-inprog').textContent=b.filter(t=>t.status==='in_progress').length;
-  document.getElementById('k-done').textContent=b.filter(t=>t.status==='done').length;
+  const now=Date.now(), wk=7*86400000;
+  const ms=v=>{const k=dmyKey(v);return k?new Date(k.slice(0,4)+'-'+k.slice(4,6)+'-'+k.slice(6,8)+'T'+k.slice(8,10)+':'+k.slice(10,12)+':'+k.slice(12,14)+'+07:00').getTime():NaN;};
+
+  const pending=b.filter(t=>t.status==='pending'||t.status==='assigned');
+  const inprog=b.filter(t=>t.status==='in_progress');
+  const done=b.filter(t=>t.status==='done');
+
+  animateNum('k-all',b.length);
+  animateNum('k-pending',pending.length);
+  animateNum('k-inprog',inprog.length);
+  animateNum('k-done',done.length);
+
+  // เทรนด์: งานแจ้งใหม่ และงานที่ปิด เทียบ 7 วันล่าสุด vs 7 วันก่อนหน้า
+  const createdThis=b.filter(t=>{const x=ms(t.created_at);return isFinite(x)&&x>=now-wk;}).length;
+  const createdPrev=b.filter(t=>{const x=ms(t.created_at);return isFinite(x)&&x>=now-2*wk&&x<now-wk;}).length;
+  const doneThis=done.filter(t=>{const x=ms(t.resolved_at);return isFinite(x)&&x>=now-wk;}).length;
+  const donePrev=done.filter(t=>{const x=ms(t.resolved_at);return isFinite(x)&&x>=now-2*wk&&x<now-wk;}).length;
+
+  // sparkline งานแจ้งใหม่ 7 วันล่าสุด
+  const daily=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now-i*86400000);
+    const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    daily.push(b.filter(t=>String(t.created_at||'').startsWith(ds)).length);
+  }
   const n=new Date();
-  document.getElementById('k-sub').textContent=`อัปเดต ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} น.`;
+  document.getElementById('k-sub').innerHTML=
+    `แจ้งใหม่ ${createdThis} /สัปดาห์${trendTag(createdThis,createdPrev)}${sparkSVG(daily,'#60A5FA')}`;
+
+  const pAge=oldestAge(pending);
+  document.getElementById('k-pending-sub').innerHTML=
+    pAge!==null?`เก่าสุดค้างมา <span style="color:${pAge>=480?'var(--red)':'var(--text2)'};font-weight:600">${fmtDuration(pAge)}</span>`:'ไม่มีงานค้าง 🎉';
+  const iAge=oldestAge(inprog);
+  document.getElementById('k-inprog-sub').innerHTML=
+    iAge!==null?`นานสุดทำมา <span style="color:var(--text2);font-weight:600">${fmtDuration(iAge)}</span>`:'ไม่มีงานกำลังทำ';
+  document.getElementById('k-done-sub').innerHTML=
+    `ปิดแล้ว ${doneThis} /สัปดาห์${trendTag(doneThis,donePrev)}`;
 }
 function renderPendingBadge(){
   const n=getBase().filter(t=>t.status==='pending'||t.status==='assigned').length;
@@ -1287,7 +1435,59 @@ function renderLeaderboard(){
   }).join('');
 }
 
+function renderSLA(){
+  const done=getBase().filter(t=>slaOf(t));
+  const body=document.getElementById('sla-body');
+  if(!done.length){ body.innerHTML='<div class="stat-row"><span class="stat-lbl">ยังไม่มีข้อมูล SLA (รอ recalcSLA หรือมีงานปิดใหม่)</span></div>'; return; }
+  const grp={high:'🔴 ฉุกเฉิน',med:'🟡 เร่งด่วน',low:'🟢 ปกติ'};
+  const okAll=done.filter(t=>slaOf(t)==='on_time').length;
+  const pctAll=Math.round(okAll*100/done.length);
+  let html=`<div class="stat-row" style="background:var(--blue-dim);border-radius:8px;padding:8px 10px">
+    <span class="stat-lbl" style="font-weight:700;color:var(--text)">ภาพรวม</span>
+    <span class="stat-val" style="color:${pctAll>=80?'var(--green)':pctAll>=50?'var(--orange)':'var(--red)'}">${okAll}/${done.length} งาน (${pctAll}%)</span></div>`;
+  Object.keys(grp).forEach(p=>{
+    const g=done.filter(t=>(t.priority||'low')===p);
+    if(!g.length) return;
+    const ok=g.filter(t=>slaOf(t)==='on_time').length;
+    const pct=Math.round(ok*100/g.length);
+    html+=`<div class="stat-row"><span class="stat-lbl" style="cursor:pointer" onclick="gotoTickets({status:'done'});document.getElementById('f-priority').value='${p}';renderTicketsPage();">${grp[p]}</span>
+      <span class="stat-val" style="font-size:13px;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'}">${ok}/${g.length} (${pct}%)</span></div>`;
+  });
+  body.innerHTML=html;
+}
+
+function renderHeatmap(){
+  const b=getBase();
+  const days=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const slots=['0-3','3-6','6-9','9-12','12-15','15-18','18-21','21-24'];
+  const grid=Array.from({length:7},()=>Array(8).fill(0));
+  let max=0;
+  b.forEach(t=>{
+    const m=String(t.created_at||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):/);
+    if(!m) return;
+    const d=new Date(+m[3],+m[2]-1,+m[1]);
+    const slot=Math.min(7,Math.floor((+m[4])/3));
+    grid[d.getDay()][slot]++;
+    if(grid[d.getDay()][slot]>max) max=grid[d.getDay()][slot];
+  });
+  let html='<div class="hm-grid"><div></div>'+slots.map(x=>`<div class="hm-lbl" style="justify-content:center">${x}</div>`).join('');
+  [1,2,3,4,5,6,0].forEach(d=>{
+    html+=`<div class="hm-lbl">${days[d]}</div>`;
+    for(let h=0;h<8;h++){
+      const v=grid[d][h];
+      const a=max?(v/max):0;
+      const bg=v?`rgba(96,165,250,${(0.15+a*0.75).toFixed(2)})`:'var(--bg3)';
+      const tc=a>0.55?'#fff':'var(--text3)';
+      html+=`<div class="hm-cell" style="background:${bg};color:${tc}" title="${days[d]} ${slots[h]} น. — ${v} งาน">${v||''}</div>`;
+    }
+  });
+  html+='</div>';
+  document.getElementById('heatmap-body').innerHTML=html;
+}
+
 function renderReport(){
+  renderHeatmap();
+  renderSLA();
   renderLeaderboard();
   const b=getBase();
   const done=b.filter(t=>t.status==='done');
@@ -1394,6 +1594,16 @@ function fmtDuration(min){
   var d = Math.floor(h/24);
   var hh = h%24;
   return hh>0 ? d+' วัน '+hh+' ชม.' : d+' วัน';
+}
+
+// ===== SLA =====
+const SLA_TARGETS={high:60,med:240,low:480}; // นาที — ให้ตรงกับ Code.gs
+function slaOf(t){
+  if(t.status!=='done') return '';
+  if(t.sla_status==='on_time'||t.sla_status==='late') return t.sla_status;
+  const d=Number(t.duration_min);
+  if(!isFinite(d)||d<=0) return '';
+  return d<=(SLA_TARGETS[t.priority]||SLA_TARGETS.low)?'on_time':'late';
 }
 
 // แปลงค่านาที (จากคอลัมน์ response_min/completion_min/duration_min) เป็นข้อความอ่านง่าย
@@ -1509,6 +1719,7 @@ function openDetail(id){
       <div><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':'ยังไม่ได้รับการประเมิน'}</div></div>
       ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${fmtMins(t.completion_min)}</div></div>`:''}
       ${t.duration_min?`<div><div class="detail-lbl">⏱ เวลารวมทั้งหมด</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} (แจ้ง→เสร็จ)</div></div>`:''}
+      ${slaOf(t)?`<div><div class="detail-lbl">🎯 SLA</div><div class="detail-val" style="color:${slaOf(t)==='on_time'?'var(--green)':'var(--red)'};font-weight:700">${slaOf(t)==='on_time'?'✓ ตรงเวลา':'✗ เกินกำหนด'} <span style="font-weight:400;color:var(--text3);font-size:11px">(เป้า ${fmtMins(SLA_TARGETS[t.priority]||SLA_TARGETS.low)})</span></div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
       ${mkDetailImages(t)}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
