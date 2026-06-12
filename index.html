@@ -105,6 +105,7 @@
   /* OVERLAY */
   .overlay{position:fixed;inset:0;z-index:100;background:rgba(10,22,40,0.7);display:flex;align-items:center;justify-content:center;}
   .overlay.hidden{display:none;}
+  #img-save-overlay.hidden{display:none!important;}
   .overlay-box{background:white;border-radius:20px;padding:32px 24px;text-align:center;width:80%;max-width:300px;}
   .overlay-icon{font-size:52px;margin-bottom:12px;}
   .overlay-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:8px;}
@@ -139,7 +140,8 @@
     <div class="overlay-sub">ทีมงานจะดำเนินการโดยเร็ว<br>Your request has been submitted.</div>
     <div class="ticket-badge" id="ticket-badge">TK-XXXXXX</div>
     <br><br>
-    <button class="btn-next" style="width:100%;background:#2563EB" onclick="openTracker()">📊 ติดตามงานนี้ / Track this ticket</button>
+    <button class="btn-next" style="width:100%;background:#0EA5E9" onclick="saveTicketImage()">💾 บันทึกภาพ Ticket เก็บเป็นหลักฐาน</button>
+    <button class="btn-next" style="width:100%;margin-top:8px;background:#2563EB" onclick="openTracker()">📊 ติดตามงานนี้ / Track this ticket</button>
     <button class="btn-next" style="width:100%;margin-top:8px;background:transparent;border:1.5px solid var(--border);color:var(--text-muted)" onclick="closeLIFF()">ปิดหน้านี้ / Close</button>
   </div>
 </div>
@@ -712,6 +714,7 @@ async function submitForm() {
     document.getElementById('overlay-loading').classList.add('hidden');
     document.getElementById('ticket-badge').textContent = ticketId;
     window._lastTicketId = ticketId;
+    window._lastPayload = payload;
     document.getElementById('overlay-success').classList.remove('hidden');
   }, 1000);
 }
@@ -724,6 +727,105 @@ function openTracker(){
   if (typeof liff!=='undefined' && liff.isInClient && liff.isInClient()) liff.openWindow({url:url, external:false});
   else window.open(url,'_blank');
 }
+
+// ===== บันทึกภาพ Ticket =====
+function wrapText(ctx, text, maxW){
+  const words=String(text||'').split('');
+  const lines=[]; let line='';
+  for(const ch of words){
+    if(ctx.measureText(line+ch).width>maxW){lines.push(line);line=ch;}
+    else line+=ch;
+    if(lines.length>=3){line+='…';break;}
+  }
+  if(line) lines.push(line);
+  return lines.slice(0,3);
+}
+function saveTicketImage(){
+  const p=window._lastPayload||{};
+  const W=720, rows=[
+    ['วันที่แจ้ง', p.timestamp||''],
+    ['ผู้แจ้ง', p.displayName||'-'],
+    ['ทีม / ประเภท', (p.team||'-')+' · '+(p.category||'-')],
+    ['สถานที่', (p.building||'-')+(p.room?' ห้อง '+p.room:'')],
+    ['ความสำคัญ', p.priority==='high'?'🔴 ฉุกเฉิน':p.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ'],
+    ['รูปแนบ', (p.photoCount||0)+' รูป'],
+  ];
+  const c=document.createElement('canvas');
+  const ctx=c.getContext('2d');
+  ctx.font='26px Sarabun';
+  const descLines=wrapText(ctx, p.description||'-', W-220);
+  const H=470+rows.length*58+descLines.length*36+110;
+  c.width=W; c.height=H;
+
+  // พื้นหลัง + การ์ด
+  ctx.fillStyle='#F0F4F8'; ctx.fillRect(0,0,W,H);
+  // หัวเขียว
+  const g=ctx.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'#06C755'); g.addColorStop(1,'#04903C');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,170);
+  ctx.fillStyle='#FFFFFF';
+  ctx.font='bold 38px Sarabun'; ctx.fillText('🔧 SYY Service Hub', 36, 70);
+  ctx.font='26px Sarabun'; ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.fillText('ใบยืนยันการแจ้งซ่อม / Service Ticket', 36, 112);
+  ctx.font='22px Sarabun'; ctx.fillText('Santhiya Collection', 36, 146);
+
+  // กล่องเลข ticket
+  ctx.fillStyle='#FFFFFF';
+  roundRect(ctx, 36, 200, W-72, 120, 16); ctx.fill();
+  ctx.strokeStyle='#A7F3D0'; ctx.lineWidth=2;
+  roundRect(ctx, 36, 200, W-72, 120, 16); ctx.stroke();
+  ctx.fillStyle='#64748B'; ctx.font='22px Sarabun';
+  ctx.fillText('หมายเลขงาน / Ticket ID', 60, 240);
+  ctx.fillStyle='#04903C'; ctx.font='bold 44px monospace';
+  ctx.fillText(window._lastTicketId||'-', 60, 296);
+
+  // รายละเอียด
+  let y=380;
+  ctx.font='24px Sarabun';
+  rows.forEach(([k,v])=>{
+    ctx.fillStyle='#94A3B8'; ctx.fillText(k, 48, y);
+    ctx.fillStyle='#1A1A2E'; ctx.font='bold 26px Sarabun';
+    ctx.fillText(String(v), 230, y);
+    ctx.font='24px Sarabun';
+    y+=58;
+  });
+  ctx.fillStyle='#94A3B8'; ctx.fillText('รายละเอียด', 48, y);
+  ctx.fillStyle='#1A1A2E'; ctx.font='26px Sarabun';
+  descLines.forEach(l=>{ ctx.fillText(l, 230, y); y+=36; });
+  y+=30;
+
+  // เส้นปะ + ท้ายใบ
+  ctx.strokeStyle='#CBD5E1'; ctx.setLineDash([8,8]);
+  ctx.beginPath(); ctx.moveTo(36,y); ctx.lineTo(W-36,y); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#64748B'; ctx.font='21px Sarabun';
+  ctx.fillText('เก็บภาพนี้ไว้เป็นหลักฐานการแจ้งงาน', 48, y+42);
+  ctx.fillText('ติดตามสถานะได้ที่ปุ่ม "ติดตามงาน" ใน LINE @408thdjl', 48, y+76);
+
+  const url=c.toDataURL('image/png');
+  document.getElementById('ticket-img').src=url;
+  window._ticketImgUrl=url;
+  document.getElementById('img-save-overlay').classList.remove('hidden');
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function downloadTicketImage(){
+  const a=document.createElement('a');
+  a.href=window._ticketImgUrl; a.download=(window._lastTicketId||'ticket')+'.png';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function closeImgSave(){ document.getElementById('img-save-overlay').classList.add('hidden'); }
 </script>
+<div id="img-save-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(10,22,40,0.85);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+  <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:10px;text-align:center">📱 กดค้างที่ภาพ แล้วเลือก "บันทึกรูปภาพ"<br><span style="font-weight:400;font-size:12px;opacity:0.8">หรือใช้ปุ่มดาวน์โหลดด้านล่าง (สำหรับคอมพิวเตอร์)</span></div>
+  <img id="ticket-img" style="max-width:92%;max-height:62vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,0.5)">
+  <div style="display:flex;gap:10px;margin-top:14px;width:92%;max-width:380px">
+    <button onclick="downloadTicketImage()" style="flex:1;padding:13px;border:none;border-radius:10px;background:#06C755;color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer">⬇️ ดาวน์โหลด</button>
+    <button onclick="closeImgSave()" style="flex:1;padding:13px;border:1.5px solid rgba(255,255,255,0.4);border-radius:10px;background:transparent;color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;cursor:pointer">ปิด</button>
+  </div>
+</div>
 </body>
 </html>
