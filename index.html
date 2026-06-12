@@ -806,6 +806,7 @@ function saveTicketImage(){
   const url=c.toDataURL('image/png');
   document.getElementById('ticket-img').src=url;
   window._ticketImgUrl=url;
+  window._receiptHttpsUrl='';
   document.getElementById('img-save-overlay').classList.remove('hidden');
   const dlBtn=document.getElementById('img-dl-btn');
   if(dlBtn) dlBtn.textContent = isMobileDevice() ? '💾 วิธีบันทึกรูป' : '⬇️ ดาวน์โหลด';
@@ -815,18 +816,59 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
+// อัปโหลดรูปใบ ticket ขึ้น Drive (ผ่าน GAS) เพื่อให้ได้ URL https ที่ LINE เซฟลงเครื่องได้จริง
+function uploadReceiptPNG(){
+  return new Promise(function(resolve){
+    if(window._receiptHttpsUrl){ resolve(window._receiptHttpsUrl); return; }
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST', GAS_URL, true);
+    xhr.setRequestHeader('Content-Type','text/plain');
+    xhr.timeout=60000;
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState!==4) return;
+      try{
+        const d=JSON.parse(xhr.responseText);
+        if(d.success&&d.imageUrl){ window._receiptHttpsUrl=d.imageUrl; resolve(d.imageUrl); }
+        else resolve('');
+      }catch(e){ resolve(''); }
+    };
+    xhr.ontimeout=function(){ resolve(''); };
+    xhr.onerror=function(){ resolve(''); };
+    xhr.send(JSON.stringify({
+      action:'upload_image',
+      ticket_id: window._lastTicketId||'',
+      base64: String(window._ticketImgUrl||'').split(',')[1]||'',
+      mimeType:'image/png',
+      fileName:(window._lastTicketId||'ticket')+'_receipt.png',
+      skip_sheet:true
+    }));
+  });
+}
+
 function isMobileDevice(){
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (typeof liff!=='undefined'&&liff.isInClient&&liff.isInClient());
 }
-function downloadTicketImage(){
+async function downloadTicketImage(){
   if(isMobileDevice()){
-    // มือถือ/ใน LINE: สั่งดาวน์โหลดตรงไม่ได้ — กระตุ้นภาพ + บอกวิธีกดค้าง
     const img=document.getElementById('ticket-img');
+    const hint=document.getElementById('img-save-hint');
+    // ขั้น 1: เตรียมรูปเวอร์ชัน https (LINE เซฟ data URL ไม่ได้)
+    if(!window._receiptHttpsUrl){
+      hint.style.background='#334155';
+      hint.innerHTML='⏳ กำลังเตรียมรูปสำหรับบันทึก...';
+      const u=await uploadReceiptPNG();
+      if(u){ img.src=u; }
+      else{
+        hint.style.background='#DC2626';
+        hint.innerHTML='เตรียมรูปไม่สำเร็จ — แนะนำให้ <b>แคปหน้าจอ</b> เก็บไว้แทนครับ';
+        return;
+      }
+    }
+    // ขั้น 2: ชี้ให้กดค้างที่ภาพ (ตอนนี้เป็นรูป https แล้ว เซฟได้จริง)
     img.style.animation='none'; void img.offsetWidth;
     img.style.animation='imgpulse 0.7s ease 2';
-    const hint=document.getElementById('img-save-hint');
     hint.style.background='#06C755';
-    hint.innerHTML='👆 <b>กดค้างที่ภาพด้านบน</b> แล้วเลือก "บันทึกรูปภาพ / Add to Photos"';
+    hint.innerHTML='✅ พร้อมแล้ว! 👆 <b>กดค้างที่ภาพด้านบน</b> แล้วเลือก "บันทึกรูปภาพ / Add to Photos"';
     return;
   }
   // คอมพิวเตอร์: ดาวน์โหลดผ่าน Blob (เสถียรกว่า data URL)
