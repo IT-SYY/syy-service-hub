@@ -417,15 +417,37 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 .rating-badge { display:inline-flex; align-items:center; gap:4px; background:rgba(251,191,36,0.14); border:1px solid rgba(251,191,36,0.35); border-radius:20px; padding:2px 8px; }
 
 /* ===== PRINT STYLES ===== */
-/* ===== TV / WALLBOARD MODE ===== */
-body.tv .sidebar,body.tv .topbar{display:none!important;}
-body.tv .main{margin-left:0!important;}
-body.tv .content{padding:22px 28px;}
-body.tv .kpi-num{font-size:46px;}
-body.tv .kpi-label{font-size:15px;}
-body.tv .kpi-sub{font-size:13px;}
-body.tv .kb-card{font-size:15px;}
-body.tv .chart-ttl,body.tv .report-ttl{font-size:16px;}
+/* ===== TV / WALLBOARD MODE (บอร์ดเดียว 16:9) ===== */
+body.tv .sidebar,body.tv .main{display:none!important;}
+#tv-board{display:none;}
+body.tv #tv-board{display:grid;position:fixed;inset:0;z-index:250;background:var(--bg);
+  grid-template-rows:74px 1fr;grid-template-columns:1.55fr 1fr;gap:14px;padding:16px 18px;
+  grid-template-areas:"head head" "kanban side";}
+.tvb-head{grid-area:head;display:flex;align-items:center;gap:14px;}
+.tvb-kpi{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:12px;height:100%;}
+.tvb-kpi .n{font-size:34px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;}
+.tvb-kpi .l{font-size:13px;color:var(--text2);}
+.tvb-clock{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0 22px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.tvb-clock .t{font-size:30px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.1;}
+.tvb-clock .d{font-size:11px;color:var(--text2);}
+.tvb-live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--green);}
+.tvb-live::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);animation:tvblink 1.6s infinite;}
+@keyframes tvblink{50%{opacity:0.25;}}
+.tvb-kanban{grid-area:kanban;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-height:0;}
+.tvb-col{background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.tvb-col-h{padding:10px 14px;font-size:15px;font-weight:600;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.tvb-col-h .c{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;}
+.tvb-col-b{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;}
+.tvb-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;}
+.tvb-card .id{font-size:13px;font-weight:700;}
+.tvb-card .m{font-size:12px;color:var(--text2);margin-top:2px;}
+.tvb-card .a{font-size:11px;color:var(--text3);margin-top:1px;}
+.tvb-more{font-size:12px;color:var(--text3);text-align:center;padding:4px;}
+.tvb-side{grid-area:side;display:grid;grid-template-rows:1fr 1fr;gap:12px;min-height:0;}
+.tvb-chart{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;min-height:0;}
+.tvb-chart .ttl{font-size:14px;font-weight:600;margin-bottom:6px;}
+.tvb-chart .cv{flex:1;min-height:0;position:relative;}
+.tvb-chart canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
 .tv-exit{display:none;position:fixed;top:14px;right:14px;z-index:300;background:var(--bg2);border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:8px 14px;cursor:pointer;font-family:'Prompt',sans-serif;font-size:13px;box-shadow:var(--shadow-md);opacity:0.85;}
 body.tv .tv-exit{display:block;}
 /* ===== SKELETON ===== */
@@ -780,6 +802,7 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
   <a class="img-viewer-link" id="img-viewer-link" href="" target="_blank" onclick="event.stopPropagation()">เปิดรูปเต็ม ↗</a>
 </div>
 
+<div id="tv-board"></div>
 <button class="tv-exit" onclick="toggleTV()">✕ ออกจากโหมดทีวี</button>
 <div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">สำเร็จ</span></div>
 
@@ -806,20 +829,74 @@ function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dar
 try{ if(localStorage.getItem('syy-theme')==='light'){document.body.classList.add('light');} }catch(e){}
 
 // ===== TV / WALLBOARD MODE =====
-let tvTimer=null,tvIdx=0;
-const TV_PAGES=['dashboard','report'];
+let tvClock=null;
 function toggleTV(){
   const on=!document.body.classList.contains('tv');
   document.body.classList.toggle('tv',on);
   if(on){
     try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}catch(e){}
-    tvIdx=0; showPage('dashboard',null,true);
-    tvTimer=setInterval(()=>{tvIdx=(tvIdx+1)%TV_PAGES.length;showPage(TV_PAGES[tvIdx],null,true);},20000);
-    toast('โหมดทีวี: สลับหน้าอัตโนมัติทุก 20 วิ','📺','info');
+    renderTVBoard();
+    tvClock=setInterval(updateTVClock,1000);
   }else{
-    clearInterval(tvTimer);tvTimer=null;
-    try{document.fullscreenElement&&document.exitFullscreen();}catch(e){}
+    clearInterval(tvClock);tvClock=null;
+    ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
   }
+}
+function updateTVClock(){
+  const el=document.getElementById('tvb-time'); if(!el) return;
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  el.textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+}
+function tvCard(t){
+  const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim();
+  const m=elapsedSince(t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at);
+  const lt=lateLevel(m,t.priority);
+  const dot=lt.level==='danger'?'🔴':lt.level==='warn'?'🟠':'';
+  return `<div class="tvb-card"><div class="id">${dot} ${t.ticket_id} <span style="font-weight:400;color:var(--text3)">· ${t.category||''}</span></div>
+    <div class="m">${place||'-'}</div>
+    <div class="a">${t.assigned_to?'👤 '+t.assigned_to:'ยังไม่มอบหมาย'}${m!==null?' · '+fmtDuration(m):''}</div></div>`;
+}
+function renderTVBoard(){
+  const board=document.getElementById('tv-board'); if(!board) return;
+  const b=getBase();
+  const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
+  const prog=b.filter(t=>t.status==='in_progress');
+  const today=(()=>{const n=new Date(),p=x=>String(x).padStart(2,'0');return p(n.getDate())+'/'+p(n.getMonth()+1)+'/'+n.getFullYear();})();
+  const doneToday=b.filter(t=>t.status==='done'&&String(t.resolved_at||'').startsWith(today));
+  const lim=7, mk=(list)=>list.slice(0,lim).map(tvCard).join('')+(list.length>lim?`<div class="tvb-more">+ อีก ${list.length-lim} งาน</div>`:'');
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  board.innerHTML=`
+    <div class="tvb-head">
+      <div class="tvb-kpi"><span class="n" style="color:var(--blue)">${b.length}</span><span class="l">ทั้งหมด</span></div>
+      <div class="tvb-kpi"><span class="n" style="color:var(--orange)">${pend.length}</span><span class="l">รอดำเนินการ</span></div>
+      <div class="tvb-kpi"><span class="n" style="color:var(--purple)">${prog.length}</span><span class="l">กำลังซ่อม</span></div>
+      <div class="tvb-kpi"><span class="n" style="color:var(--green)">${doneToday.length}</span><span class="l">เสร็จวันนี้</span></div>
+      <div class="tvb-clock"><div class="t" id="tvb-time">${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}</div><div class="d">${today} · <span class="tvb-live">LIVE</span></div></div>
+    </div>
+    <div class="tvb-kanban">
+      <div class="tvb-col"><div class="tvb-col-h" style="color:var(--orange)">⏳ รอดำเนินการ <span class="c">${pend.length}</span></div><div class="tvb-col-b">${mk(pend)||'<div class="tvb-more">ไม่มีงานค้าง 🎉</div>'}</div></div>
+      <div class="tvb-col"><div class="tvb-col-h" style="color:var(--purple)">🔄 กำลังซ่อม <span class="c">${prog.length}</span></div><div class="tvb-col-b">${mk(prog)||'<div class="tvb-more">—</div>'}</div></div>
+      <div class="tvb-col"><div class="tvb-col-h" style="color:var(--green)">✅ เสร็จวันนี้ <span class="c">${doneToday.length}</span></div><div class="tvb-col-b">${mk(doneToday)||'<div class="tvb-more">ยังไม่มีงานปิดวันนี้</div>'}</div></div>
+    </div>
+    <div class="tvb-side">
+      <div class="tvb-chart"><div class="ttl">📊 สถานะงานทั้งหมด</div><div class="cv"><canvas id="tv-chart-status"></canvas></div></div>
+      <div class="tvb-chart"><div class="ttl">📈 งานแจ้งใหม่ 7 วันล่าสุด</div><div class="cv"><canvas id="tv-chart-daily"></canvas></div></div>
+    </div>`;
+  // กราฟ
+  ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
+  const done=b.filter(t=>t.status==='done');
+  charts.tvStatus=new Chart(document.getElementById('tv-chart-status').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['รอ/มอบหมาย','กำลังซ่อม','เสร็จ'],datasets:[{data:[pend.length,prog.length,done.length],backgroundColor:['#FBBF24','#A78BFA','#34D399'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{color:'#9AA8C0',font:{family:'Prompt',size:13},padding:10}}}}
+  });
+  const days=[],cnts=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;days.push(ds.slice(0,5));cnts.push(b.filter(t=>String(t.created_at||'').startsWith(ds)).length);}
+  charts.tvDaily=new Chart(document.getElementById('tv-chart-daily').getContext('2d'),{
+    type:'line',
+    data:{labels:days,datasets:[{data:cnts,borderColor:'#60A5FA',backgroundColor:'rgba(96,165,250,0.12)',fill:true,tension:0.4,pointBackgroundColor:'#60A5FA',pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7A87A0',font:{family:'Prompt',size:12}},grid:{color:'rgba(122,135,160,0.12)'}},y:{ticks:{color:'#7A87A0',stepSize:1},grid:{color:'rgba(122,135,160,0.12)'}}}}
+  });
 }
 document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement&&document.body.classList.contains('tv')) toggleTV(); });
 
@@ -992,6 +1069,7 @@ function closeAlert(){document.getElementById('new-alert').classList.remove('sho
 // ===== RENDER ALL =====
 function renderAll(){
   renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderPendingBadge();renderRatingBar();
+  if(document.body.classList.contains('tv')) renderTVBoard();
   const ap=document.querySelector('.page.active')?.id;
   if(ap==='page-tickets') renderTicketsPage();
   if(ap==='page-technicians') renderTechGrid();
