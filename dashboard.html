@@ -402,9 +402,10 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 }
 @media(max-width:768px){
   .topbar{padding:0 12px;gap:10px;}
-  .topbar-title{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+  .topbar-title{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
   .topbar-actions{display:none;}        /* ย้ายไปเมนูซ้าย (☰) แทน — แถบบนไม่ล้น */
-  .live-dot,.live-txt{display:none;}
+  .live-dot{display:block;flex-shrink:0;}
+  .live-txt{display:block;flex-shrink:0;font-size:10px;}
   .role-badge{font-size:10px;padding:2px 8px;}
 }
 @media(max-width:480px){.kpi-num{font-size:22px;}.topbar-search{display:none;}.topbar-title{max-width:32vw;}}
@@ -864,7 +865,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
 <script>
 // ===== CONFIG =====
-const LIFF_ID_DASH = '2010241158-hLS8NH9m';   // ★ สร้าง LIFF app (Size: Full) แล้ววาง ID
+const LIFF_ID_DASH = 'ใส่_LIFF_ID_ของ_Dashboard';   // ★ สร้าง LIFF app (Size: Full) แล้ววาง ID
 const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
 const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
