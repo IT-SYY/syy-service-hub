@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SYY Service Hub — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -459,7 +461,30 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
 .hm-grid{display:grid;grid-template-columns:44px repeat(8,1fr);gap:3px;margin-top:8px;}
 .hm-cell{height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text3);}
 .hm-lbl{font-size:10px;color:var(--text3);display:flex;align-items:center;}
+.tickets-pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 8px 4px;flex-wrap:wrap;}
+.pager-btn{background:var(--bg2);border:1.5px solid var(--border);color:var(--text);border-radius:8px;padding:7px 16px;font-family:'Prompt',sans-serif;font-size:13px;cursor:pointer;transition:all .15s;}
+.pager-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
+.pager-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.pager-info{font-size:12px;color:var(--text2);}
 .print-report{display:none;}
+/* ===== LOGIN GATE ===== */
+#auth-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;}
+#auth-gate.hidden{display:none;}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-lg);padding:36px 30px;max-width:380px;width:100%;text-align:center;}
+.auth-logo{width:62px;height:62px;border-radius:16px;background:linear-gradient(135deg,#06C755,#04903C);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 16px;}
+.auth-card h2{font-size:19px;font-weight:700;color:var(--text);}
+.auth-card p{font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6;}
+.auth-btn{margin-top:22px;width:100%;padding:14px;border:none;border-radius:10px;background:#06C755;color:#fff;font-family:'Prompt',sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+.auth-btn:active{transform:scale(0.98);}
+.auth-status{margin-top:14px;font-size:12px;color:var(--text3);}
+.role-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border-radius:20px;padding:3px 11px;margin-left:8px;}
+.role-admin{background:rgba(96,165,250,0.15);color:#60A5FA;}
+.role-tech{background:rgba(52,211,153,0.15);color:#34D399;}
+.role-viewer{background:rgba(122,135,160,0.18);color:#9AA8C0;}
+body.viewer .btn-assign,body.viewer .btn-accept,body.viewer .btn-done2,
+body.viewer #btn-assign-ok,body.viewer .kb-actions{display:none!important;}
+.viewer-note{display:none;}
+body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--orange);margin-left:8px;}
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #FFF !important; font-family: 'Prompt', 'Sarabun', sans-serif !important; }
@@ -509,6 +534,17 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
 </head>
 <body>
 
+<!-- LOGIN GATE -->
+<div id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-logo">🔧</div>
+    <h2>SYY Service Hub</h2>
+    <p id="auth-msg">เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม<br>ใช้บัญชี LINE ของทีมงาน</p>
+    <button class="auth-btn" id="auth-btn" onclick="doLogin()">เข้าสู่ระบบด้วย LINE</button>
+    <div class="auth-status" id="auth-status"></div>
+  </div>
+</div>
+
 <!-- ALERT -->
 <div class="new-alert" id="new-alert">
   <div class="alert-hdr">
@@ -538,6 +574,7 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
     <div class="nav-sec">Reports</div>
     <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span>รายงาน</span></div>
     <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span>Export PDF</span></div>
+    <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">📊</span><span>Export Excel</span></div>
   </div>
   <div class="team-filter">
     <div style="font-size:10px;color:#64748B;margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองทีม</div>
@@ -561,9 +598,12 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
     <div class="topbar-search"><span style="color:var(--text3)">🔍</span><input type="text" placeholder="ค้นหา..." id="search-input" oninput="onSearch()"></div>
     <div class="live-dot"></div><span class="live-txt" id="live-txt">Live</span>
     <button class="btn-tb" onclick="loadData()">↻ Refresh</button>
+    <span id="role-badge"></span>
+    <span class="viewer-note">👁 โหมดดูอย่างเดียว</span>
     <button class="btn-tb" id="theme-btn" onclick="toggleTheme()" title="สลับธีม">🌙</button>
     <button class="btn-tb" id="tv-btn" onclick="toggleTV()" title="โหมดทีวี">📺</button>
     <button class="btn-tb" onclick="exportPDF()">📄 PDF</button>
+    <button class="btn-tb" onclick="exportExcel()">📊 Excel</button>
   </div>
 
   <div class="content">
@@ -660,21 +700,22 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
         <div class="toolbar-ttl">🎫 จัดการ Ticket ทั้งหมด</div>
         <button class="btn-secondary2" onclick="loadData()">↻ รีเฟรช</button>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
+        <button class="btn-secondary2" onclick="exportExcel()">📊 Export Excel</button>
       </div>
       <div class="filter-bar">
-        <select class="fsel" id="f-status" title="กรองสถานะ" onchange="renderTicketsPage()">
+        <select class="fsel" id="f-status" title="กรองสถานะ" onchange="resetTicketPage();renderTicketsPage()">
           <option value="all">ทุกสถานะ</option>
           <option value="pending">⏳ รอดำเนินการ / มอบหมายแล้ว</option>
           <option value="in_progress">🔄 กำลังดำเนินการ</option>
           <option value="done">✅ เสร็จสิ้น</option>
         </select>
-        <select class="fsel" id="f-priority" title="กรองความเร่งด่วน" onchange="renderTicketsPage()">
+        <select class="fsel" id="f-priority" title="กรองความเร่งด่วน" onchange="resetTicketPage();renderTicketsPage()">
           <option value="all">ทุกความเร่งด่วน</option>
           <option value="high">🔴 ฉุกเฉิน</option>
           <option value="med">🟡 เร่งด่วน</option>
           <option value="low">🟢 ปกติ</option>
         </select>
-        <select class="fsel" id="f-category" title="กรองประเภทงาน" onchange="renderTicketsPage()"><option value="all">ทุกประเภท</option></select>
+        <select class="fsel" id="f-category" title="กรองประเภทงาน" onchange="resetTicketPage();renderTicketsPage()"><option value="all">ทุกประเภท</option></select>
       </div>
       <div class="member-filter-bar" id="member-filter-bar" style="display:none"></div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
@@ -684,7 +725,8 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
           <th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th><th>ดำเนินการ</th>
         </tr></thead>
         <tbody id="tickets-tbody"><tr><td colspan="14"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></td></tr></tbody>
-      </table></div></div>
+      </table></div>
+      <div id="tickets-pager" class="tickets-pager"></div></div>
     </div>
 
     <!-- TECHNICIANS PAGE -->
@@ -808,6 +850,7 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
 
 <script>
 // ===== CONFIG =====
+const LIFF_ID_DASH = 'ใส่_LIFF_ID_ของ_Dashboard';   // ★ สร้าง LIFF app (Size: Full) แล้ววาง ID
 const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
 const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
@@ -900,6 +943,68 @@ function renderTVBoard(){
 }
 document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement&&document.body.classList.contains('tv')) toggleTV(); });
 
+// ===== AUTH / LOGIN GATE =====
+let currentUser=null;       // {userId,name,role}
+let userRole='viewer';
+function setStatus(m){const e=document.getElementById('auth-status');if(e)e.textContent=m;}
+
+async function initAuth(){
+  try{
+    setStatus('กำลังเชื่อมต่อ LINE...');
+    await liff.init({liffId:LIFF_ID_DASH});
+    if(!liff.isLoggedIn()){
+      document.getElementById('auth-msg').innerHTML='เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม<br>ใช้บัญชี LINE ของทีมงาน';
+      setStatus('');
+      return; // รอผู้ใช้กดปุ่ม
+    }
+    await finishAuth();
+  }catch(e){
+    // LIFF ใช้ไม่ได้ (เช่นเปิดไฟล์ตรงๆ) → เข้าโหมดดูอย่างเดียวแบบ degrade
+    console.log('LIFF init error:',e);
+    enterAs({name:'ผู้เยี่ยมชม',role:'viewer'}, true);
+  }
+}
+function doLogin(){
+  try{ setStatus('กำลังเปิดหน้าเข้าสู่ระบบ...'); liff.login(); }
+  catch(e){ setStatus('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+}
+async function finishAuth(){
+  setStatus('กำลังตรวจสอบสิทธิ์...');
+  const p=await liff.getProfile();
+  const role=await lookupRole(p.userId);
+  enterAs({userId:p.userId, name:p.displayName, role:role}, false);
+}
+// อ่านแท็บ USERS: คอลัมน์ A=userId, B=name, C=role, D=active
+async function lookupRole(userId){
+  try{
+    const r=await fetch(`${BASE}/USERS!A2:D200?key=${API_KEY}`);
+    const d=await r.json();
+    const rows=d.values||[];
+    for(const row of rows){
+      if((row[0]||'').trim()===userId){
+        const active=(row[3]===undefined||String(row[3]).toLowerCase()!=='false');
+        if(!active) return 'viewer';
+        const role=(row[2]||'viewer').trim().toLowerCase();
+        return ['admin','tech','viewer'].includes(role)?role:'viewer';
+      }
+    }
+  }catch(e){ console.log('lookupRole error:',e); }
+  return 'viewer'; // ไม่อยู่ในรายชื่อ = ดูอย่างเดียว
+}
+function enterAs(user, degraded){
+  currentUser=user; userRole=user.role;
+  document.body.classList.toggle('viewer', userRole==='viewer');
+  const rb=document.getElementById('role-badge');
+  if(rb){
+    const map={admin:['role-admin','🛡 ผู้ดูแล'],tech:['role-tech','🔧 ช่าง'],viewer:['role-viewer','👁 ผู้ชม']};
+    const m=map[userRole]||map.viewer;
+    rb.className='role-badge '+m[0];
+    rb.textContent=(user.name?user.name+' · ':'')+m[1].split(' ')[1];
+  }
+  document.getElementById('auth-gate').classList.add('hidden');
+  showSkeletons(); loadData(); timer=setInterval(()=>loadData(true),30000);
+}
+
 // ===== SKELETON (โหลดครั้งแรก) =====
 function showSkeletons(){
   ['k-all','k-pending','k-inprog','k-done'].forEach(id=>{
@@ -910,7 +1015,7 @@ function showSkeletons(){
   if(ks) ks.innerHTML='<span class="skel" style="width:130px;height:11px"></span>';
 }
 
-document.addEventListener('DOMContentLoaded',()=>{ applyTheme(document.body.classList.contains('light')?'light':'dark'); showSkeletons(); loadData(); timer=setInterval(()=>loadData(true),30000); });
+document.addEventListener('DOMContentLoaded',()=>{ applyTheme(document.body.classList.contains('light')?'light':'dark'); initAuth(); });
 
 // ===== HELPERS: IMAGE (ปรับปรุงแล้ว) =====
 let donePhotos = []; // dataURL ของรูปหลังปิดงานที่รอ upload
@@ -1202,7 +1307,8 @@ function renderKanban(){
 
   document.getElementById('kb-pending').innerHTML=pend.length?pend.map(t=>mkCard(t)).join(''):mkEmpty('🎉','ไม่มีงานค้าง');
   document.getElementById('kb-inprog').innerHTML=inprog.length?inprog.map(t=>mkCard(t)).join(''):mkEmpty('💤','ยังไม่มีงานกำลังซ่อม');
-  document.getElementById('kb-done').innerHTML=done.length?done.map(t=>mkCard(t)).join(''):mkEmpty('📋','ยังไม่มีงานเสร็จ');
+  const doneAll=b.filter(t=>t.status==='done').length;
+  document.getElementById('kb-done').innerHTML=(done.length?done.map(t=>mkCard(t)).join(''):mkEmpty('📋','ยังไม่มีงานเสร็จ'))+(doneAll>done.length?`<div style="text-align:center;font-size:11px;color:var(--text3);padding:8px">แสดง ${done.length} ล่าสุดจาก ${doneAll} งาน · ดูทั้งหมดที่หน้าตาราง</div>`:'');
 }
 
 function mkCard(t){
@@ -1322,6 +1428,9 @@ function renderTechList(){
 }
 
 let dateFilter='';
+let ticketPage=1;
+const TICKETS_PER_PAGE=50;
+function resetTicketPage(){ ticketPage=1; }
 function dmyKey(v){
   // "dd/mm/yyyy hh:mm:ss" -> "yyyymmddhhmmss" สำหรับเรียงลำดับ
   if(!v) return '';
@@ -1368,7 +1477,8 @@ function renderTimeline(){
 }
 
 // ===== TICKETS PAGE (ปรับปรุง) =====
-function renderTicketsPage(){
+function renderTicketsPage(_keepPage){
+  if(!_keepPage) {} // ถูกเรียกปกติ = คงหน้าเดิมไว้ (เปลี่ยนหน้าเรียกผ่าน gotoTicketPage)
   const sf=document.getElementById('f-status')?.value||'all';
   const pf=document.getElementById('f-priority')?.value||'all';
   const cf=document.getElementById('f-category')?.value||'all';
@@ -1390,9 +1500,16 @@ function renderTicketsPage(){
   }
   
   const tb=document.getElementById('tickets-tbody');
-  if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">ไม่พบข้อมูล</div></div></td></tr>`;return;}
-  
-  tb.innerHTML=data.map(t=>{
+  if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">ไม่พบงานตามเงื่อนไข</div><div style="font-size:12px;color:var(--text3);margin-top:4px">ลองล้างตัวกรองหรือเปลี่ยนคำค้นหา</div></div></td></tr>`;
+    const pgEl=document.getElementById('tickets-pager'); if(pgEl) pgEl.innerHTML=''; return;}
+
+  const totalPages=Math.ceil(data.length/TICKETS_PER_PAGE);
+  if(ticketPage>totalPages) ticketPage=totalPages;
+  if(ticketPage<1) ticketPage=1;
+  const start=(ticketPage-1)*TICKETS_PER_PAGE;
+  const pageData=data.slice(start, start+TICKETS_PER_PAGE);
+
+  tb.innerHTML=pageData.map(t=>{
     const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
     const sc=t.status==='pending'?'s-pending':t.status==='assigned'?'s-assigned':t.status==='in_progress'?'s-inprog':t.status==='done'?'s-done':'s-rejected';
     const sl=t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมาย':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='done'?'✅ เสร็จ':'❌ ปฏิเสธ';
@@ -1426,6 +1543,26 @@ function renderTicketsPage(){
       <td onclick="event.stopPropagation()" style="white-space:nowrap">${btns}</td>
     </tr>`;
   }).join('');
+
+  // แถบเปลี่ยนหน้า
+  const pgEl=document.getElementById('tickets-pager');
+  if(pgEl){
+    if(totalPages<=1){
+      pgEl.innerHTML=`<span class="pager-info">ทั้งหมด ${data.length} รายการ</span>`;
+    }else{
+      const from=start+1, to=Math.min(start+TICKETS_PER_PAGE,data.length);
+      pgEl.innerHTML=`
+        <button class="pager-btn" ${ticketPage<=1?'disabled':''} onclick="gotoTicketPage(${ticketPage-1})">← ก่อนหน้า</button>
+        <span class="pager-info">${from}–${to} จาก ${data.length} · หน้า ${ticketPage}/${totalPages}</span>
+        <button class="pager-btn" ${ticketPage>=totalPages?'disabled':''} onclick="gotoTicketPage(${ticketPage+1})">ถัดไป →</button>`;
+    }
+  }
+}
+function gotoTicketPage(p){
+  ticketPage=p;
+  renderTicketsPage(true);
+  const tbl=document.getElementById('tickets-tbody');
+  if(tbl) tbl.closest('.tbl-card,.table-wrap,div')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 // ===== TECH GRID =====
@@ -1748,6 +1885,7 @@ function renderRatingBar(){
 
 // ===== MODALS =====
 function openAssign(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-assign-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">${t.description}</span>`;
@@ -1756,6 +1894,7 @@ function openAssign(id){
   document.getElementById('m-assign').classList.add('show');
 }
 function openAccept(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-accept-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">มอบหมายให้: ${t.assigned_to||'—'} เมื่อ ${t.assigned_at||'—'}</span>`;
@@ -1765,6 +1904,7 @@ function openAccept(id){
 }
 function showRejectForm(){document.getElementById('reject-form').style.display='block';}
 function openDone(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-done-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
@@ -1907,6 +2047,62 @@ async function doDone(){
 }
 
 // ===== PRINT REPORT =====
+function exportExcel(){
+  if(typeof XLSX==='undefined'){ toast('ไลบรารียังโหลดไม่เสร็จ ลองอีกครั้ง','⏳','info'); return; }
+  const b=getBase().slice().sort((a,c)=>dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)));
+  if(!b.length){ toast('ไม่มีข้อมูลสำหรับ export','📊','info'); return; }
+  const stTh={pending:'รอดำเนินการ',assigned:'มอบหมายแล้ว',in_progress:'กำลังซ่อม',done:'เสร็จสิ้น',rejected:'ปฏิเสธ'};
+  const prTh={high:'ฉุกเฉิน',med:'เร่งด่วน',low:'ปกติ'};
+  const slaTh={on_time:'ตรงเวลา',late:'เกินกำหนด'};
+
+  const rows=b.map(t=>({
+    'Ticket ID': t.ticket_id,
+    'วันที่แจ้ง': t.created_at||'',
+    'ทีม': t.team||t.department||'',
+    'ประเภท': t.category||'',
+    'สถานที่': [(t.building||t.location||''),(t.room?'ห้อง '+t.room:'')].filter(Boolean).join(' '),
+    'รายละเอียด': t.description||'',
+    'ผู้แจ้ง': t.displayName||t.reported_by||'',
+    'ความสำคัญ': prTh[t.priority]||t.priority||'',
+    'สถานะ': stTh[t.status]||t.status||'',
+    'ผู้รับงาน': t.assigned_to||'',
+    'เวลามอบหมาย': t.assigned_at||'',
+    'เวลาปิดงาน': t.resolved_at||'',
+    'เวลารับงาน(นาที)': t.response_min||'',
+    'เวลาซ่อม(นาที)': t.completion_min||'',
+    'เวลารวม(นาที)': t.duration_min||'',
+    'SLA': slaTh[slaOf(t)]||'',
+    'คะแนน': t.rating||'',
+    'หมายเหตุ': t.notes||''
+  }));
+
+  const ws=XLSX.utils.json_to_sheet(rows);
+  // ความกว้างคอลัมน์พอประมาณ
+  ws['!cols']=[{wch:18},{wch:18},{wch:12},{wch:12},{wch:20},{wch:30},{wch:16},{wch:10},{wch:12},{wch:14},{wch:18},{wch:18},{wch:14},{wch:14},{wch:13},{wch:12},{wch:8},{wch:30}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Tickets');
+
+  // ชีตสรุป
+  const sum=[
+    ['รายงาน SYY Service Hub'],
+    ['สร้างเมื่อ', new Date().toLocaleString('th-TH')],
+    ['ทีมที่กรอง', currentTeam==='all'?'ทุกทีม':currentTeam],
+    [],
+    ['สถานะ','จำนวน'],
+    ['ทั้งหมด', b.length],
+    ['รอดำเนินการ', b.filter(t=>t.status==='pending'||t.status==='assigned').length],
+    ['กำลังซ่อม', b.filter(t=>t.status==='in_progress').length],
+    ['เสร็จสิ้น', b.filter(t=>t.status==='done').length],
+  ];
+  const ws2=XLSX.utils.aoa_to_sheet(sum); ws2['!cols']=[{wch:18},{wch:24}];
+  XLSX.utils.book_append_sheet(wb,ws2,'สรุป');
+
+  const now=new Date(),p=x=>String(x).padStart(2,'0');
+  const fname=`SYY_Tickets_${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}.xlsx`;
+  XLSX.writeFile(wb,fname);
+  toast('Export Excel สำเร็จ ('+b.length+' รายการ)','📊','info');
+}
+
 function exportPDF(){
   const b = getBase().slice().sort((a,c)=>dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)));
   const now = new Date().toLocaleString('th-TH',{dateStyle:'full',timeStyle:'short'});
@@ -1994,7 +2190,7 @@ function onTeam(){currentTeam=document.getElementById('team-filter').value;rende
 function clearMemberFilter(){memberFilter='';const si=document.getElementById('search-input');if(si)si.value='';renderTicketsPage();}
 function onSearch(){
   const ap=document.querySelector('.page.active')?.id;
-  if(ap==='page-tickets') renderTicketsPage();
+  if(ap==='page-tickets'){ resetTicketPage(); renderTicketsPage(); }
   else renderKanban();
 }
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');}
