@@ -552,6 +552,13 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <p id="auth-msg">เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม<br>ใช้บัญชี LINE ของทีมงาน</p>
     <button class="auth-btn" id="auth-btn" onclick="doLogin()">เข้าสู่ระบบด้วย LINE</button>
     <div class="auth-status" id="auth-status"></div>
+    <div id="auth-extra" style="display:none;margin-top:18px;text-align:left">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">หากต้องการสิทธิ์จัดการงาน ส่ง <b>LINE User ID</b> นี้ให้ผู้ดูแลระบบเพื่อเพิ่มเข้าระบบ:</div>
+      <div style="display:flex;gap:8px;align-items:stretch">
+        <div id="uid-value" style="flex:1;font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text)"></div>
+        <button id="uid-copy" onclick="copyUserId()" style="flex-shrink:0;border:1px solid var(--border);background:var(--bg2);color:var(--text);border-radius:8px;padding:0 12px;font-family:'Prompt',sans-serif;font-size:12px;cursor:pointer">📋 คัดลอก</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -865,7 +872,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
 <script>
 // ===== CONFIG =====
-const LIFF_ID_DASH = '2010241158-hLS8NH9m';   // ★ สร้าง LIFF app (Size: Full) แล้ววาง ID
+const LIFF_ID_DASH = 'ใส่_LIFF_ID_ของ_Dashboard';   // ★ สร้าง LIFF app (Size: Full) แล้ววาง ID
 const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
 const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
@@ -986,8 +993,32 @@ function doLogin(){
 async function finishAuth(){
   setStatus('กำลังตรวจสอบสิทธิ์...');
   const p=await liff.getProfile();
-  const role=await lookupRole(p.userId);
-  enterAs({userId:p.userId, name:p.displayName, role:role}, false);
+  const res=await lookupRole(p.userId);
+  if(!res.found){ showUserIdPanel(p); return; }   // คนใหม่ที่ยังไม่มีในรายชื่อ
+  enterAs({userId:p.userId, name:p.displayName, role:res.role}, false);
+}
+// แสดง userId ให้ผู้ใช้ใหม่คัดลอกส่งแอดมิน (เพื่อเพิ่มเข้าแท็บ USERS)
+function showUserIdPanel(p){
+  window._pendingUser={userId:p.userId, name:p.displayName};
+  document.getElementById('auth-msg').innerHTML=
+    '<b>'+(p.displayName||'ยินดีต้อนรับ')+'</b><br>บัญชีนี้ยังไม่ได้รับสิทธิ์จัดการงาน';
+  setStatus('');
+  const box=document.getElementById('auth-extra');
+  box.style.display='block';
+  document.getElementById('uid-value').textContent=p.userId;
+  const btn=document.getElementById('auth-btn');
+  btn.textContent='เข้าใช้แบบดูอย่างเดียว';
+  btn.setAttribute('onclick','enterViewer()');
+}
+function enterViewer(){
+  const u=window._pendingUser||{};
+  enterAs({userId:u.userId, name:u.name, role:'viewer'}, false);
+}
+function copyUserId(){
+  const v=document.getElementById('uid-value').textContent;
+  const done=()=>{ const b=document.getElementById('uid-copy'); b.textContent='✓ คัดลอกแล้ว'; setTimeout(()=>b.textContent='📋 คัดลอก',1800); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(v).then(done).catch(done); }
+  else{ const t=document.createElement('textarea'); t.value=v; document.body.appendChild(t); t.select(); try{document.execCommand('copy');}catch(e){} t.remove(); done(); }
 }
 // อ่านแท็บ USERS: คอลัมน์ A=userId, B=name, C=role, D=active
 async function lookupRole(userId){
@@ -998,13 +1029,13 @@ async function lookupRole(userId){
     for(const row of rows){
       if((row[0]||'').trim()===userId){
         const active=(row[3]===undefined||String(row[3]).toLowerCase()!=='false');
-        if(!active) return 'viewer';
+        if(!active) return {role:'viewer', found:true};
         const role=(row[2]||'viewer').trim().toLowerCase();
-        return ['admin','tech','viewer'].includes(role)?role:'viewer';
+        return {role:['admin','tech','viewer'].includes(role)?role:'viewer', found:true};
       }
     }
   }catch(e){ console.log('lookupRole error:',e); }
-  return 'viewer'; // ไม่อยู่ในรายชื่อ = ดูอย่างเดียว
+  return {role:'viewer', found:false}; // ไม่อยู่ในรายชื่อ
 }
 function enterAs(user, degraded){
   currentUser=user; userRole=user.role;
