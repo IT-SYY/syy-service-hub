@@ -872,7 +872,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
 <script>
 // ===== CONFIG =====
-const LIFF_ID_DASH = '2010241158-hLS8NH9m';   // ★ สร้าง LIFF app (Size: Full) แล้ววาง ID
+const LIFF_ID_DASH = 'ใส่_LIFF_ID_ของ_Dashboard';   // ★ สร้าง LIFF app (Size: Full) แล้ววาง ID
 const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
 const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
@@ -969,6 +969,7 @@ document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElemen
 let currentUser=null;       // {userId,name,role}
 let userRole='viewer';
 function setStatus(m){const e=document.getElementById('auth-status');if(e)e.textContent=m;}
+function authToken(){ try{ return (typeof liff!=='undefined'&&liff.getAccessToken)?(liff.getAccessToken()||''):''; }catch(e){ return ''; } }
 
 async function initAuth(){
   try{
@@ -2008,7 +2009,7 @@ async function doAssign(){
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_at:ts,notes:note||''})})).json();
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_at:ts,notes:note||'',access_token:authToken()})})).json();
     if(r.success){t.status='assigned';t.assigned_to=member;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(`มอบหมายให้ ${member} เรียบร้อย — รอช่างรับงาน`,'🎉','success');}
     else toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
@@ -2018,7 +2019,7 @@ async function doAccept(){
   const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts,timestamp:ts})})).json();
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts,timestamp:ts,access_token:authToken()})})).json();
     if(r.success){
       t.status='in_progress';
       t.accepted_at=ts;
@@ -2035,7 +2036,7 @@ async function doReject(){
   const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason})})).json();
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason,access_token:authToken()})})).json();
     if(r.success){
       t.status='pending';
       t.assigned_to='';
@@ -2070,7 +2071,7 @@ async function doDone(){
   }
   btn.textContent='กำลังบันทึก...';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||''})})).json();
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||'',access_token:authToken()})})).json();
     if(r.success){
       t.status='done';
       t.resolved_at=ts;
