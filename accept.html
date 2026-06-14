@@ -210,6 +210,7 @@ function selectTicket(id){
 
 // ===== SUBMIT (accept / reject) =====
 function postGAS(payload){
+  try{ if(typeof liff!=='undefined' && liff.getAccessToken) payload.access_token=liff.getAccessToken(); }catch(e){}
   return new Promise(function(resolve){
     const xhr=new XMLHttpRequest();
     xhr.open('POST', GAS_URL, true);
