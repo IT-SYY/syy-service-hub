@@ -390,35 +390,60 @@ function compressImage(file, maxWidth, maxHeight, quality) {
   maxWidth  = maxWidth  || 1280;
   maxHeight = maxHeight || 1280;
   quality   = quality   || 0.75;
+  const origKB = Math.round(file.size / 1024);
+
+  function targetDims(sw, sh){
+    if (sw > maxWidth || sh > maxHeight) {
+      const r = Math.min(maxWidth / sw, maxHeight / sh);
+      return { w: Math.max(1, Math.round(sw * r)), h: Math.max(1, Math.round(sh * r)) };
+    }
+    return { w: sw, h: sh };
+  }
+  function drawToCanvas(source, sw, sh){
+    const { w, h } = targetDims(sw, sh);
+    const canvas  = document.createElement('canvas');
+    canvas.width  = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';          // เติมพื้นขาวก่อน กัน PNG โปร่งใส (เช่น snapshot) กลายเป็นดำตอนแปลง JPEG
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(source, 0, 0, w, h);
+    const compressed = canvas.toDataURL('image/jpeg', quality);
+    const compKB = Math.round((compressed.length * 3/4) / 1024);
+    console.log('Compress: '+origKB+'KB → '+compKB+'KB ('+w+'×'+h+'px)');
+    return { dataUrl: compressed, type:'image/jpeg', origKB: origKB, compKB: compKB };
+  }
+
   return new Promise(function(resolve) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = new Image();
-      img.onload = function() {
-        // คำนวณขนาดใหม่ คงอัตราส่วน
-        let w = img.width;
-        let h = img.height;
-        if (w > maxWidth || h > maxHeight) {
-          const ratio = Math.min(maxWidth / w, maxHeight / h);
-          w = Math.round(w * ratio);
-          h = Math.round(h * ratio);
-        }
-        // วาดบน Canvas
-        const canvas  = document.createElement('canvas');
-        canvas.width  = w;
-        canvas.height = h;
-        const ctx     = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        // แปลงเป็น JPEG พร้อม quality
-        const compressed = canvas.toDataURL('image/jpeg', quality);
-        const origKB     = Math.round(file.size / 1024);
-        const compKB     = Math.round((compressed.length * 3/4) / 1024);
-        console.log('Compress: '+origKB+'KB → '+compKB+'KB ('+w+'×'+h+'px)');
-        resolve({ dataUrl: compressed, type: 'image/jpeg', origKB: origKB, compKB: compKB });
+    // วิธีหลัก: createImageBitmap — ถอดรหัสภาพได้เสถียรกว่ามากบนมือถือ
+    // โดยเฉพาะ PNG/ภาพ snapshot ขนาดใหญ่ ที่ Safari มักวาดลง canvas ไม่สำเร็จจนได้ภาพดำ
+    if (typeof createImageBitmap === 'function') {
+      createImageBitmap(file, { imageOrientation: 'from-image' })
+        .then(function(bmp){
+          const out = drawToCanvas(bmp, bmp.width, bmp.height);
+          if (bmp.close) bmp.close();
+          resolve(out);
+        })
+        .catch(function(){ fallback(); });
+    } else {
+      fallback();
+    }
+
+    // วิธีสำรอง: FileReader + Image (พร้อม decode() ให้ภาพถอดรหัสครบก่อนวาด)
+    function fallback(){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const img = new Image();
+        const go = function(){
+          try { resolve(drawToCanvas(img, img.naturalWidth||img.width, img.naturalHeight||img.height)); }
+          catch(err){ resolve({ dataUrl: e.target.result, type: file.type, origKB: origKB, compKB: origKB }); }
+        };
+        img.onload = function(){ if (img.decode) { img.decode().then(go).catch(go); } else { go(); } };
+        img.onerror = function(){ resolve({ dataUrl: e.target.result, type: file.type, origKB: origKB, compKB: origKB }); };
+        img.src = e.target.result;
       };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    }
   });
 }
 
