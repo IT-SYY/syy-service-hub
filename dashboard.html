@@ -661,6 +661,9 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         </div>
       </div>
 
+      <!-- RECURRING (overview) -->
+      <div id="ov-recurring" style="display:none;margin-bottom:7px"></div>
+
       <!-- CHARTS -->
       <div class="charts-row">
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะงาน</div></div><canvas id="chart-status" height="55"></canvas></div>
@@ -1225,6 +1228,7 @@ function closeAlert(){document.getElementById('new-alert').classList.remove('sho
 // ===== RENDER ALL =====
 function renderAll(){
   renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderPendingBadge();renderRatingBar();
+  renderRecurringOverview();
   if(document.body.classList.contains('tv')) renderTVBoard();
   const ap=document.querySelector('.page.active')?.id;
   if(ap==='page-tickets') renderTicketsPage();
@@ -1741,6 +1745,53 @@ function recurKeyParts(t){
   const cat   = String(t.category||'').trim();
   return { place, room, cat };
 }
+// สรุปจุดซ่อมซ้ำบน Overview (แสดงเฉพาะเมื่อมี — โชว์ top 3)
+function getRecurringGroups(){
+  const b = getBase();
+  const now = Date.now();
+  const winMs = RECUR_WINDOW_DAYS * 86400000;
+  const groups = {};
+  b.forEach(function(t){
+    const ms = tsMs(t.created_at);
+    if(!isFinite(ms) || ms < now - winMs) return;
+    const place = String(t.building||t.location||'').trim();
+    const room  = String(t.room||'').trim();
+    const cat   = String(t.category||'').trim();
+    if((!place && !room) || !cat) return;
+    const loc = (place + (room ? ' ' + room : '')).trim();
+    const key = (loc + '|' + cat).toLowerCase();
+    if(!groups[key]) groups[key] = { loc: loc, cat: cat, items: [] };
+    groups[key].items.push(t);
+  });
+  return Object.keys(groups).map(function(k){ return groups[k]; })
+    .filter(function(g){ return g.items.length >= RECUR_MIN_COUNT; })
+    .sort(function(a,c){ return c.items.length - a.items.length; });
+}
+function renderRecurringOverview(){
+  const box = document.getElementById('ov-recurring');
+  if(!box) return;
+  const flagged = getRecurringGroups();
+  if(!flagged.length){ box.style.display='none'; box.innerHTML=''; return; }
+  const top = flagged.slice(0, 3);
+  const more = flagged.length - top.length;
+  let html = '<div class="report-card" style="border-left:3px solid var(--orange)">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">';
+  html += '<div class="report-ttl" style="margin:0">\ud83d\udd01 \u0e08\u0e38\u0e14\u0e17\u0e35\u0e48\u0e0b\u0e48\u0e2d\u0e21\u0e0b\u0e49\u0e33\u0e0b\u0e32\u0e01 <span style="font-weight:400;font-size:11px;color:var(--text3)">(' + flagged.length + ' \u0e08\u0e38\u0e14 \u00b7 \u0e43\u0e19 ' + RECUR_WINDOW_DAYS + ' \u0e27\u0e31\u0e19)</span></div>';
+  html += '<span onclick="showPage(\'report\')" style="font-size:12px;color:var(--blue);cursor:pointer;white-space:nowrap">\u0e14\u0e39\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14\u0e43\u0e19\u0e23\u0e32\u0e22\u0e07\u0e32\u0e19 \u2192</span>';
+  html += '</div><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">';
+  top.forEach(function(g){
+    const sev = g.items.length >= 5 ? 'var(--red)' : 'var(--orange)';
+    const openCnt = g.items.filter(function(t){ return t.status!=='done'; }).length;
+    html += '<div onclick="viewRecurring(\'' + encodeURIComponent(g.loc) + '\',\'' + encodeURIComponent(g.cat) + '\')" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;cursor:pointer">';
+    html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;color:' + sev + ';min-width:24px;text-align:center">' + g.items.length + '</div>';
+    html += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\ud83d\udccd ' + g.loc + ' \u00b7 ' + g.cat + '</div>';
+    html += '<div style="font-size:11px;color:var(--text3)">\u0e0b\u0e48\u0e2d\u0e21 ' + g.items.length + ' \u0e04\u0e23\u0e31\u0e49\u0e07' + (openCnt ? ' \u00b7 \u0e04\u0e49\u0e32\u0e07 ' + openCnt : '') + '</div></div></div>';
+  });
+  if(more > 0) html += '<div style="font-size:11px;color:var(--text3);text-align:center;padding-top:2px">+ \u0e2d\u0e35\u0e01 ' + more + ' \u0e08\u0e38\u0e14</div>';
+  html += '</div></div>';
+  box.innerHTML = html;
+}
+
 function renderRecurring(){
   const b = getBase();
   const now = Date.now();
