@@ -546,6 +546,15 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   .print-summary-row { display: flex; justify-content: space-between; font-size: 10px; padding: 2px 0; border-bottom: 1px solid #F1F5F9; }
   .print-summary-row:last-child { border-bottom: none; }
 }
+.arch-hint{padding:14px;text-align:center;color:var(--text3);font-size:13px}
+.arch-count{font-size:12px;color:var(--text3);margin-bottom:8px}
+.arch-card{border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px;background:var(--bg2)}
+.arch-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.arch-tid{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--blue);font-size:13px}
+.arch-year{font-size:11px;color:var(--text3);background:var(--bg3);border-radius:20px;padding:1px 9px}
+.arch-desc{font-size:14px;color:var(--text);margin-bottom:4px}
+.arch-meta{font-size:12px;color:var(--text2)}
+.arch-meta2{font-size:11px;color:var(--text3);margin-top:2px}
 </style>
 </head>
 <body>
@@ -594,6 +603,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-sec">Management</div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
     <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span>ประวัติงาน</span></div>
+    <div class="nav-item" onclick="showPage('archive',this)"><span class="nav-icon">🗄️</span><span>ค้นประวัติ (Archive)</span></div>
     <div class="nav-sec">Reports</div>
     <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span>รายงาน</span></div>
     <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span>Export PDF</span></div>
@@ -726,6 +736,20 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     </div>
 
     <!-- TICKETS PAGE -->
+    <div class="page" id="page-archive">
+      <div class="tickets-toolbar">
+        <div class="toolbar-ttl">🗄️ ค้นประวัติงานเก่า (Archive)</div>
+      </div>
+      <div class="report-card" style="margin-top:10px">
+        <p style="font-size:13px;color:var(--text3);margin:0 0 10px">งานที่ปิดนานแล้วจะถูกย้ายมาเก็บในคลังประวัติเพื่อให้หน้าหลักทำงานเร็ว — ค้นหาที่นี่เพื่อเรียกดูย้อนหลัง (ค้นจากหมายเลขงาน สถานที่ ผู้แจ้ง ผู้รับงาน ฯลฯ)</p>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="arch-q" placeholder="พิมพ์คำค้น เช่น TK-xxxxx, Pool Villa, แอร์, ชื่อช่าง..." onkeydown="archiveSearchKey(event)" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-family:'Prompt',sans-serif;font-size:14px">
+          <button class="btn-primary" onclick="doArchiveSearch()">🔍 ค้นหา</button>
+        </div>
+        <div id="arch-result" style="margin-top:14px"><div class="arch-hint">พิมพ์คำค้นแล้วกดค้นหา เพื่อเรียกดูงานเก่าในคลังประวัติ</div></div>
+      </div>
+    </div>
+
     <div class="page" id="page-tickets">
       <div class="tickets-toolbar">
         <div class="toolbar-ttl">🎫 จัดการ Ticket ทั้งหมด</div>
@@ -2336,8 +2360,45 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,tickets:1,technicians:2,history:3,report:4};
+const PAGE_NAV={dashboard:0,tickets:1,technicians:2,history:3,archive:4,report:5};
 let currentPage='dashboard';
+// ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
+let archiveSearching = false;
+function doArchiveSearch(){
+  const q = (document.getElementById('arch-q')||{}).value || '';
+  if(!q.trim()){ document.getElementById('arch-result').innerHTML = '<div class="arch-hint">พิมพ์คำค้น เช่น หมายเลขงาน สถานที่ หรือชื่อผู้แจ้ง แล้วกดค้นหา</div>'; return; }
+  if(archiveSearching) return;
+  archiveSearching = true;
+  const box = document.getElementById('arch-result');
+  box.innerHTML = '<div class="arch-hint">⏳ กำลังค้นหาในคลังประวัติ...</div>';
+  fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'search_archive', q: q.trim() }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      archiveSearching = false;
+      if(!d.success){ box.innerHTML = '<div class="arch-hint">ไม่สามารถค้นหาได้: '+(d.error||'')+'</div>'; return; }
+      const rows = d.results || [];
+      if(!rows.length){ box.innerHTML = '<div class="arch-hint">ไม่พบงานที่ตรงกับ "'+q+'" ในคลังประวัติ</div>'; return; }
+      let html = '<div class="arch-count">พบ '+d.count+' รายการ'+(d.truncated?' (แสดง 200 รายการแรก)':'')+'</div>';
+      rows.forEach(function(t){
+        const loc = ((t.building||t.location||'')+' '+(t.room||'')).trim();
+        const rating = t.rating ? ' · '+t.rating+'⭐' : '';
+        html += '<div class="arch-card">'+
+          '<div class="arch-card-top"><span class="arch-tid">'+(t.ticket_id||'')+'</span>'+
+          '<span class="arch-year">'+(t._year||'')+'</span></div>'+
+          '<div class="arch-desc">'+(t.description||'-')+'</div>'+
+          '<div class="arch-meta">'+(t.category||'')+(loc?' · 📍 '+loc:'')+(t.assigned_to?' · 🔧 '+t.assigned_to:'')+rating+'</div>'+
+          '<div class="arch-meta2">แจ้ง: '+(t.created_at||'-')+(t.resolved_at?' · ปิด: '+t.resolved_at:'')+'</div>'+
+          '</div>';
+      });
+      box.innerHTML = html;
+    })
+    .catch(function(e){
+      archiveSearching = false;
+      box.innerHTML = '<div class="arch-hint">เกิดข้อผิดพลาด: '+e.message+'</div>';
+    });
+}
+function archiveSearchKey(ev){ if(ev && ev.key==='Enter') doArchiveSearch(); }
+
 function showPage(p,el,fromPop){
   window._navByMember=false;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
@@ -2345,7 +2406,7 @@ function showPage(p,el,fromPop){
   document.getElementById('page-'+p).classList.add('active');
   if(!el) el=document.querySelectorAll('.nav-item')[PAGE_NAV[p]||0];
   el.classList.add('active');
-  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',report:'📈 รายงาน'};
+  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
   // บันทึกประวัติการเปิดหน้า เพื่อให้ปุ่ม back (ทั้งบนจอและของเครื่อง) ย้อนกลับได้
   if(!fromPop && p!==currentPage){
