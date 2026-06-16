@@ -606,6 +606,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('archive',this)"><span class="nav-icon">🗄️</span><span>ค้นประวัติ (Archive)</span></div>
     <div class="nav-sec">Reports</div>
     <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span>รายงาน</span></div>
+    <div class="nav-item" onclick="window.open('https://it-syy.github.io/syy-service-hub/tracker.html','_blank')"><span class="nav-icon">🔗</span><span>หน้าติดตามสถานะงาน</span></div>
     <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span>Export PDF</span></div>
     <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">📊</span><span>Export Excel</span></div>
     <div class="nav-sec">มุมมอง</div>
@@ -613,7 +614,11 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="toggleTV()"><span class="nav-icon">📺</span><span>โหมดทีวี</span></div>
   </div>
   <div class="team-filter">
-    <div style="font-size:10px;color:#64748B;margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองทีม</div>
+    <div style="font-size:10px;color:#64748B;margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองสาขา</div>
+    <select class="team-select" id="branch-filter" title="กรองสาขา" onchange="onBranch()">
+      <option value="all">ทุกสาขา</option>
+    </select>
+    <div style="font-size:10px;color:#64748B;margin:8px 0 4px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองทีม</div>
     <select class="team-select" id="team-filter" title="กรองทีม" onchange="onTeam()">
       <option value="all">ทุกทีม</option>
       <option value="IT Support">IT Support</option>
@@ -844,15 +849,13 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   <div class="modal">
     <div class="modal-ttl">🔧 มอบหมายงาน<button class="modal-x" onclick="closeM('m-assign')">×</button></div>
     <div class="info-box" id="m-assign-info"></div>
-    <div class="modal-field"><label class="modal-lbl">มอบหมายให้</label>
-      <select class="modal-sel" id="m-assign-member" title="เลือกสมาชิก">
+    <div class="modal-field"><label class="modal-lbl">ผู้รับหลัก <span style="color:var(--red)">*</span></label>
+      <select class="modal-sel" id="m-assign-member" title="เลือกผู้รับหลัก" onchange="rebuildSecondary()">
         <option value="">— เลือกสมาชิก —</option>
-        <option value="Chana">Chana — IT Manager</option>
-        <option value="Farid">Farid — IT Project Supervisor</option>
-        <option value="Radthaphol">Radthaphol — IT Supervisor</option>
-        <option value="Pongsakorn">Pongsakorn — IT Officer</option>
-        <option value="Nianas">Nianas — IT Officer</option>
       </select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">ผู้รับรอง <span style="color:var(--text3);font-weight:400">(เพิ่มเติม ไม่บังคับ)</span></label>
+      <div id="m-assign-secondary" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;background:var(--bg3);border-radius:8px;padding:8px"></div>
     </div>
     <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="m-assign-note" placeholder="เช่น กุญแจห้องอยู่ที่ Reception..."></textarea></div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-assign')">ยกเลิก</button><button class="btn-ok green" id="btn-assign-ok" onclick="doAssign()">✅ ยืนยันมอบหมาย</button></div>
@@ -1005,6 +1008,22 @@ document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElemen
 // ===== AUTH / LOGIN GATE =====
 let currentUser=null;       // {userId,name,role}
 let userRole='viewer';
+let userBranches=[];   // สาขาที่ผู้ใช้ดูแล (ว่าง=admin เห็นทุกสาขา / tech ที่ไม่ระบุ=เห็นทุกสาขา)
+let currentBranch='all';
+let allMembers=[];     // สมาชิกทั้งหมดจาก USERS: {name, role, branches:[]} — สำหรับ dropdown มอบหมาย
+async function loadMembers(){
+  try{
+    const r=await fetch(`${BASE}/USERS!A2:F200?key=${API_KEY}`);
+    const d=await r.json();
+    allMembers=(d.values||[]).map(row=>({
+      name:(row[1]||'').trim(),
+      role:(row[2]||'').trim().toLowerCase(),
+      active:(row[3]===undefined||String(row[3]).toLowerCase()!=='false'),
+      branches:(row[4]||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean),
+      emp_id:(row[5]||'').trim(),
+    })).filter(m=>m.name && m.active && (m.role==='admin'||m.role==='tech'));
+  }catch(e){ console.log('loadMembers error:',e); }
+}
 function setStatus(m){const e=document.getElementById('auth-status');if(e)e.textContent=m;}
 function authToken(){ try{ return (typeof liff!=='undefined'&&liff.getAccessToken)?(liff.getAccessToken()||''):''; }catch(e){ return ''; } }
 
@@ -1033,7 +1052,7 @@ async function finishAuth(){
   const p=await liff.getProfile();
   const res=await lookupRole(p.userId);
   if(!res.found){ showUserIdPanel(p); return; }   // คนใหม่ที่ยังไม่มีในรายชื่อ
-  enterAs({userId:p.userId, name:p.displayName, role:res.role}, false);
+  enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[]}, false);
 }
 // แสดง userId ให้ผู้ใช้ใหม่คัดลอกส่งแอดมิน (เพื่อเพิ่มเข้าแท็บ USERS)
 function showUserIdPanel(p){
@@ -1061,22 +1080,25 @@ function copyUserId(){
 // อ่านแท็บ USERS: คอลัมน์ A=userId, B=name, C=role, D=active
 async function lookupRole(userId){
   try{
-    const r=await fetch(`${BASE}/USERS!A2:D200?key=${API_KEY}`);
+    const r=await fetch(`${BASE}/USERS!A2:E200?key=${API_KEY}`);
     const d=await r.json();
     const rows=d.values||[];
     for(const row of rows){
       if((row[0]||'').trim()===userId){
         const active=(row[3]===undefined||String(row[3]).toLowerCase()!=='false');
-        if(!active) return {role:'viewer', found:true};
+        const branches=(row[4]||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
+        if(!active) return {role:'viewer', found:true, branches:branches};
         const role=(row[2]||'viewer').trim().toLowerCase();
-        return {role:['admin','tech','viewer'].includes(role)?role:'viewer', found:true};
+        return {role:['admin','tech','viewer'].includes(role)?role:'viewer', found:true, branches:branches};
       }
     }
   }catch(e){ console.log('lookupRole error:',e); }
-  return {role:'viewer', found:false}; // ไม่อยู่ในรายชื่อ
+  return {role:'viewer', found:false, branches:[]}; // ไม่อยู่ในรายชื่อ
 }
 function enterAs(user, degraded){
-  currentUser=user; userRole=user.role;
+  currentUser=user; userRole=user.role; userBranches=user.branches||[];
+  buildBranchFilter();
+  loadMembers();
   document.body.classList.toggle('viewer', userRole==='viewer');
   const rb=document.getElementById('role-badge');
   if(rb){
@@ -1182,48 +1204,54 @@ function closeImgViewer(){
 async function loadData(silent=false){
   if(!silent) document.getElementById('live-txt').textContent='กำลังโหลด...';
   try{
-    const res=await fetch(`${BASE}/TICKETS!A2:AF300?key=${API_KEY}`);
+    // อ่านรวมหัวตาราง (แถว 1) เพื่อแมปตามชื่อคอลัมน์ — เพิ่ม/ย้ายคอลัมน์ได้โดยไม่พัง
+    const res=await fetch(`${BASE}/TICKETS!A1:AZ1000?key=${API_KEY}`);
     const d=await res.json();
-    if(!d.values){tickets=[];renderAll();return;}
+    if(!d.values || d.values.length<2){tickets=[];renderAll();return;}
+    const heads=d.values[0].map(h=>String(h||'').trim());
+    const H={}; heads.forEach((h,i)=>{ if(h && !(h in H)) H[h]=i; });
+    const g=(r,name,alt)=>{ const i=(name in H)?H[name]:((alt&&alt in H)?H[alt]:-1); return i>=0?(r[i]||''):''; };
     const prev=new Set(lastIds);
-    tickets=d.values.map(r=>{
-      const pri = String(r[8]||'').toLowerCase();
+    tickets=d.values.slice(1).map(r=>{
+      const pri=String(g(r,'priority')).toLowerCase();
       return {
-        ticket_id:    r[0]||'',
-        created_at:   r[1]||'',
-        department:   r[2]||'',
-        reported_by:  r[3]||'',
-        category:     r[4]||'',
-        location:     r[5]||'',
-        room:         r[6]||'',
-        description:  r[7]||'',
-        priority:      (pri==='high'||pri==='med'||pri==='low')?pri:'low',
-        status:        r[9]||'pending',
-        assigned_to:   r[10]||'',
-        assigned_at:   r[11]||'',
-        resolved_at:   r[12]||'',
-        duration_min:  r[13]||'',
-        sla_status:    r[14]||'',
-        image_url:     r[15]||'',
-        rating:        r[16]||'',
-        notes:         r[17]||'',
-        reporter_group_id: r[18]||'',
-        team:          r[19]||'',
-        building:      r[20]||'',
-        userId:        r[21]||'',
-        displayName:   r[22]||'',
-        groupId:       r[23]||'',
-        source:        r[24]||'',
-        accepted_at:   r[25]||'',
-        rejected_at:   r[26]||'',
-        rejected_by:   r[27]||'',
-        reject_reason: r[28]||'',
-        response_min:  r[29]||'',
-        completion_min:r[30]||'',
-        done_image_url:r[31]||'',
-        reported_by:   r[3]||r[22]||'',
-        location:      r[5]||r[20]||'',
-        _new:          false
+        ticket_id:    g(r,'ticket_id'),
+        created_at:   g(r,'created_at'),
+        branch:       g(r,'branch'),
+        reporter_dept:g(r,'reporter_dept'),
+        progress:     g(r,'progress'),
+        assigned_secondary:g(r,'assigned_secondary'),
+        department:   g(r,'department','team'),
+        reported_by:  g(r,'reported_by','displayName'),
+        category:     g(r,'category'),
+        location:     g(r,'location','building'),
+        room:         g(r,'room'),
+        description:  g(r,'description'),
+        priority:     (pri==='high'||pri==='med'||pri==='low')?pri:'low',
+        status:       g(r,'status')||'pending',
+        assigned_to:  g(r,'assigned_to'),
+        assigned_at:  g(r,'assigned_at'),
+        resolved_at:  g(r,'resolved_at'),
+        duration_min: g(r,'duration_min'),
+        sla_status:   g(r,'sla_status'),
+        image_url:    g(r,'image_url'),
+        rating:       g(r,'rating'),
+        notes:        g(r,'notes'),
+        reporter_group_id: g(r,'reporter_group_id'),
+        team:         g(r,'team','department'),
+        building:     g(r,'building','location'),
+        userId:       g(r,'userId'),
+        displayName:  g(r,'displayName','reported_by'),
+        groupId:      g(r,'groupId'),
+        source:       g(r,'source'),
+        accepted_at:  g(r,'accepted_at'),
+        rejected_at:  g(r,'rejected_at'),
+        rejected_by:  g(r,'rejected_by'),
+        reject_reason:g(r,'reject_reason'),
+        response_min: g(r,'response_min'),
+        completion_min:g(r,'completion_min'),
+        done_image_url:g(r,'done_image_url'),
+        _new:         false
       };
     }).filter(t=>t.ticket_id);
     lastIds=new Set(tickets.map(t=>t.ticket_id));
@@ -1268,7 +1296,32 @@ function renderAll(){
 }
 
 // ===== BASE FILTER =====
-function getBase(){return tickets.filter(t=>currentTeam==='all'||t.team===currentTeam||t.department===currentTeam);}
+function getBase(){
+  const myName=(currentUser&&currentUser.name)||'';
+  return tickets.filter(t=>{
+    // ช่างเห็นงานที่ถูกมอบหมายให้ตัวเองเสมอ (หลักหรือรอง) แม้เป็นงานข้ามสาขา
+    const sec=String(t.assigned_secondary||'');
+    const assignedToMe = userBranches.length>0 && myName && (t.assigned_to===myName || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0);
+    // จำกัดเฉพาะสาขาที่ผู้ใช้ดูแล (ถ้า userBranches ว่าง = เห็นทุกสาขา เช่น admin)
+    if(!assignedToMe && userBranches.length>0 && t.branch && userBranches.indexOf(String(t.branch).toUpperCase())<0) return false;
+    // ตัวกรองสาขาที่เลือกบนหน้าจอ
+    if(currentBranch!=='all' && String(t.branch||'').toUpperCase()!==currentBranch) return false;
+    // ตัวกรองทีม
+    if(!(currentTeam==='all'||t.team===currentTeam||t.department===currentTeam)) return false;
+    return true;
+  });
+}
+// สร้างตัวเลือกสาขาในตัวกรอง — ถ้าผู้ใช้ดูแลบางสาขา แสดงเฉพาะสาขานั้น
+function buildBranchFilter(){
+  const sel=document.getElementById('branch-filter');
+  if(!sel) return;
+  const all=['STY','SYY','SPN','SNT','SKC'];
+  const list=(userBranches.length>0)?all.filter(b=>userBranches.indexOf(b)>=0):all;
+  let html='<option value="all">'+(userBranches.length>0?'ทุกสาขาที่ดูแล':'ทุกสาขา')+'</option>';
+  list.forEach(b=>{ html+='<option value="'+b+'">'+b+'</option>'; });
+  sel.innerHTML=html;
+}
+function onBranch(){ currentBranch=document.getElementById('branch-filter').value; renderAll(); }
 
 // ===== KPI =====
 function trendTag(cur, prev){
@@ -2098,10 +2151,60 @@ function openAssign(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
-  document.getElementById('m-assign-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">${t.description}</span>`;
-  document.getElementById('m-assign-member').value=t.assigned_to||'';
+  const br=t.branch||'';
+  document.getElementById('m-assign-info').innerHTML=`<strong>${t.ticket_id}</strong>${br?'<span style="color:var(--green);font-weight:600"> ['+br+']</span>':''} ${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">${t.description}</span>`;
+  buildAssignOptions(br, t.team, t.assigned_to||'');
+  rebuildSecondary(t.assigned_secondary||'');
   document.getElementById('m-assign-note').value='';
   document.getElementById('m-assign').classList.add('show');
+}
+// สร้างตัวเลือกช่าง: แยก "ในสาขา" กับ "ข้ามสาขา (เฉพาะกิจ)" ให้ admin เห็นชัด
+function buildAssignOptions(branch, team, current){
+  const sel=document.getElementById('m-assign-member');
+  if(!sel) return;
+  window._assignBranch=branch;
+  if(!allMembers.length){
+    sel.innerHTML='<option value="">— เลือกสมาชิก —</option>'+(current?`<option value="${current}" selected>${current}</option>`:'');
+    rebuildSecondary(); return;
+  }
+  const B=String(branch||'').toUpperCase();
+  const inBranch=[], crossBranch=[];
+  allMembers.forEach(m=>{
+    const covers = m.branches.length===0 || m.branches.indexOf(B)>=0;
+    (covers?inBranch:crossBranch).push(m);
+  });
+  const idTag=m=>m.emp_id?' ['+m.emp_id+']':'';
+  let html='<option value="">— เลือกสมาชิก —</option>';
+  if(inBranch.length){
+    html+=`<optgroup label="ช่างในสาขา ${B||'(ไม่ระบุ)'}">`;
+    inBranch.forEach(m=>{ html+=`<option value="${m.name}"${m.name===current?' selected':''}>${m.name}${idTag(m)}${m.role==='admin'?' (แอดมิน)':''}</option>`; });
+    html+='</optgroup>';
+  }
+  if(crossBranch.length){
+    html+='<optgroup label="ข้ามสาขา (มอบหมายเฉพาะกิจ)">';
+    crossBranch.forEach(m=>{ const bl=m.branches.join(',')||'-'; html+=`<option value="${m.name}"${m.name===current?' selected':''}>${m.name}${idTag(m)} · ${bl}</option>`; });
+    html+='</optgroup>';
+  }
+  sel.innerHTML=html;
+  rebuildSecondary(current);
+}
+// สร้าง checkbox ผู้รับรอง (ไม่รวมคนที่เป็นผู้รับหลัก) — pre = ชื่อรองเดิม (comma)
+function rebuildSecondary(preChecked){
+  const box=document.getElementById('m-assign-secondary');
+  if(!box) return;
+  const primary=document.getElementById('m-assign-member').value;
+  const preSet=(typeof preChecked==='string'?preChecked:'').split(',').map(x=>x.trim()).filter(Boolean);
+  const B=String(window._assignBranch||'').toUpperCase();
+  const list=allMembers.filter(m=>m.name && m.name!==primary);
+  if(!list.length){ box.innerHTML='<div style="font-size:12px;color:var(--text3)">ไม่มีสมาชิกอื่น</div>'; return; }
+  box.innerHTML=list.map(m=>{
+    const inB=m.branches.length===0||m.branches.indexOf(B)>=0;
+    const tag=(m.emp_id?' ['+m.emp_id+']':'')+(inB?'':' · '+(m.branches.join(',')||'-'));
+    const ck=preSet.indexOf(m.name)>=0?' checked':'';
+    return `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)">
+      <input type="checkbox" class="assign-sec" value="${m.name}"${ck} style="accent-color:#06C755;width:16px;height:16px">
+      <span>${m.name}<span style="color:var(--text3)">${tag}</span>${inB?'':' <span style="color:var(--orange);font-size:10px">(ข้ามสาขา)</span>'}</span></label>`;
+  }).join('');
 }
 function openAccept(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
@@ -2122,6 +2225,19 @@ function openDone(id){
   donePhotos=[]; renderDonePreviews();
   document.getElementById('m-done').classList.add('show');
 }
+function mkProgressBar(t){
+  const pv=parseInt(t.progress)||0;
+  if(t.status==='done'||pv<=0) return '';
+  const bc=pv>=100?'var(--green)':pv>=50?'var(--blue)':'var(--orange)';
+  return `<div style="grid-column:1/-1"><div class="detail-lbl">📊 ความคืบหน้า</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+      <div style="flex:1;height:12px;background:var(--bg3);border-radius:6px;overflow:hidden;border:1px solid var(--border)">
+        <div style="height:100%;width:${pv}%;background:${bc};border-radius:6px"></div>
+      </div>
+      <span style="font-weight:700;color:${bc}">${pv}%</span>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">ดูไทม์ไลน์ทั้งหมดได้ในหน้าติดตามงาน</div></div>`;
+}
 function openDetail(id){
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
@@ -2139,7 +2255,7 @@ function openDetail(id){
       <div><div class="detail-lbl">สถานที่</div><div class="detail-val">${t.building||t.location||'—'} ${t.room?'ห้อง '+t.room:''}</div></div>
       <div><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||t.userId||'—'}</div></div>
       <div><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
-      <div><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}</div></div>
+      <div><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ รอง: '+t.assigned_secondary+'</span>':''}</div></div>
       <div><div class="detail-lbl">มอบหมายเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
       <div><div class="detail-lbl">รับงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at||'—'}</div></div>
       <div><div class="detail-lbl">เสร็จงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
@@ -2149,6 +2265,7 @@ function openDetail(id){
       ${t.duration_min?`<div><div class="detail-lbl">⏱ เวลารวมทั้งหมด</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} (แจ้ง→เสร็จ)</div></div>`:''}
       ${slaOf(t)?`<div><div class="detail-lbl">🎯 SLA</div><div class="detail-val" style="color:${slaOf(t)==='on_time'?'var(--green)':'var(--red)'};font-weight:700">${slaOf(t)==='on_time'?'✓ ตรงเวลา':'✗ เกินกำหนด'} <span style="font-weight:400;color:var(--text3);font-size:11px">(เป้า ${fmtMins(SLA_TARGETS[t.priority]||SLA_TARGETS.low)})</span></div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
+      ${mkProgressBar(t)}
       ${mkDetailImages(t)}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at} โดย ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
@@ -2167,13 +2284,14 @@ function closeM(id){document.getElementById(id).classList.remove('show');}
 async function doAssign(){
   const member=document.getElementById('m-assign-member').value;
   const note=document.getElementById('m-assign-note').value;
-  if(!member){toast('กรุณาเลือกสมาชิก','⚠️','info');return;}
+  if(!member){toast('กรุณาเลือกผู้รับหลัก','⚠️','info');return;}
+  const secondary=Array.from(document.querySelectorAll('.assign-sec:checked')).map(c=>c.value).join(', ');
   const btn=document.getElementById('btn-assign-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_at:ts,notes:note||'',access_token:authToken()})})).json();
-    if(r.success){t.status='assigned';t.assigned_to=member;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(`มอบหมายให้ ${member} เรียบร้อย — รอช่างรับงาน`,'🎉','success');}
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_secondary:secondary,assigned_at:ts,notes:note||'',access_token:authToken()})})).json();
+    if(r.success){t.status='assigned';t.assigned_to=member;t.assigned_secondary=secondary;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(`มอบหมายให้ ${member}${secondary?' + '+secondary:''} เรียบร้อย — รอช่างรับงาน`,'🎉','success');}
     else toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันมอบหมาย';
