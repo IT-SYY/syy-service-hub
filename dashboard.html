@@ -1312,12 +1312,39 @@ async function loadData(silent=false){
 }
 
 // ===== ALERT =====
+// เสียงแจ้งเตือนงานใหม่ — จังหวะ "ติ๊ง-ติ๊ง" ซ้ำต่อเนื่องประมาณ 5 วินาที
+let _alertAudioCtx=null;
+function playAlertSound(){
+  try{
+    const ctx=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
+    if(ctx.state==='suspended') ctx.resume();
+    const t0=ctx.currentTime;
+    const TOTAL=5.0;        // ความยาวรวม (วินาที)
+    const STEP=0.7;         // ระยะห่างแต่ละจังหวะ
+    const NOTES=[880,1175]; // สองโน้ต (ติ๊ง-ติ๊ง)
+    let i=0;
+    for(let t=0;t<TOTAL;t+=STEP){
+      NOTES.forEach((freq,k)=>{
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type='sine'; o.frequency.value=freq;
+        o.connect(g); g.connect(ctx.destination);
+        const start=t0+t+k*0.16;
+        const dur=0.15;
+        g.gain.setValueAtTime(0.0001,start);
+        g.gain.exponentialRampToValueAtTime(0.18,start+0.02);  // ค่อยๆ ดังขึ้น กันเสียงแตก
+        g.gain.exponentialRampToValueAtTime(0.0001,start+dur); // ค่อยๆ เบาลง
+        o.start(start); o.stop(start+dur+0.02);
+      });
+      i++;
+    }
+  }catch(e){}
+}
 function showAlert(arr){
   const al=document.getElementById('new-alert');
   document.getElementById('alert-body').textContent=`${arr.length} งานใหม่ — ${arr[0].category||'ไม่ระบุ'} · ${arr[0].building||arr[0].location||''}`;
   document.getElementById('alert-id').textContent=arr[0].ticket_id;
   al.classList.add('show');
-  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=0.08;o.start();o.stop(ctx.currentTime+0.15);}catch(e){}
+  playAlertSound();
   setTimeout(()=>al.classList.remove('show'),8000);
 }
 function showKPINew(){const b=document.getElementById('kpi-new');b.classList.add('show');setTimeout(()=>b.classList.remove('show'),10000);}
