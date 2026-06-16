@@ -296,20 +296,35 @@ async function submitProgress(){
   }
 }
 function compressToDataURL(file){
+  const MAXW=1280, Q=0.75;
+  function drawToCanvas(source, sw, sh){
+    const sc=Math.min(1, MAXW/Math.max(sw,sh));
+    const w=Math.max(1,Math.round(sw*sc)), h=Math.max(1,Math.round(sh*sc));
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#FFFFFF';                 // เติมพื้นขาวก่อน กัน PNG โปร่งใส (เช่น snapshot) กลายเป็นดำ
+    ctx.fillRect(0,0,w,h);
+    ctx.drawImage(source,0,0,w,h);
+    return c.toDataURL('image/jpeg',Q);
+  }
   return new Promise(function(resolve,reject){
-    const reader=new FileReader();
-    reader.onload=function(e){
-      const img=new Image();
-      img.onload=function(){
-        const c=document.createElement('canvas');
-        const sc=Math.min(1,1280/Math.max(img.width,img.height));
-        c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
-        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-        resolve(c.toDataURL('image/jpeg',0.75));
+    // วิธีหลัก: createImageBitmap — เสถียรกว่ามากบนมือถือ/Safari โดยเฉพาะ PNG snapshot ขนาดใหญ่
+    if(typeof createImageBitmap==='function'){
+      createImageBitmap(file,{imageOrientation:'from-image'})
+        .then(function(bmp){ const out=drawToCanvas(bmp,bmp.width,bmp.height); if(bmp.close)bmp.close(); resolve(out); })
+        .catch(function(){ fallback(); });
+    } else { fallback(); }
+    // วิธีสำรอง: FileReader + Image (+ decode() ให้ถอดรหัสครบก่อนวาด)
+    function fallback(){
+      const reader=new FileReader();
+      reader.onload=function(e){
+        const img=new Image();
+        const go=function(){ try{ resolve(drawToCanvas(img,img.naturalWidth||img.width,img.naturalHeight||img.height)); }catch(err){ resolve(e.target.result); } };
+        img.onload=function(){ if(img.decode){ img.decode().then(go).catch(go); } else { go(); } };
+        img.onerror=reject; img.src=e.target.result;
       };
-      img.onerror=reject; img.src=e.target.result;
-    };
-    reader.onerror=reject; reader.readAsDataURL(file);
+      reader.onerror=reject; reader.readAsDataURL(file);
+    }
   });
 }
 
