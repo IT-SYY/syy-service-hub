@@ -222,6 +222,9 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-accept{background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:none;border-radius:6px;color:#FFF;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(139,92,246,0.3);}
 .btn-accept:hover{transform:translateY(-1px);}
 .btn-done2{background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:6px;color:#FFF;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(16,185,129,0.3);}
+.mpct-btn{flex:1;min-width:56px;padding:11px 6px;border:2px solid var(--border);border-radius:9px;background:var(--bg2);color:var(--text2);font-size:14px;font-weight:700;font-family:'Prompt',sans-serif;cursor:pointer;transition:all .12s;}
+.mpct-btn.active{background:var(--green);color:#fff;border-color:var(--green);transform:scale(1.05);}
+.mpct-btn:active{transform:scale(0.96);}
 .btn-done2:hover{transform:translateY(-1px);}
 .btn-view2{background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;color:#475569;font-family:'Prompt',sans-serif;font-size:10px;font-weight:500;padding:4px 8px;cursor:pointer;transition:all 0.15s;}
 .btn-view2:hover{background:#E2E8F0;}
@@ -877,6 +880,43 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   </div>
 </div>
 
+<div class="overlay" id="m-transfer">
+  <div class="modal">
+    <div class="modal-ttl">🔀 โอนงานข้ามแผนก/สาขา<button class="modal-x" onclick="closeM('m-transfer')">×</button></div>
+    <div class="info-box" id="m-transfer-info"></div>
+    <div class="modal-field"><label class="modal-lbl">โอนไปทีม/แผนก <span style="color:var(--red)">*</span></label>
+      <select class="modal-sel" id="m-transfer-team">
+        <option value="">— เลือกทีม —</option>
+        <option value="IT Support">IT Support</option>
+        <option value="Engineering">Engineering (ช่างเทคนิค)</option>
+        <option value="Landscape & Garden">Landscape & Garden (สวน)</option>
+        <option value="Environment">Environment (สิ่งแวดล้อม)</option>
+      </select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">โอนไปสาขา <span style="color:var(--text3);font-weight:400">(เว้นไว้ = สาขาเดิม)</span></label>
+      <select class="modal-sel" id="m-transfer-branch">
+        <option value="">— สาขาเดิม —</option>
+        <option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option>
+      </select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">เหตุผลการโอน</label><textarea class="modal-ta" id="m-transfer-reason" placeholder="เช่น เป็นงานระบบไฟฟ้า ควรเป็นทีมช่างเทคนิคดูแล..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-transfer')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" id="btn-transfer-ok" onclick="doTransfer()">🔀 ยืนยันโอนงาน</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-progress">
+  <div class="modal">
+    <div class="modal-ttl">📊 อัปเดตความคืบหน้า<button class="modal-x" onclick="closeM('m-progress')">×</button></div>
+    <div class="info-box" id="m-progress-info"></div>
+    <div class="modal-field"><label class="modal-lbl">ความคืบหน้า: <strong id="m-pct-label" style="color:var(--green)">0%</strong></label>
+      <div id="m-pct-buttons" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+      <input type="hidden" id="m-progress-pct" value="0">
+    </div>
+    <div class="modal-field"><label class="modal-lbl">ติดขัดอะไร / ทำอะไรไปแล้วบ้าง</label><textarea class="modal-ta" id="m-progress-note" placeholder="เช่น รออะไหล่ คาดว่าได้พรุ่งนี้..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-progress')">ยกเลิก</button><button class="btn-ok green" id="btn-progress-ok" onclick="doProgress()">📊 บันทึกความคืบหน้า</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="m-done">
   <div class="modal">
     <div class="modal-ttl">🏁 ปิดงาน<button class="modal-x" onclick="closeM('m-done')">×</button></div>
@@ -1495,7 +1535,7 @@ function mkCard(t){
   }else if(t.status==='assigned'){
     btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
   }else if(t.status==='in_progress'){
-    btns+=`<button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+    btns+=`<button class="btn-done2" style="background:#F59E0B" onclick="event.stopPropagation();openProgress('${t.ticket_id}')">📊 %</button><button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
   }
   btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
 
@@ -2216,6 +2256,84 @@ function openAccept(id){
   document.getElementById('m-accept').classList.add('show');
 }
 function showRejectForm(){document.getElementById('reject-form').style.display='block';}
+// ===== โอนงานข้ามแผนก/สาขา =====
+function openTransfer(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  currentId=id;
+  const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
+  const br=t.branch?'<span style="color:var(--green);font-weight:600"> ['+t.branch+']</span>':'';
+  document.getElementById('m-transfer-info').innerHTML=`<strong>${t.ticket_id}</strong>${br} ${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ทีมปัจจุบัน: ${t.team||t.department||'-'} · ${t.description||''}</span>`;
+  document.getElementById('m-transfer-team').value='';
+  document.getElementById('m-transfer-branch').value='';
+  document.getElementById('m-transfer-reason').value='';
+  document.getElementById('m-transfer').classList.add('show');
+}
+async function doTransfer(){
+  const newTeam=document.getElementById('m-transfer-team').value;
+  const newBranch=document.getElementById('m-transfer-branch').value;
+  const reason=document.getElementById('m-transfer-reason').value;
+  if(!newTeam){toast('กรุณาเลือกทีมปลายทาง','⚠️','info');return;}
+  const btn=document.getElementById('btn-transfer-ok');btn.disabled=true;btn.textContent='กำลังโอน...';
+  const t=tickets.find(x=>x.ticket_id===currentId);
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'transfer',ticket_id:currentId,new_team:newTeam,new_branch:newBranch,transfer_reason:reason,access_token:authToken()})})).json();
+    if(r.success){
+      t.team=newTeam;t.department=newTeam;if(newBranch)t.branch=newBranch;
+      t.status='pending';t.assigned_to='';t.assigned_secondary='';
+      closeM('m-transfer');renderAll();
+      toast(`โอนงานไป ${newTeam}${newBranch?' สาขา '+newBranch:''} แล้ว`,'🔀','success');
+    } else toast('โอนไม่สำเร็จ: '+(r.error||''),'❌','info');
+  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+  btn.disabled=false;btn.textContent='🔀 ยืนยันโอนงาน';
+}
+// ปฏิเสธงานใหม่ (pending)
+function rejectPending(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  const reason=prompt('เหตุผลที่ปฏิเสธงานนี้ (เช่น งานซ้ำ / ไม่ใช่งานซ่อม / ข้อมูลไม่ครบ):');
+  if(reason===null) return;
+  const t=tickets.find(x=>x.ticket_id===id);
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:id,rejected_by:(currentUser&&currentUser.name)||'admin',reject_reason:reason||'ไม่ระบุ',access_token:authToken()})})
+    .then(r=>r.json()).then(r=>{
+      if(r.success){closeM('m-detail');renderAll();toast('ปฏิเสธงานแล้ว','✓','success');}
+      else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+    }).catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
+}
+// ===== อัปเดตความคืบหน้า (สำหรับงานที่กำลังทำแต่ยังไม่เสร็จ) =====
+var M_PCT_OPTIONS=[10,25,50,75,90];
+function openProgress(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  currentId=id;
+  const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
+  const br=t.branch?'<span style="color:var(--green);font-weight:600"> ['+t.branch+']</span>':'';
+  document.getElementById('m-progress-info').innerHTML=`<strong>${t.ticket_id}</strong>${br} ${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
+  document.getElementById('m-progress-note').value='';
+  renderMPct();
+  setMPct(parseInt(t.progress,10)||0);
+  document.getElementById('m-progress').classList.add('show');
+}
+function renderMPct(){
+  document.getElementById('m-pct-buttons').innerHTML=M_PCT_OPTIONS.map(p=>
+    `<button type="button" class="mpct-btn" data-p="${p}" onclick="setMPct(${p})">${p}%</button>`).join('');
+}
+function setMPct(v){
+  v=parseInt(v,10); if(!isFinite(v)) v=0;
+  document.getElementById('m-progress-pct').value=v;
+  document.getElementById('m-pct-label').textContent=v+'%';
+  document.querySelectorAll('.mpct-btn').forEach(b=>b.classList.toggle('active', parseInt(b.getAttribute('data-p'),10)===v));
+}
+async function doProgress(){
+  const pct=parseInt(document.getElementById('m-progress-pct').value,10)||0;
+  if(pct<=0){toast('กรุณาเลือกเปอร์เซ็นต์ก่อน','⚠️','info');return;}
+  const note=document.getElementById('m-progress-note').value;
+  const btn=document.getElementById('btn-progress-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  const t=tickets.find(x=>x.ticket_id===currentId);
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'update_progress',ticket_id:currentId,percent:pct,note:note||'',access_token:authToken()})})).json();
+    if(r.success){t.progress=String(pct);if(t.status==='pending'||t.status==='assigned')t.status='in_progress';closeM('m-progress');renderAll();toast(`บันทึกความคืบหน้า ${pct}% แล้ว`,'📊','success');}
+    else toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','info');
+  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+  btn.disabled=false;btn.textContent='📊 บันทึกความคืบหน้า';
+}
 function openDone(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
   currentId=id;
@@ -2272,9 +2390,9 @@ function openDetail(id){
     </div>`;
   const ac=document.getElementById('m-detail-actions');
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">ปิด</button>`;
-  if(t.status==='pending'||t.status==='rejected') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
-  else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
-  else if(t.status==='in_progress') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  if(t.status==='pending'||t.status==='rejected') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openTransfer('${t.ticket_id}')">🔀 โอนงาน</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="rejectPending('${t.ticket_id}')">❌ ปฏิเสธ</button>`;
+  else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openTransfer('${t.ticket_id}')">🔀 โอนงาน</button>`;
+  else if(t.status==='in_progress') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">📊 อัปเดต %</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
   ac.innerHTML=ab;
   document.getElementById('m-detail').classList.add('show');
 }
