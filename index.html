@@ -180,7 +180,27 @@
 <!-- PAGE 1 -->
 <div class="page active content" id="page-1">
   <div class="card">
-    <div class="card-title"><span>1</span> เลือกทีมที่รับผิดชอบ / Select Team</div>
+    <div class="card-title"><span>1</span> เลือกสาขา / Select Branch</div>
+    <div class="field">
+      <label>สาขา <span class="en">Branch</span><span class="req">*</span></label>
+      <select id="field-branch" onchange="selectBranch(this.value)">
+        <option value="">เลือกสาขา...</option>
+        <option value="STY">STY</option>
+        <option value="SYY">SYY</option>
+        <option value="SPN">SPN</option>
+        <option value="SNT">SNT</option>
+        <option value="SKC">SKC</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>แผนกผู้แจ้ง <span class="en">Department</span></label>
+      <select id="field-dept" onchange="state.department=this.value">
+        <option value="">เลือกแผนก...</option>
+      </select>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>2</span> เลือกทีมที่รับผิดชอบ / Select Team</div>
     <div class="team-grid">
       <div class="team-btn" onclick="selectTeam('IT Support','it')" id="team-IT Support">
         <div class="team-check">✓</div><div class="team-icon">💻</div>
@@ -245,7 +265,8 @@
       </div>
       <div class="field">
         <label>ห้อง/จุด <span class="en">Room/Location</span></label>
-        <input type="text" id="field-room" placeholder="เช่น 502, Pool 1">
+        <input type="text" id="field-room" list="loc-suggestions" placeholder="เช่น 502, Pool 1">
+        <datalist id="loc-suggestions"></datalist>
       </div>
     </div>
     <div class="field">
@@ -311,11 +332,99 @@ const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน uploa
 
 // ===== STATE =====
 let state = {
-  step:1, team:'', teamCode:'', category:'', priority:'low',
+  step:1, branch:'', team:'', teamCode:'', category:'', priority:'low',
   building:'', room:'', description:'', department:'',
   photos:[], uploadedUrls:[],
   userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
 };
+
+// ===== โหลด config ฟอร์มจาก Google Sheet (categories / buildings / departments / locations) =====
+const CFG_SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
+const CFG_API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
+const CFG_BASE     = 'https://sheets.googleapis.com/v4/spreadsheets/' + CFG_SHEET_ID + '/values/';
+
+// แมปชื่อทีม → code (กันเว้นวรรค/ตัวเล็กใหญ่)
+function teamNorm(s){ return String(s||'').replace(/\s+/g,'').toLowerCase(); }
+const TEAM_CODE_BY_NORM = {
+  'itsupport':'it', 'engineering':'eng', 'landscape&garden':'ls', 'landscapeandgarden':'ls', 'environment':'env'
+};
+
+// categories จากชีต (เติมทับ object เดิมถ้าโหลดสำเร็จ) — key = code (it/eng/ls/env)
+async function loadFormConfig(){
+  try { await loadCategories(); } catch(e){ console.log('cat cfg:', e); }
+  try { await loadBuildings(); }  catch(e){ console.log('bld cfg:', e); }
+  try { await loadDepartments(); }catch(e){ console.log('dep cfg:', e); }
+  try { await loadLocations(); }  catch(e){ console.log('loc cfg:', e); }
+}
+
+async function loadCategories(){
+  const r = await fetch(CFG_BASE + 'TEAMS!A1:Z50?key=' + CFG_API_KEY);
+  const d = await r.json();
+  const vals = d.values || [];
+  if (vals.length < 2) return;
+  const head = vals[0].map(h=>String(h).trim().toLowerCase());
+  const ni = head.indexOf('team_name'), ci = head.indexOf('categories');
+  if (ni < 0 || ci < 0) return;
+  const map = {};
+  for (let i=1; i<vals.length; i++){
+    const code = TEAM_CODE_BY_NORM[teamNorm(vals[i][ni])];
+    const list = String(vals[i][ci]||'').split(',').map(x=>x.trim()).filter(Boolean);
+    if (code && list.length) map[code] = list.concat(list.indexOf('อื่นๆ')<0?['อื่นๆ']:[]);
+  }
+  // เติมทับเฉพาะ code ที่ได้จากชีต (code อื่นใช้ค่าเดิม)
+  Object.keys(map).forEach(k=>{ categories[k] = map[k]; });
+}
+
+async function loadBuildings(){
+  const r = await fetch(CFG_BASE + 'BUILDINGS!A1:B200?key=' + CFG_API_KEY);
+  const d = await r.json();
+  const vals = d.values || [];
+  if (vals.length < 2) return;
+  const head = vals[0].map(h=>String(h).trim().toLowerCase());
+  const bi = head.indexOf('building');
+  if (bi < 0) return;
+  const list = [];
+  for (let i=1; i<vals.length; i++){ const b=String(vals[i][bi]||'').trim(); if(b) list.push(b); }
+  if (!list.length) return;
+  const sel = document.getElementById('field-building');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">เลือก...</option>' +
+    list.map(b=>'<option>'+b+'</option>').join('') +
+    '<option>อื่นๆ / Other</option>';
+}
+
+async function loadDepartments(){
+  const r = await fetch(CFG_BASE + 'DEPARTMENTS!A1:Z100?key=' + CFG_API_KEY);
+  const d = await r.json();
+  const vals = d.values || [];
+  if (vals.length < 2) return;
+  const head = vals[0].map(h=>String(h).trim().toLowerCase());
+  const di = head.indexOf('dept_name');
+  if (di < 0) return;
+  const list = [];
+  for (let i=1; i<vals.length; i++){ const n=String(vals[i][di]||'').trim(); if(n) list.push(n); }
+  if (!list.length) return;
+  const sel = document.getElementById('field-dept');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">เลือกแผนก...</option>' +
+    list.map(n=>'<option>'+n+'</option>').join('');
+}
+
+// LOCATIONS เป็นทางเลือก: ถ้ามีแท็บและข้อมูล จะเติมเป็นตัวเลือกแนะนำ (พิมพ์เองก็ได้)
+async function loadLocations(){
+  const r = await fetch(CFG_BASE + 'LOCATIONS!A1:B300?key=' + CFG_API_KEY);
+  const d = await r.json();
+  const vals = d.values || [];
+  if (vals.length < 2) return;
+  const head = vals[0].map(h=>String(h).trim().toLowerCase());
+  const li = head.indexOf('location') >= 0 ? head.indexOf('location') : 0;
+  const list = [];
+  for (let i=1; i<vals.length; i++){ const v=String(vals[i][li]||'').trim(); if(v) list.push(v); }
+  if (!list.length) return;
+  const dl = document.getElementById('loc-suggestions');
+  if (!dl) return;
+  dl.innerHTML = list.map(v=>'<option value="'+v+'">').join('');
+}
 
 const categories = {
   it:  ['คอมพิวเตอร์','อินเทอร์เน็ต','Wi-Fi','CCTV','โทรศัพท์','Software','Hardware','อื่นๆ'],
@@ -326,6 +435,7 @@ const categories = {
 
 // ===== LIFF INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
+  loadFormConfig();   // โหลด categories/buildings/departments/locations จากชีต (ไม่บล็อค)
   try {
     await liff.init({ liffId: LIFF_ID });
     state.liffReady = true;
@@ -360,6 +470,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ===== TEAM =====
+function selectBranch(v) {
+  state.branch = v;
+}
 function selectTeam(name, code) {
   document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('team-' + name).classList.add('selected');
@@ -634,6 +747,9 @@ function updateStepUI() {
 
 // ===== VALIDATE =====
 function validateStep() {
+  if (state.step === 1 && !state.branch) {
+    alert('กรุณาเลือกสาขาก่อน\nPlease select a branch.'); return false;
+  }
   if (state.step === 1 && !state.team) {
     alert('กรุณาเลือกทีมก่อน\nPlease select a team.'); return false;
   }
@@ -660,6 +776,8 @@ function buildSummary() {
       + '</div>'
     : 'ไม่มี';
   const rows = [
+    ['สาขา / Branch', state.branch],
+    ['แผนกผู้แจ้ง / Dept', state.department || '-'],
     ['ทีม / Team', state.team],
     ['ประเภท / Category', state.category],
     ['ความเร่งด่วน', priLabel[state.priority]],
@@ -709,6 +827,8 @@ async function submitForm() {
   const payload = {
     source:            'liff_form',
     ticket_id:         ticketId,
+    branch:            state.branch,
+    reporter_dept:     state.department,
     team:              state.team,
     team_code:         state.teamCode,
     category:          state.category,
