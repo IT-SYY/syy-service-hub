@@ -289,17 +289,6 @@
         <div class="upload-bar-wrap"><div class="upload-bar" id="upload-bar"></div></div>
       </div>
     </div>
-
-    <div class="field">
-      <label>แผนกของคุณ <span class="en">Your Department</span></label>
-      <select id="field-dept">
-        <option value="">เลือก...</option>
-        <option>Front Office</option><option>Housekeeping</option><option>F&amp;B</option>
-        <option>Security</option><option>Spa</option><option>IT</option>
-        <option>Engineering</option><option>Landscape &amp; Garden</option>
-        <option>Environment</option><option>Main Kitchen</option><option>Management</option>
-      </select>
-    </div>
   </div>
 </div>
 
@@ -783,7 +772,6 @@ function buildSummary() {
     ['ความเร่งด่วน', priLabel[state.priority]],
     ['อาคาร / Building', state.building],
     ['ห้อง / Room', state.room || '-'],
-    ['แผนก / Department', state.department || '-'],
     ['รายละเอียด', state.description],
     ['ผู้แจ้ง / Reporter', state.displayName || '-'],
   ];
@@ -875,16 +863,18 @@ function openTracker(){
 }
 
 // ===== บันทึกภาพ Ticket =====
-function wrapText(ctx, text, maxW){
+function wrapText(ctx, text, maxW, maxLines){
+  maxLines = maxLines || 30;
   const words=String(text||'').split('');
   const lines=[]; let line='';
   for(const ch of words){
+    if(ch==='\n'){ lines.push(line); line=''; if(lines.length>=maxLines){break;} continue; }
     if(ctx.measureText(line+ch).width>maxW){lines.push(line);line=ch;}
     else line+=ch;
-    if(lines.length>=3){line+='…';break;}
+    if(lines.length>=maxLines){line+='…';break;}
   }
   if(line) lines.push(line);
-  return lines.slice(0,3);
+  return lines.slice(0,maxLines);
 }
 function saveTicketImage(){
   const p=window._lastPayload||{};
@@ -899,8 +889,8 @@ function saveTicketImage(){
   const c=document.createElement('canvas');
   const ctx=c.getContext('2d');
   ctx.font='26px Sarabun';
-  const descLines=wrapText(ctx, p.description||'-', W-220);
-  const H=470+rows.length*58+descLines.length*36+110;
+  const descLines=wrapText(ctx, p.description||'-', W-96, 30);
+  const H=470+rows.length*58+44+descLines.length*38+110;
   c.width=W; c.height=H;
 
   // พื้นหลัง + การ์ด
@@ -931,13 +921,17 @@ function saveTicketImage(){
   rows.forEach(([k,v])=>{
     ctx.fillStyle='#94A3B8'; ctx.fillText(k, 48, y);
     ctx.fillStyle='#1A1A2E'; ctx.font='bold 26px Sarabun';
-    ctx.fillText(String(v), 230, y);
+    let vs=String(v);
+    while(vs.length>1 && ctx.measureText(vs).width > W-230-48){ vs=vs.slice(0,-1); }
+    if(vs!==String(v)) vs=vs.slice(0,-1)+'…';
+    ctx.fillText(vs, 230, y);
     ctx.font='24px Sarabun';
     y+=58;
   });
-  ctx.fillStyle='#94A3B8'; ctx.fillText('รายละเอียด', 48, y);
+  ctx.fillStyle='#94A3B8'; ctx.font='24px Sarabun'; ctx.fillText('รายละเอียด', 48, y);
+  y+=42;
   ctx.fillStyle='#1A1A2E'; ctx.font='26px Sarabun';
-  descLines.forEach(l=>{ ctx.fillText(l, 230, y); y+=36; });
+  descLines.forEach(l=>{ ctx.fillText(l, 48, y); y+=38; });
   y+=30;
 
   // เส้นปะ + ท้ายใบ
