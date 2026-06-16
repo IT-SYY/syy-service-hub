@@ -164,13 +164,17 @@ function getTicketIdFromQuery(){
 async function loadTickets(){
   const box=document.getElementById('tk-list');
   try{
-    const res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/TICKETS!A2:AF300?key='+API_KEY);
+    const res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/TICKETS!A1:AZ1000?key='+API_KEY);
     const d=await res.json();
-    const rows=d.values||[];
+    const all=d.values||[];
+    const heads=(all[0]||[]).map(function(h){return String(h||'').trim();});
+    const H={}; heads.forEach(function(h,i){ if(h && !(h in H)) H[h]=i; });
+    const g=function(r,name,alt){ var i=(name in H)?H[name]:((alt&&alt in H)?H[alt]:-1); return i>=0?(r[i]||''):''; };
+    const rows=all.slice(1);
     openTickets = rows.map(function(r){
       return {
-        ticket_id:r[0]||'', category:r[4]||'', room:r[6]||'', description:r[7]||'',
-        status:r[9]||'', assigned_to:r[10]||'', building:r[20]||'', location:r[5]||''
+        ticket_id:g(r,'ticket_id'), branch:g(r,'branch'), category:g(r,'category'), room:g(r,'room'), description:g(r,'description'),
+        status:g(r,'status'), assigned_to:g(r,'assigned_to'), building:g(r,'building','location'), location:g(r,'location','building')
       };
     }).filter(function(t){ return t.ticket_id && (t.status==='pending'||t.status==='assigned'); }).reverse();
 
@@ -180,9 +184,10 @@ async function loadTickets(){
     }
     box.innerHTML = openTickets.map(function(t){
       const place=(t.building||t.location||'')+(t.room?' ห้อง '+t.room:'');
+      const brTag=t.branch?'<span class="tk-badge" style="background:#E8F5E9;color:#06C755">'+t.branch+'</span> ':'';
       const badge=t.status==='pending'?'<span class="tk-badge pending">🆕 ยังไม่มอบหมาย — กดรับได้เลย</span>':'<span class="tk-badge assigned">มอบหมายแล้ว</span>';
       return '<div class="tk-item" id="tk-'+t.ticket_id+'" onclick="selectTicket(\''+t.ticket_id+'\')">'+
-        '<div class="tk-id">'+t.ticket_id+badge+'</div>'+
+        '<div class="tk-id">'+t.ticket_id+' '+brTag+badge+'</div>'+
         '<div class="tk-meta">'+(t.category||'ไม่ระบุ')+' · '+place+'</div>'+
         '<div class="tk-sub">ผู้รับงาน: '+(t.assigned_to||'ไม่ระบุ')+(t.description?' · '+t.description.substring(0,40):'')+'</div></div>';
     }).join('');
