@@ -304,37 +304,70 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadData() {
   showLoading();
   try {
-    const res = await fetch(`${BASE}/TICKETS!A2:AF300?key=${API_KEY}`);
+    const res = await fetch(`${BASE}/TICKETS!A1:AZ1000?key=${API_KEY}`);
     const d   = await res.json();
-    if (!d.values) { allTickets = []; render(); return; }
-    allTickets = d.values.map(r => ({
-      ticket_id:    r[0]||'',
-      created_at:   r[1]||'',
-      department:   r[2]||'',
-      reported_by:  r[3]||r[22]||'',
-      category:     r[4]||'',
-      location:     r[5]||r[20]||'',
-      room:         r[6]||'',
-      description:  r[7]||'',
-      priority:     r[8]||'low',
-      status:       r[9]||'pending',
-      assigned_to:  r[10]||'',
-      assigned_at:  r[11]||'',
-      resolved_at:  r[12]||'',
-      duration_min: r[13]||'',
-      image_url:    r[15]||'',
-      done_image_url: r[31]||'',
-      rating:       r[16]||'',
-      notes:        r[17]||'',
-      team:         r[19]||'',
-      building:     r[20]||'',
-      displayName:  r[22]||'',
-      accepted_at:  r[25]||'',
-      rejected_at:  r[26]||'',
-      reject_reason:r[28]||'',
-      response_min: r[29]||'',
-      completion_min:r[30]||'',
+    if (!d.values || d.values.length<2) { allTickets = []; render(); return; }
+    const heads=d.values[0].map(h=>String(h||'').trim());
+    const H={}; heads.forEach((h,i)=>{ if(h && !(h in H)) H[h]=i; });
+    const g=(r,name,alt)=>{ const i=(name in H)?H[name]:((alt&&alt in H)?H[alt]:-1); return i>=0?(r[i]||''):''; };
+    allTickets = d.values.slice(1).map(r => ({
+      ticket_id:    g(r,'ticket_id'),
+      created_at:   g(r,'created_at'),
+      branch:       g(r,'branch'),
+      reporter_dept:g(r,'reporter_dept'),
+      progress_pct: g(r,'progress'),
+      progress_log: '',
+      department:   g(r,'department','team'),
+      reported_by:  g(r,'reported_by','displayName'),
+      category:     g(r,'category'),
+      location:     g(r,'location','building'),
+      room:         g(r,'room'),
+      description:  g(r,'description'),
+      priority:     g(r,'priority')||'low',
+      status:       g(r,'status')||'pending',
+      assigned_to:  g(r,'assigned_to'),
+      assigned_secondary: g(r,'assigned_secondary'),
+      assigned_at:  g(r,'assigned_at'),
+      resolved_at:  g(r,'resolved_at'),
+      duration_min: g(r,'duration_min'),
+      image_url:    g(r,'image_url'),
+      done_image_url: g(r,'done_image_url'),
+      rating:       g(r,'rating'),
+      notes:        g(r,'notes'),
+      team:         g(r,'team','department'),
+      building:     g(r,'building','location'),
+      displayName:  g(r,'displayName','reported_by'),
+      accepted_at:  g(r,'accepted_at'),
+      rejected_at:  g(r,'rejected_at'),
+      reject_reason:g(r,'reject_reason'),
+      response_min: g(r,'response_min'),
+      completion_min:g(r,'completion_min'),
     })).filter(t => t.ticket_id);
+    // โหลดไทม์ไลน์ความคืบหน้าจากแท็บ PROGRESS แล้วผูกเข้าแต่ละงาน
+    try {
+      const pr = await fetch(`${BASE}/PROGRESS!A1:E5000?key=${API_KEY}`);
+      const pd = await pr.json();
+      if (pd.values && pd.values.length > 1) {
+        const ph = pd.values[0].map(h=>String(h||'').trim().toLowerCase());
+        const pi = ph.indexOf('timestamp'), idi = ph.indexOf('ticket_id'),
+              pci = ph.indexOf('percent'), ni = ph.indexOf('note'), ai = ph.indexOf('actor');
+        const byTicket = {};
+        for (let i=1; i<pd.values.length; i++){
+          const row = pd.values[i]; const tid = String(row[idi]||'').trim();
+          if(!tid) continue;
+          (byTicket[tid] = byTicket[tid] || []).push({
+            p: parseInt(row[pci],10)||0, n: row[ni]||'', t: row[pi]||'', by: row[ai]||''
+          });
+        }
+        allTickets.forEach(t=>{
+          const log = byTicket[t.ticket_id];
+          if(log && log.length){
+            t.progress_log = JSON.stringify(log);
+            if(!t.progress_pct) t.progress_pct = String(log[log.length-1].p);
+          }
+        });
+      }
+    } catch(e){ console.log('progress load:', e); }
     updateCounts();
     render();
   } catch(e) {
@@ -470,6 +503,19 @@ function mkTicketCard(t) {
   // Timeline minimal
   const tlHtml = mkTimeline(t);
 
+  // แถบ % คืบหน้า (เฉพาะงานกำลังทำที่มีความคืบหน้า)
+  let pctBar = '';
+  const pv = parseInt(t.progress_pct)||0;
+  if (t.status==='in_progress' && pv>0) {
+    const bc = pv>=100?'#16A34A':pv>=50?'#2563EB':'#F59E0B';
+    pctBar = `<div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <div style="flex:1;height:8px;background:var(--bg2);border-radius:6px;overflow:hidden;border:1px solid var(--border)">
+        <div style="height:100%;width:${pv}%;background:${bc};border-radius:6px"></div>
+      </div>
+      <span style="font-size:12px;font-weight:700;color:${bc}">${pv}%</span>
+    </div>`;
+  }
+
   // Rating
   let ratingHtml = '';
   if (t.status==='done') {
@@ -503,6 +549,7 @@ function mkTicketCard(t) {
         <span class="meta-item"><span class="pri-badge ${pc}">${pl}</span></span>
       </div>
       ${timerHtml}
+      ${pctBar}
       ${ratingHtml}
     </div>
     <div class="ticket-timeline">
@@ -513,6 +560,45 @@ function mkTicketCard(t) {
 }
 
 // ===== TIMELINE =====
+function mkProgress(t) {
+  let log = [];
+  if (t.progress_log) { try { log = JSON.parse(t.progress_log); } catch(e){ log = []; } }
+  const pct = parseInt(t.progress_pct) || (t.status==='done'?100:0);
+  // ไม่มีทั้ง % และ log และงานยังไม่เริ่ม → ไม่ต้องแสดง
+  if (!log.length && !pct) return '';
+  const barColor = pct>=100?'#16A34A':pct>=50?'#2563EB':'#F59E0B';
+  let html = '<div style="margin-top:16px"><div class="timeline-title">📊 ความคืบหน้างาน</div>';
+  // แถบ %
+  html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <div style="flex:1;height:14px;background:var(--bg2);border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+      <div style="height:100%;width:${pct}%;background:${barColor};border-radius:8px;transition:width .3s"></div>
+    </div>
+    <div style="font-weight:700;font-size:15px;color:${barColor};min-width:42px;text-align:right">${pct}%</div>
+  </div>`;
+  // ไทม์ไลน์ขั้นความคืบหน้า
+  if (log.length) {
+    html += '<div style="display:flex;flex-direction:column;gap:0">';
+    log.forEach((e,i) => {
+      const last = i===log.length-1;
+      const dotCol = e.p>=100?'#16A34A':'#2563EB';
+      html += `<div style="display:flex;gap:10px">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div style="width:12px;height:12px;border-radius:50%;background:${dotCol};margin-top:3px;flex-shrink:0"></div>
+          ${!last?'<div style="width:2px;flex:1;background:var(--border);min-height:18px"></div>':''}
+        </div>
+        <div style="padding-bottom:${last?'0':'12px'};flex:1">
+          <div style="font-size:13px;color:var(--text);font-weight:600">${e.p}% ${e.n?'· '+escapeHtml(e.n):''}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">${e.t||''}${e.by?' · '+escapeHtml(e.by):''}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
 function mkTimeline(t) {
   const steps = [
     {
@@ -609,7 +695,7 @@ function openDetail(id) {
       <div class="detail-cell"><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||'—'}</div></div>
       <div class="detail-cell detail-full"><div class="detail-lbl">รายละเอียด</div><div class="detail-val" style="font-weight:400">${t.description||'—'}</div></div>
       <div class="detail-cell"><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-size:12px;font-family:'JetBrains Mono',monospace">${t.created_at||'—'}</div></div>
-      <div class="detail-cell"><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}</div></div>
+      <div class="detail-cell"><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ รอง: '+t.assigned_secondary+'</span>':''}</div></div>
       <div class="detail-cell"><div class="detail-lbl">รับงานเมื่อ</div><div class="detail-val" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--green)">${t.accepted_at||'—'}</div></div>
       <div class="detail-cell"><div class="detail-lbl">เสร็จเมื่อ</div><div class="detail-val" style="font-size:12px;font-family:'JetBrains Mono',monospace">${t.resolved_at||'—'}</div></div>
       ${t.response_min?`<div class="detail-cell"><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${fmtDuration(parseInt(t.response_min))}</div></div>`:''}
@@ -619,6 +705,7 @@ function openDetail(id) {
       <div class="detail-cell"><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${ratingHtml}</div></div>
     </div>
     ${imgHtml?`<div style="margin-top:4px"><div class="detail-lbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📷 รูปภาพแนบ</div>${imgHtml}</div>`:''}
+    ${mkProgress(t)}
     <div style="margin-top:16px">${mkTimeline(t)}</div>
     ${t.status==='done'&&!t.rating?`
     <div style="text-align:center;margin-top:16px;padding:16px;background:var(--green-l);border-radius:12px;border:1.5px solid var(--green-m)">
