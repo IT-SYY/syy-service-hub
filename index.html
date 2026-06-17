@@ -321,7 +321,7 @@ const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน uploa
 
 // ===== STATE =====
 let state = {
-  step:1, branch:'', team:'', teamCode:'', category:'', priority:'low',
+  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', priority:'low',
   building:'', room:'', description:'', department:'',
   photos:[], uploadedUrls:[],
   userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
@@ -471,15 +471,20 @@ function selectTeam(name, code) {
 }
 function renderCategories(code) {
   const cats = categories[code] || [];
-  document.getElementById('cat-list').innerHTML = cats.map(c =>
-    '<button class="cat-btn" onclick="selectCat(\''+c+'\',this)">'+c+'</button>'
+  let html = cats.map(c =>
+    '<button class="cat-btn" onclick="selectCat(\''+c+'\',this,\'repair\')">'+c+'</button>'
   ).join('');
+  // หัวข้อย่อยพิเศษ: ขอเปิดงานโครงการ (งานติดตั้ง/พัฒนา/ร้องขอใหม่ ที่ไม่ใช่ซ่อมเล็ก)
+  html += '<button class="cat-btn cat-project" onclick="selectCat(\'ขอเปิดงานโครงการ\',this,\'project\')" style="border-color:#7C3AED;color:#7C3AED">📁 ขอเปิดงานโครงการ / Request Project</button>';
+  document.getElementById('cat-list').innerHTML = html;
   state.category = '';
+  state.work_type = 'repair';
 }
-function selectCat(name, el) {
+function selectCat(name, el, wtype) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
   state.category = name;
+  state.work_type = wtype || 'repair';
 }
 function selectPriority(p, el) {
   document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
@@ -820,6 +825,7 @@ async function submitForm() {
     team:              state.team,
     team_code:         state.teamCode,
     category:          state.category,
+    work_type:         state.work_type || 'repair',
     priority:          state.priority,
     building:          state.building,
     room:              state.room,
