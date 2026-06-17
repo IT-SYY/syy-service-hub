@@ -794,7 +794,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
     <!-- TECHNICIANS PAGE -->
     <div class="page" id="page-technicians">
-      <div class="tickets-toolbar"><div class="toolbar-ttl">👥 ทีมช่าง IT Support</div></div>
+      <div class="tickets-toolbar"><div class="toolbar-ttl" id="tech-title">👥 ทีมช่าง</div></div>
       <div class="tech-grid" id="tech-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
     </div>
 
@@ -1813,7 +1813,23 @@ function gotoTicketPage(p){
 // ===== TECH GRID =====
 function renderTechGrid(){
   const b=getBase();
-  document.getElementById('tech-grid').innerHTML=MEMBERS.map(m=>{
+  // ใช้รายชื่อจริงจาก USERS (มี emp_id + branches) ถ้ายังไม่โหลด ใช้ MEMBERS เป็นสำรอง
+  let members = allMembers.length
+    ? allMembers.map(m=>({name:m.name, role:roleLabel(m.role), branches:m.branches||[], emp_id:m.emp_id||''}))
+    : MEMBERS.map(m=>({name:m.name, role:m.role, branches:[], emp_id:''}));
+  // กรองเฉพาะช่างที่รับผิดชอบสาขาที่เลือก (ถ้าเลือกสาขา) — ช่างที่ branches ว่าง = ส่วนกลาง เห็นทุกสาขา
+  if(currentBranch!=='all'){
+    members = members.filter(m=> m.branches.length===0 || m.branches.indexOf(currentBranch)>=0);
+  }
+  // ถ้าผู้ใช้ดูแลบางสาขา (ช่าง) จำกัดให้เห็นเฉพาะเพื่อนร่วมสาขาที่ตัวเองดูแล
+  if(userBranches.length>0){
+    members = members.filter(m=> m.branches.length===0 || m.branches.some(x=>userBranches.indexOf(x)>=0));
+  }
+  const grid=document.getElementById('tech-grid');
+  const ttl=document.getElementById('tech-title');
+  if(ttl) ttl.textContent='👥 ทีมช่าง'+(currentBranch!=='all'?' · สาขา '+currentBranch:'')+(currentTeam!=='all'?' · '+currentTeam:'');
+  if(!members.length){ grid.innerHTML='<div class="loading" style="grid-column:1/-1;text-align:center;color:var(--text3)">ไม่มีช่างในสาขานี้</div>'; return; }
+  grid.innerHTML=members.map(m=>{
     const inprog = b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
     const waiting= b.filter(t=>t.assigned_to===m.name&&t.status==='assigned');
     const d=b.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
@@ -1827,12 +1843,16 @@ function renderTechGrid(){
     const lateBanner = lateCount>0
       ? `<div class="tech-card-alert">🔴 มีงานล่าช้า ${lateCount} งาน</div>`
       : '';
+    const idLine = m.emp_id ? `<div class="tech-card-id" style="font-size:11px;color:var(--text3);margin-top:2px">🆔 ${m.emp_id}</div>` : '';
+    const brLine = m.branches.length ? `<div style="font-size:10px;color:var(--blue);margin-top:1px">${m.branches.join(', ')}</div>` : '';
 
     return `<div class="tech-card ${lateCount>0?'tech-card-late':''}" onclick="goToMemberTasks('${m.name}')" title="กดดูงานของ ${m.name}">
       ${lateBanner}
       <div class="tech-card-av ${lateCount>0?'av-late':''}">${m.name[0]}</div>
       <div class="tech-card-name">${m.name} <span class="tech-go">›</span></div>
       <div class="tech-card-role">${m.role}</div>
+      ${idLine}
+      ${brLine}
       <div class="tech-card-stats">
         <div class="tech-stat"><div class="tech-stat-num" style="color:var(--purple)">${a}</div><div class="tech-stat-lbl">กำลังทำ</div></div>
         <div class="tech-stat"><div class="tech-stat-num" style="color:var(--orange)">${p}</div><div class="tech-stat-lbl">ค้างรับ</div></div>
@@ -1841,6 +1861,11 @@ function renderTechGrid(){
       <div class="tech-dot ${lateCount>0?'late':a>0?'busy':'online'}" style="margin:10px auto 0;display:block;"></div>
     </div>`;
   }).join('');
+}
+// แปลง role code → ป้ายอ่านง่าย (ถ้าไม่ตรง คืนค่าเดิม)
+function roleLabel(r){
+  const map={admin:'ผู้ดูแลระบบ', tech:'ช่าง / Technician', viewer:'ผู้ชม'};
+  return map[String(r||'').toLowerCase()] || r || '';
 }
 
 // ===== HISTORY =====
