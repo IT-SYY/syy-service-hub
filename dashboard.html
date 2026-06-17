@@ -1594,7 +1594,7 @@ function mkCard(t){
   }
 
   let btns='';
-  if(t.status==='pending'||t.status==='rejected'){
+  if(t.status==='pending'){
     btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
   }else if(t.status==='assigned'){
     btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
@@ -1766,7 +1766,7 @@ function renderTicketsPage(_keepPage){
     const teamDisplay=t.team||t.department||'—';
     
     let btns='';
-    if(t.status==='pending'||t.status==='rejected') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
+    if(t.status==='pending') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
     if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
     if(t.status==='in_progress') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
     btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
@@ -2356,9 +2356,9 @@ function rejectPending(id){
   const reason=prompt('เหตุผลที่ปฏิเสธงานนี้ (เช่น งานซ้ำ / ไม่ใช่งานซ่อม / ข้อมูลไม่ครบ):');
   if(reason===null) return;
   const t=tickets.find(x=>x.ticket_id===id);
-  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:id,rejected_by:(currentUser&&currentUser.name)||'admin',reject_reason:reason||'ไม่ระบุ',access_token:authToken()})})
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'decline',ticket_id:id,rejected_by:(currentUser&&currentUser.name)||'admin',reject_reason:reason||'ไม่ระบุ',access_token:authToken()})})
     .then(r=>r.json()).then(r=>{
-      if(r.success){closeM('m-detail');renderAll();toast('ปฏิเสธงานแล้ว','✓','success');}
+      if(r.success){if(t){t.status='rejected';t.reject_reason=reason;t.assigned_to='';}closeM('m-detail');renderAll();toast('ปฏิเสธงานแล้ว (ปิดงาน)','✓','success');}
       else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
     }).catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
 }
@@ -2413,6 +2413,17 @@ async function doProgress(){
     else toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','info');
   }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
   btn.disabled=false;btn.textContent='📊 บันทึกความคืบหน้า';
+}
+// เปิดงานที่ถูกปฏิเสธกลับมาใหม่ (กู้คืน)
+function reopenTicket(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(!confirm('เปิดงานนี้กลับมาเป็น "รอดำเนินการ" ใหม่?')) return;
+  const t=tickets.find(x=>x.ticket_id===id);
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reopen',ticket_id:id,access_token:authToken()})})
+    .then(r=>r.json()).then(r=>{
+      if(r.success){if(t){t.status='pending';t.reject_reason='';}closeM('m-detail');renderAll();toast('เปิดงานใหม่แล้ว','↩️','success');}
+      else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+    }).catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
 }
 function openDone(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
@@ -2470,8 +2481,9 @@ function openDetail(id){
     </div>`;
   const ac=document.getElementById('m-detail-actions');
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">ปิด</button>`;
-  if(t.status==='pending'||t.status==='rejected') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openTransfer('${t.ticket_id}')">🔀 โอนงาน</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="rejectPending('${t.ticket_id}')">❌ ปฏิเสธ</button>`;
-  else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openTransfer('${t.ticket_id}')">🔀 โอนงาน</button>`;
+  if(t.status==='pending') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">❌ ปฏิเสธ</button>`;
+  else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">↩️ เปิดงานใหม่</button>`;
+  else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button>`;
   else if(t.status==='in_progress') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">📊 อัปเดต %</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
   ac.innerHTML=ab;
   document.getElementById('m-detail').classList.add('show');
