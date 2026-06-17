@@ -913,6 +913,11 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <input type="hidden" id="m-progress-pct" value="0">
     </div>
     <div class="modal-field"><label class="modal-lbl">ติดขัดอะไร / ทำอะไรไปแล้วบ้าง</label><textarea class="modal-ta" id="m-progress-note" placeholder="เช่น รออะไหล่ คาดว่าได้พรุ่งนี้..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl">📷 รูปความคืบหน้า (ไม่บังคับ, สูงสุด 3 รูป)</label>
+      <input type="file" id="m-progress-photos" accept="image/*" multiple style="display:none" onchange="progPickPhotos(this)">
+      <button type="button" style="width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;font-size:13px" onclick="document.getElementById('m-progress-photos').click()">+ แตะเพื่อแนบรูปความคืบหน้า</button>
+      <div id="m-progress-previews" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-progress')">ยกเลิก</button><button class="btn-ok green" id="btn-progress-ok" onclick="doProgress()">📊 บันทึกความคืบหน้า</button></div>
   </div>
 </div>
@@ -1167,20 +1172,32 @@ document.addEventListener('DOMContentLoaded',()=>{ applyTheme(document.body.clas
 let donePhotos = []; // dataURL ของรูปหลังปิดงานที่รอ upload
 
 function compressToDataURL(file){
+  const MAXW=1280, Q=0.75;
+  function drawToCanvas(source, sw, sh){
+    const sc=Math.min(1, MAXW/Math.max(sw,sh));
+    const w=Math.max(1,Math.round(sw*sc)), h=Math.max(1,Math.round(sh*sc));
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);  // พื้นขาว กัน PNG โปร่งใส/snapshot กลายเป็นดำ
+    ctx.drawImage(source,0,0,w,h);
+    return c.toDataURL('image/jpeg',Q);
+  }
   return new Promise(function(resolve,reject){
-    const reader=new FileReader();
-    reader.onload=function(e){
-      const img=new Image();
-      img.onload=function(){
-        const c=document.createElement('canvas');
-        const sc=Math.min(1,1280/Math.max(img.width,img.height));
-        c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
-        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-        resolve(c.toDataURL('image/jpeg',0.75));
+    if(typeof createImageBitmap==='function'){
+      createImageBitmap(file,{imageOrientation:'from-image'})
+        .then(function(bmp){ const out=drawToCanvas(bmp,bmp.width,bmp.height); if(bmp.close)bmp.close(); resolve(out); })
+        .catch(function(){ fallback(); });
+    } else { fallback(); }
+    function fallback(){
+      const reader=new FileReader();
+      reader.onload=function(e){
+        const img=new Image();
+        const go=function(){ try{ resolve(drawToCanvas(img,img.naturalWidth||img.width,img.naturalHeight||img.height)); }catch(err){ resolve(e.target.result); } };
+        img.onload=function(){ if(img.decode){ img.decode().then(go).catch(go); } else { go(); } };
+        img.onerror=reject; img.src=e.target.result;
       };
-      img.onerror=reject; img.src=e.target.result;
-    };
-    reader.onerror=reject; reader.readAsDataURL(file);
+      reader.onerror=reject; reader.readAsDataURL(file);
+    }
   });
 }
 
@@ -1201,6 +1218,26 @@ function renderDonePreviews(){
   box.innerHTML=donePhotos.map(function(d,i){
     return '<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)">'+
       '<button type="button" onclick="doneRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>';
+  }).join('');
+}
+
+// ===== รูปความคืบหน้า (modal อัปเดต %) =====
+let progressPhotos = [];
+async function progPickPhotos(input){
+  const files=Array.from(input.files||[]);
+  for(const f of files){
+    if(progressPhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
+    try{ progressPhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+  }
+  input.value=''; renderProgPreviews();
+}
+function progRemovePhoto(i){ progressPhotos.splice(i,1); renderProgPreviews(); }
+function renderProgPreviews(){
+  const box=document.getElementById('m-progress-previews');
+  if(!box) return;
+  box.innerHTML=progressPhotos.map(function(d,i){
+    return '<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)">'+
+      '<button type="button" onclick="progRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>';
   }).join('');
 }
 
@@ -2334,6 +2371,7 @@ function openProgress(id){
   const br=t.branch?'<span style="color:var(--green);font-weight:600"> ['+t.branch+']</span>':'';
   document.getElementById('m-progress-info').innerHTML=`<strong>${t.ticket_id}</strong>${br} ${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
   document.getElementById('m-progress-note').value='';
+  progressPhotos=[]; renderProgPreviews();
   renderMPct();
   setMPct(parseInt(t.progress,10)||0);
   document.getElementById('m-progress').classList.add('show');
@@ -2354,8 +2392,23 @@ async function doProgress(){
   const note=document.getElementById('m-progress-note').value;
   const btn=document.getElementById('btn-progress-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
   const t=tickets.find(x=>x.ticket_id===currentId);
+  // อัปโหลดรูปความคืบหน้า (ถ้ามี) — เก็บใน Drive ไม่เขียนทับ TICKETS (skip_sheet)
+  const imgUrls=[];
+  for(let i=0;i<progressPhotos.length;i++){
+    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+progressPhotos.length+'...';
+    try{
+      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+        action:'upload_image', ticket_id:currentId,
+        base64:progressPhotos[i].split(',')[1], mimeType:'image/jpeg',
+        fileName:currentId+'_progress_'+(i+1)+'_'+Date.now()+'.jpg',
+        column:'progress_image_url', skip_sheet:true
+      })})).json();
+      if(u.success&&u.imageUrl) imgUrls.push(u.imageUrl);
+    }catch(e){}
+  }
+  btn.textContent='กำลังบันทึก...';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'update_progress',ticket_id:currentId,percent:pct,note:note||'',access_token:authToken()})})).json();
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'update_progress',ticket_id:currentId,percent:pct,note:note||'',image_url:imgUrls.join(','),access_token:authToken()})})).json();
     if(r.success){t.progress=String(pct);if(t.status==='pending'||t.status==='assigned')t.status='in_progress';closeM('m-progress');renderAll();toast(`บันทึกความคืบหน้า ${pct}% แล้ว`,'📊','success');}
     else toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','info');
   }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
