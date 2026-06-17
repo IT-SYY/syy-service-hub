@@ -1058,7 +1058,7 @@ let currentBranch='all';
 let allMembers=[];     // สมาชิกทั้งหมดจาก USERS: {name, role, branches:[]} — สำหรับ dropdown มอบหมาย
 async function loadMembers(){
   try{
-    const r=await fetch(`${BASE}/USERS!A2:F200?key=${API_KEY}`);
+    const r=await fetch(`${BASE}/USERS!A2:G200?key=${API_KEY}`);
     const d=await r.json();
     allMembers=(d.values||[]).map(row=>({
       name:(row[1]||'').trim(),
@@ -1066,8 +1066,24 @@ async function loadMembers(){
       active:(row[3]===undefined||String(row[3]).toLowerCase()!=='false'),
       branches:(row[4]||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean),
       emp_id:(row[5]||'').trim(),
+      position:(row[6]||'').trim(),
     })).filter(m=>m.name && m.active && (m.role==='admin'||m.role==='tech'));
   }catch(e){ console.log('loadMembers error:',e); }
+}
+// ตำแหน่งงานสำรอง (ถ้า USERS ไม่มีคอลัมน์ position) — เดิม
+const POSITION_FALLBACK={'Chana':'IT Manager','Farid':'IT Project Supervisor','Radthaphol':'IT Supervisor','Pongsakorn':'IT Officer','Nianas':'IT Officer','Top':'IT Officer'};
+// คืนตำแหน่งงาน: position ในชีต > map สำรองตามชื่อ > ป้าย role
+function memberPosition(m){
+  return m.position || POSITION_FALLBACK[m.name] || roleLabel(m.role);
+}
+// คืนรายชื่อช่างที่ควรเห็น (กรองตามสาขาที่เลือก + สาขาที่ผู้ใช้ดูแล)
+function getVisibleMembers(){
+  let members = allMembers.length
+    ? allMembers.map(m=>({name:m.name, position:memberPosition(m), branches:m.branches||[], emp_id:m.emp_id||''}))
+    : MEMBERS.map(m=>({name:m.name, position:m.role, branches:[], emp_id:''}));
+  if(currentBranch!=='all') members=members.filter(m=> m.branches.length===0 || m.branches.indexOf(currentBranch)>=0);
+  if(userBranches.length>0) members=members.filter(m=> m.branches.length===0 || m.branches.some(x=>userBranches.indexOf(x)>=0));
+  return members;
 }
 function setStatus(m){const e=document.getElementById('auth-status');if(e)e.textContent=m;}
 function authToken(){ try{ return (typeof liff!=='undefined'&&liff.getAccessToken)?(liff.getAccessToken()||''):''; }catch(e){ return ''; } }
@@ -1624,7 +1640,10 @@ function mkCard(t){
 // ===== TECH LIST =====
 function renderTechList(){
   const base=getBase();
-  document.getElementById('tech-list').innerHTML=MEMBERS.map(m=>{
+  const members=getVisibleMembers();
+  const box=document.getElementById('tech-list');
+  if(!members.length){ box.innerHTML='<div class="loading" style="text-align:center;color:var(--text3);padding:16px">ไม่มีช่างในสาขานี้</div>'; return; }
+  box.innerHTML=members.map(m=>{
     const inprog   = base.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
     const assigned = base.filter(t=>t.assigned_to===m.name&&t.status==='assigned');
     const done     = base.filter(t=>t.assigned_to===m.name&&t.status==='done').length;
@@ -1658,7 +1677,7 @@ function renderTechList(){
       <div class="tech-av ${avClass}">${m.name[0]}</div>
       <div class="tech-info">
         <div class="tech-name">${m.name} <span class="tech-go">›</span></div>
-        <div class="tech-role">${m.role}</div>
+        <div class="tech-role">${m.position}</div>
         <div class="tech-badges">${badges}</div>
       </div>
       <div class="tech-stats">
@@ -1813,18 +1832,7 @@ function gotoTicketPage(p){
 // ===== TECH GRID =====
 function renderTechGrid(){
   const b=getBase();
-  // ใช้รายชื่อจริงจาก USERS (มี emp_id + branches) ถ้ายังไม่โหลด ใช้ MEMBERS เป็นสำรอง
-  let members = allMembers.length
-    ? allMembers.map(m=>({name:m.name, role:roleLabel(m.role), branches:m.branches||[], emp_id:m.emp_id||''}))
-    : MEMBERS.map(m=>({name:m.name, role:m.role, branches:[], emp_id:''}));
-  // กรองเฉพาะช่างที่รับผิดชอบสาขาที่เลือก (ถ้าเลือกสาขา) — ช่างที่ branches ว่าง = ส่วนกลาง เห็นทุกสาขา
-  if(currentBranch!=='all'){
-    members = members.filter(m=> m.branches.length===0 || m.branches.indexOf(currentBranch)>=0);
-  }
-  // ถ้าผู้ใช้ดูแลบางสาขา (ช่าง) จำกัดให้เห็นเฉพาะเพื่อนร่วมสาขาที่ตัวเองดูแล
-  if(userBranches.length>0){
-    members = members.filter(m=> m.branches.length===0 || m.branches.some(x=>userBranches.indexOf(x)>=0));
-  }
+  const members=getVisibleMembers();
   const grid=document.getElementById('tech-grid');
   const ttl=document.getElementById('tech-title');
   if(ttl) ttl.textContent='👥 ทีมช่าง'+(currentBranch!=='all'?' · สาขา '+currentBranch:'')+(currentTeam!=='all'?' · '+currentTeam:'');
@@ -1850,7 +1858,7 @@ function renderTechGrid(){
       ${lateBanner}
       <div class="tech-card-av ${lateCount>0?'av-late':''}">${m.name[0]}</div>
       <div class="tech-card-name">${m.name} <span class="tech-go">›</span></div>
-      <div class="tech-card-role">${m.role}</div>
+      <div class="tech-card-role">${m.position}</div>
       ${idLine}
       ${brLine}
       <div class="tech-card-stats">
@@ -2108,7 +2116,7 @@ function renderReport(){
       <div class="stat-row"><span class="stat-lbl">อัตราสำเร็จ</span><span class="stat-val" style="color:var(--green)">${b.length?Math.round(done.length/b.length*100):0}%</span></div>
     </div>
     <div class="report-card"><div class="report-ttl">👥 ผลงานทีม</div>
-      ${MEMBERS.map(m=>`<div class="stat-row"><span class="stat-lbl">${m.name}</span><span class="stat-val">${b.filter(t=>t.assigned_to===m.name&&t.status==='done').length} เสร็จ · <span style="color:var(--orange)">${b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length} ค้าง</span></span></div>`).join('')}
+      ${getVisibleMembers().map(m=>`<div class="stat-row"><span class="stat-lbl">${m.name}</span><span class="stat-val">${b.filter(t=>t.assigned_to===m.name&&t.status==='done').length} เสร็จ · <span style="color:var(--orange)">${b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress').length} ค้าง</span></span></div>`).join('')}
     </div>
     <div class="report-card"><div class="report-ttl">🏷️ ประเภทงาน</div>
       ${Object.entries(b.reduce((a,t)=>{if(t.category)a[t.category]=(a[t.category]||0)+1;return a},{})).sort((a,c)=>c[1]-a[1]).slice(0,6).map(([k,v])=>`<div class="stat-row"><span class="stat-lbl">${k}</span><span class="stat-val">${v}</span></div>`).join('')}
@@ -2122,8 +2130,9 @@ function renderReport(){
   const tc=document.getElementById('chart-team');
   if(tc){const tmLabels=Object.keys(tm);charts.team=new Chart(tc.getContext('2d'),{type:'doughnut',data:{labels:tmLabels,datasets:[{data:Object.values(tm),backgroundColor:['#10B981','#3B82F6','#F59E0B','#8B5CF6'],borderWidth:0}]},options:{responsive:true,onClick:(e,els)=>{if(!els.length)return;const tf=document.getElementById('team-filter');if(tf){tf.value=tmLabels[els[0].index];onTeam();}gotoTickets({toastMsg:'แสดงงานทีม '+tmLabels[els[0].index]});},plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10}}}}}});}
   
-  const mn=MEMBERS.map(m=>m.name);
-  const md=MEMBERS.map(m=>b.filter(t=>t.assigned_to===m.name&&t.status==='done').length);
+  const _vm=getVisibleMembers();
+  const mn=_vm.map(m=>m.name);
+  const md=_vm.map(m=>b.filter(t=>t.assigned_to===m.name&&t.status==='done').length);
   if(charts.mem) charts.mem.destroy();
   const mc=document.getElementById('chart-member');
   if(mc) charts.mem=new Chart(mc.getContext('2d'),{type:'bar',data:{labels:mn,datasets:[{label:'เสร็จ',data:md,backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10B981',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,onClick:(e,els)=>{if(!els.length)return;goToMemberTasks(mn[els[0].index]);},plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:10}}},y:{ticks:{color:'#94A3B8',stepSize:1}}}}});
