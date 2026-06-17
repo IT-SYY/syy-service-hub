@@ -603,7 +603,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-sec">Overview</div>
     <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
     <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
-    <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span></div>
+    <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-sec">Management</div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
     <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span>ประวัติงาน</span></div>
@@ -872,12 +872,12 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-ttl">⚡ รับหรือปฏิเสธงาน<button class="modal-x" onclick="closeM('m-accept')">×</button></div>
     <div class="info-box" id="m-accept-info"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn-ok green" style="flex:1" onclick="doAccept()">✅ รับงาน</button>
+      <button class="btn-ok green" id="btn-accept-ok" style="flex:1" onclick="doAccept()">✅ รับงาน</button>
       <button class="btn-ok red" style="flex:1" onclick="showRejectForm()">❌ ปฏิเสธ</button>
     </div>
     <div id="reject-form" style="display:none;margin-top:12px">
       <div class="modal-field"><label class="modal-lbl">เหตุผลที่ปฏิเสธ *</label><textarea class="modal-ta" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ..."></textarea></div>
-      <button class="btn-ok red" style="width:100%;margin-top:6px" onclick="doReject()">❌ ยืนยันปฏิเสธ</button>
+      <button class="btn-ok red" id="btn-reject-ok" style="width:100%;margin-top:6px" onclick="doReject()">❌ ยืนยันปฏิเสธ</button>
     </div>
   </div>
 </div>
@@ -1194,7 +1194,14 @@ function enterAs(user, degraded){
     rb.textContent=(user.name?user.name+' · ':'')+m[1].split(' ')[1];
   }
   document.getElementById('auth-gate').classList.add('hidden');
-  showSkeletons(); loadData(); timer=setInterval(()=>loadData(true),30000);
+  showSkeletons(); loadData();
+  timer=setInterval(()=>{
+    // ข้ามการรีเฟรชอัตโนมัติ ถ้ามีหน้าต่าง (modal) เปิดอยู่ — ผู้ใช้กำลังกรอก/กดอยู่
+    if(document.querySelector('.overlay.show')) return;
+    // ข้าม 1 รอบหลังเพิ่งทำรายการ เพื่อไม่ให้อ่านข้อมูลเก่ามาทับสถานะที่เพิ่งอัปเดต
+    if(Date.now()-lastActionAt < 9000) return;
+    loadData(true);
+  },30000);
 }
 
 // ===== SKELETON (โหลดครั้งแรก) =====
@@ -1442,12 +1449,14 @@ function renderAll(){
 }
 
 // ===== BASE FILTER =====
-function getBase(){
+function getBase(){ return filterByWorkType(viewWorkType); }
+// กรองงานตามประเภทที่ระบุ (repair/project) + สาขา/ทีม/สิทธิ์ — ใช้ร่วมกับ getBase และการนับ badge
+function filterByWorkType(wtype){
   const myName=(currentUser&&currentUser.name)||'';
   return tickets.filter(t=>{
     // กรองประเภทงาน: ซ่อมบำรุง (repair) หรือ โครงการ (project) — งานเก่าที่ไม่มีค่า = repair
     const wt=(String(t.work_type||'').toLowerCase()==='project')?'project':'repair';
-    if(wt!==viewWorkType) return false;
+    if(wt!==wtype) return false;
     // ช่างเห็นงานที่ถูกมอบหมายให้ตัวเองเสมอ (หลักหรือรอง) แม้เป็นงานข้ามสาขา
     const sec=String(t.assigned_secondary||'');
     const assignedToMe = userBranches.length>0 && myName && (t.assigned_to===myName || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0);
@@ -1547,8 +1556,12 @@ function renderKPI(){
     `ปิดแล้ว ${doneThis} /สัปดาห์${trendTag(doneThis,donePrev)}`;
 }
 function renderPendingBadge(){
-  const n=getBase().filter(t=>t.status==='pending'||t.status==='assigned').length;
-  const b=document.getElementById('pending-badge');
+  const waiting=(wtype)=> filterByWorkType(wtype).filter(t=>t.status==='pending'||t.status==='assigned').length;
+  setNavBadge('pending-badge', waiting('repair'));
+  setNavBadge('project-badge', waiting('project'));
+}
+function setNavBadge(id,n){
+  const b=document.getElementById(id); if(!b) return;
   b.textContent=n; b.style.display=n>0?'inline-block':'none';
 }
 
@@ -2599,7 +2612,8 @@ function openDetail(id){
   ac.innerHTML=ab;
   document.getElementById('m-detail').classList.add('show');
 }
-function closeM(id){document.getElementById(id).classList.remove('show');}
+let lastActionAt=0;   // เวลาทำรายการล่าสุด (กันรีเฟรชอัตโนมัติมาทับทันที)
+function closeM(id){document.getElementById(id).classList.remove('show'); lastActionAt=Date.now();}
 
 // ===== API CALLS =====
 async function doAssign(){
@@ -2619,6 +2633,7 @@ async function doAssign(){
 }
 async function doAccept(){
   const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
+  const btn=document.getElementById('btn-accept-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent='กำลังบันทึก...';
   const ts=thaiTime();
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts,timestamp:ts,access_token:authToken()})})).json();
@@ -2629,13 +2644,14 @@ async function doAccept(){
       closeM('m-accept');
       renderAll();
       toast('รับงาน '+currentId+' เรียบร้อย','✅','success');
-    }else toast('บันทึกไม่สำเร็จ','❌','error');
-  }catch(e){toast('Error: '+e.message,'❌','error');}
+    }else{ toast('บันทึกไม่สำเร็จ','❌','error'); btn.disabled=false; btn.textContent=_o; }
+  }catch(e){toast('Error: '+e.message,'❌','error'); btn.disabled=false; btn.textContent=_o;}
 }
 async function doReject(){
   const reason=document.getElementById('reject-reason').value.trim();
   if(!reason){toast('กรุณาระบุเหตุผล','⚠️','info');return;}
   const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
+  const btn=document.getElementById('btn-reject-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent='กำลังบันทึก...';
   const ts=thaiTime();
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason,access_token:authToken()})})).json();
@@ -2648,8 +2664,8 @@ async function doReject(){
       closeM('m-accept');
       renderAll();
       toast('ปฏิเสธงาน '+currentId+' — กรุณามอบหมายใหม่','⚠️','info');
-    }else toast('บันทึกไม่สำเร็จ','❌','error');
-  }catch(e){toast('Error: '+e.message,'❌','error');}
+    }else{ toast('บันทึกไม่สำเร็จ','❌','error'); btn.disabled=false; btn.textContent=_o; }
+  }catch(e){toast('Error: '+e.message,'❌','error'); btn.disabled=false; btn.textContent=_o;}
 }
 async function doDone(){
   const note=document.getElementById('m-done-note').value;
