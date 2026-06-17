@@ -602,7 +602,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   <div class="sidebar-nav">
     <div class="nav-sec">Overview</div>
     <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
-    <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets</span><span class="nav-badge" id="pending-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span></div>
     <div class="nav-sec">Management</div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
     <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span>ประวัติงาน</span></div>
@@ -760,7 +761,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
     <div class="page" id="page-tickets">
       <div class="tickets-toolbar">
-        <div class="toolbar-ttl">🎫 จัดการ Ticket ทั้งหมด</div>
+        <div class="toolbar-ttl" id="tickets-title">🎫 จัดการ Ticket ทั้งหมด</div>
+        <button class="btn-primary" id="btn-add-project" style="display:none;background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="openAddProject()">+ เพิ่มงานโครงการ</button>
         <button class="btn-secondary2" onclick="loadData()">↻ รีเฟรช</button>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
         <button class="btn-secondary2" onclick="exportExcel()">📊 Export Excel</button>
@@ -877,6 +879,28 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <div class="modal-field"><label class="modal-lbl">เหตุผลที่ปฏิเสธ *</label><textarea class="modal-ta" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ..."></textarea></div>
       <button class="btn-ok red" style="width:100%;margin-top:6px" onclick="doReject()">❌ ยืนยันปฏิเสธ</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-addproj">
+  <div class="modal">
+    <div class="modal-ttl">📁 เพิ่มงานโครงการ<button class="modal-x" onclick="closeM('m-addproj')">×</button></div>
+    <div class="modal-field"><label class="modal-lbl">หัวข้องาน <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ap-title" placeholder="เช่น ติดตั้งระบบกล้อง CCTV โซนล็อบบี้"></div>
+    <div class="modal-field"><label class="modal-lbl">ทีมรับผิดชอบ <span style="color:var(--red)">*</span></label>
+      <select class="modal-sel" id="ap-team">
+        <option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option>
+      </select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">สาขา <span style="color:var(--red)">*</span></label>
+      <select class="modal-sel" id="ap-branch"><option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">สถานที่ / อาคาร</label><input class="modal-sel" id="ap-building" placeholder="เช่น อาคารหลัก, ล็อบบี้"></div>
+    <div class="modal-field"><label class="modal-lbl">รายละเอียดงาน</label><textarea class="modal-ta" id="ap-desc" placeholder="ขอบเขตงาน สิ่งที่ต้องทำ อุปกรณ์ที่ต้องใช้..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl">ความสำคัญ</label>
+      <select class="modal-sel" id="ap-priority"><option value="low">ปกติ</option><option value="medium">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">กำหนดเสร็จ <span style="color:var(--text3);font-weight:400">(ไม่บังคับ)</span></label><input class="modal-sel" id="ap-due" type="date"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addproj')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" id="btn-addproj-ok" onclick="doAddProject()">📁 สร้างงานโครงการ</button></div>
   </div>
 </div>
 
@@ -1055,6 +1079,7 @@ let currentUser=null;       // {userId,name,role}
 let userRole='viewer';
 let userBranches=[];   // สาขาที่ผู้ใช้ดูแล (ว่าง=admin เห็นทุกสาขา / tech ที่ไม่ระบุ=เห็นทุกสาขา)
 let currentBranch='all';
+let viewWorkType='repair';   // มุมมองปัจจุบัน: repair=งานซ่อมบำรุง / project=งานโครงการ
 let allMembers=[];     // สมาชิกทั้งหมดจาก USERS: {name, role, branches:[]} — สำหรับ dropdown มอบหมาย
 async function loadMembers(){
   try{
@@ -1312,6 +1337,7 @@ async function loadData(silent=false){
         created_at:   g(r,'created_at'),
         branch:       g(r,'branch'),
         reporter_dept:g(r,'reporter_dept'),
+        work_type:    g(r,'work_type'),
         progress:     g(r,'progress'),
         assigned_secondary:g(r,'assigned_secondary'),
         department:   g(r,'department','team'),
@@ -1419,6 +1445,9 @@ function renderAll(){
 function getBase(){
   const myName=(currentUser&&currentUser.name)||'';
   return tickets.filter(t=>{
+    // กรองประเภทงาน: ซ่อมบำรุง (repair) หรือ โครงการ (project) — งานเก่าที่ไม่มีค่า = repair
+    const wt=(String(t.work_type||'').toLowerCase()==='project')?'project':'repair';
+    if(wt!==viewWorkType) return false;
     // ช่างเห็นงานที่ถูกมอบหมายให้ตัวเองเสมอ (หลักหรือรอง) แม้เป็นงานข้ามสาขา
     const sec=String(t.assigned_secondary||'');
     const assignedToMe = userBranches.length>0 && myName && (t.assigned_to===myName || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0);
@@ -2354,6 +2383,51 @@ function openAccept(id){
   document.getElementById('m-accept').classList.add('show');
 }
 function showRejectForm(){document.getElementById('reject-form').style.display='block';}
+// ===== เพิ่มงานโครงการ (admin สร้างเอง) =====
+function openAddProject(){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  document.getElementById('ap-title').value='';
+  document.getElementById('ap-building').value='';
+  document.getElementById('ap-desc').value='';
+  document.getElementById('ap-due').value='';
+  document.getElementById('ap-priority').value='low';
+  if(currentBranch!=='all') document.getElementById('ap-branch').value=currentBranch;
+  document.getElementById('m-addproj').classList.add('show');
+}
+async function doAddProject(){
+  const title=document.getElementById('ap-title').value.trim();
+  if(!title){toast('กรุณากรอกหัวข้องาน','⚠️','info');return;}
+  const team=document.getElementById('ap-team').value;
+  const branch=document.getElementById('ap-branch').value;
+  const building=document.getElementById('ap-building').value.trim();
+  let desc=document.getElementById('ap-desc').value.trim();
+  const priority=document.getElementById('ap-priority').value;
+  const due=document.getElementById('ap-due').value;
+  if(due) desc=(desc?desc+'\n':'')+'📅 กำหนดเสร็จ: '+due;
+  const btn=document.getElementById('btn-addproj-ok');btn.disabled=true;btn.textContent='กำลังสร้าง...';
+  const liff_data={
+    work_type:'project', category:title, team:team, branch:branch,
+    building:building, room:'', description:desc, priority:priority,
+    reporter_dept:'Admin', displayName:(currentUser&&currentUser.name)||'Admin', userId:(currentUser&&currentUser.userId)||''
+  };
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({liff_data:liff_data,access_token:authToken()})})).json();
+    if(r.success){closeM('m-addproj');toast('สร้างงานโครงการแล้ว','📁','success');setTimeout(loadData,400);}
+    else toast('สร้างไม่สำเร็จ: '+(r.error||''),'❌','info');
+  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+  btn.disabled=false;btn.textContent='📁 สร้างงานโครงการ';
+}
+// ===== ย้ายงานซ่อม → งานโครงการ (งานบานปลาย) =====
+function moveToProject(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(!confirm('ย้ายงานนี้ไปเป็น "งานโครงการ"?\n\nงานจะออกจากหน้างานซ่อมบำรุง ไปอยู่ในเมนูงานโครงการ (สถานะและประวัติคงเดิม) เหมาะกับงานที่บานปลายเกินซ่อมเล็ก')) return;
+  const t=tickets.find(x=>x.ticket_id===id);
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'convert_project',ticket_id:id,access_token:authToken()})})
+    .then(r=>r.json()).then(r=>{
+      if(r.success){if(t)t.work_type='project';closeM('m-detail');renderAll();toast('ย้ายเป็นงานโครงการแล้ว','📁','success');}
+      else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+    }).catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
+}
 // ===== โอนงานข้ามแผนก/สาขา =====
 function openTransfer(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
@@ -2519,6 +2593,9 @@ function openDetail(id){
   else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">↩️ เปิดงานใหม่</button>`;
   else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button>`;
   else if(t.status==='in_progress') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">📊 อัปเดต %</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  // ย้ายงานซ่อม → โครงการ (เฉพาะงาน repair ที่ยังไม่ปิด/ยังไม่ถูกปฏิเสธ — งานบานปลาย)
+  if(viewWorkType==='repair' && (t.status==='pending'||t.status==='assigned'||t.status==='in_progress'))
+    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="closeM('m-detail');moveToProject('${t.ticket_id}')">📁 ย้ายเป็นงานโครงการ</button>`;
   ac.innerHTML=ab;
   document.getElementById('m-detail').classList.add('show');
 }
@@ -2722,7 +2799,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,tickets:1,technicians:2,history:3,archive:4,report:5};
+const PAGE_NAV={dashboard:0,tickets:1,projects:2,technicians:3,history:4,archive:5,report:6};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
@@ -2763,25 +2840,30 @@ function archiveSearchKey(ev){ if(ev && ev.key==='Enter') doArchiveSearch(); }
 
 function showPage(p,el,fromPop){
   window._navByMember=false;
+  // งานโครงการใช้หน้าเดียวกับ tickets แต่กรองเฉพาะ project
+  const domPage = (p==='projects') ? 'tickets' : p;
+  viewWorkType = (p==='projects') ? 'project' : 'repair';
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('page-'+domPage).classList.add('active');
   if(!el) el=document.querySelectorAll('.nav-item')[PAGE_NAV[p]||0];
   el.classList.add('active');
-  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
+  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',projects:'📁 งานโครงการ',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
-  // บันทึกประวัติการเปิดหน้า เพื่อให้ปุ่ม back (ทั้งบนจอและของเครื่อง) ย้อนกลับได้
+  // สลับ UI ของหน้า tickets ระหว่างโหมดซ่อมบำรุง / โครงการ
+  const tt=document.getElementById('tickets-title'); const addBtn=document.getElementById('btn-add-project');
+  if(p==='projects'){ if(tt)tt.textContent='📁 จัดการงานโครงการ'; if(addBtn)addBtn.style.display='inline-block'; }
+  else if(domPage==='tickets'){ if(tt)tt.textContent='🎫 จัดการ Ticket ซ่อมบำรุง'; if(addBtn)addBtn.style.display='none'; }
+  // บันทึกประวัติการเปิดหน้า เพื่อให้ปุ่ม back ย้อนกลับได้
   if(!fromPop && p!==currentPage){
     try{ history.pushState({page:p},'','#'+p); }catch(e){}
   }
   currentPage=p;
-  // ปิดเมนูซ้ายอัตโนมัติบนมือถือ ไม่ให้ค้างบังเนื้อหา
   const sb=document.getElementById('sidebar');
   if(sb) sb.classList.remove('open');
-  // ปุ่มย้อนกลับ: แสดงเมื่อไม่ได้อยู่หน้าแรก
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
-  if(p==='tickets') renderTicketsPage();
+  if(p==='tickets'||p==='projects') renderTicketsPage();
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
   if(p==='report') renderReport();
