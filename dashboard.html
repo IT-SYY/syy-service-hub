@@ -61,6 +61,8 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
   box-shadow:0 2px 6px rgba(178,83,9,0.2);
 }
 .assigned-badge-icon{font-size:13px;}
+.assigned-badge.sec{background:linear-gradient(135deg,#0E7490,#155E75);border-color:rgba(14,116,144,0.3);box-shadow:0 2px 6px rgba(14,116,144,0.2);}
+.assigned-badge.me{background:linear-gradient(135deg,#059669,#047857);border:2px solid #34D399;box-shadow:0 0 0 2px rgba(52,211,153,0.35);}
 .assigned-pending{
   background:linear-gradient(135deg,#F59E0B,#D97706);
   color:#FFF;
@@ -1029,7 +1031,7 @@ function tvCard(t){
   const dot=lt.level==='danger'?'🔴':lt.level==='warn'?'🟠':'';
   return `<div class="tvb-card"><div class="id">${dot} ${t.ticket_id} <span style="font-weight:400;color:var(--text3)">· ${t.category||''}</span></div>
     <div class="m">${place||'-'}</div>
-    <div class="a">${t.assigned_to?'👤 '+t.assigned_to:'ยังไม่มอบหมาย'}${m!==null?' · '+fmtDuration(m):''}</div></div>`;
+    <div class="a">${t.assigned_to?'👤 '+allAssignees(t).join(', '):'ยังไม่มอบหมาย'}${m!==null?' · '+fmtDuration(m):''}</div></div>`;
 }
 function renderTVBoard(){
   const board=document.getElementById('tv-board'); if(!board) return;
@@ -1451,6 +1453,27 @@ function renderAll(){
 }
 
 // ===== BASE FILTER =====
+// รวมรายชื่อผู้รับงานทั้งหมด (หลัก + รอง) ไม่ซ้ำ
+function allAssignees(t){
+  const list=[];
+  if(t.assigned_to) list.push(String(t.assigned_to).trim());
+  String(t.assigned_secondary||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(n=>{ if(list.indexOf(n)<0) list.push(n); });
+  return list;
+}
+// สร้าง badge รายชื่อผู้รับงานทุกคน — ผู้รับหลักไอคอน 👤, ผู้รับรอง 👥, ชื่อตัวเองไฮไลต์เขียว
+function assigneeBadges(t, emptyHTML){
+  const names=allAssignees(t);
+  if(!names.length) return emptyHTML||'<span style="color:var(--text3);">ยังไม่มอบหมาย</span>';
+  const myName=(currentUser&&currentUser.name)||'';
+  return names.map((n,i)=>{
+    const me = n===myName;
+    const primary = (i===0);
+    const cls = 'assigned-badge'+(me?' me':(primary?'':' sec'));
+    const icon = primary?'👤':'👥';
+    const tag = (primary&&names.length>1)?' <span style="opacity:.8;font-size:9px">(หลัก)</span>':'';
+    return '<span class="'+cls+'"><span class="assigned-badge-icon">'+icon+'</span>'+n+tag+(me?' ✓':'')+'</span>';
+  }).join(' ');
+}
 function getBase(){ return filterByWorkType(viewWorkType); }
 // กรองงานตามประเภทที่ระบุ (repair/project) + สาขา/ทีม/สิทธิ์ — ใช้ร่วมกับ getBase และการนับ badge
 function filterByWorkType(wtype){
@@ -1624,7 +1647,7 @@ function mkCard(t){
   // ===== ASSIGNEE BADGE (ปรับปรุง) =====
   let assigneeBadge='';
   if(t.assigned_to){
-    assigneeBadge='<span class="assigned-badge"><span class="assigned-badge-icon">👤</span>'+t.assigned_to+'</span>';
+    assigneeBadge=assigneeBadges(t);
   }else{
     assigneeBadge='<span class="assigned-badge assigned-pending"><span class="assigned-badge-icon">⏳</span>ยังไม่มอบหมาย</span>';
   }
@@ -1825,7 +1848,7 @@ function renderTicketsPage(_keepPage){
     const pc=t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low';
     
     // ===== ASSIGNEE & TEAM DISPLAY (ปรับปรุง) =====
-    const assigneeDisplay=t.assigned_to?'<span class="assigned-badge"><span class="assigned-badge-icon">👤</span>'+t.assigned_to+'</span>':'<span style="color:var(--text3);">—</span>';
+    const assigneeDisplay=t.assigned_to?assigneeBadges(t):'<span style="color:var(--text3);">—</span>';
     const teamDisplay=t.team||t.department||'—';
     
     let btns='';
