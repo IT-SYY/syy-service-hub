@@ -605,6 +605,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-sec">Management</div>
+    <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="window.open('https://it-syy.github.io/Generator-System/','_blank')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
     <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span>ประวัติงาน</span></div>
     <div class="nav-item" onclick="showPage('archive',this)"><span class="nav-icon">🗄️</span><span>ค้นประวัติ (Archive)</span></div>
@@ -1185,6 +1186,7 @@ function enterAs(user, degraded){
   currentUser=user; userRole=user.role; userBranches=user.branches||[];
   buildBranchFilter();
   loadMembers();
+  updateEngineeringMenu();
   document.body.classList.toggle('viewer', userRole==='viewer');
   const rb=document.getElementById('role-badge');
   if(rb){
@@ -2584,6 +2586,7 @@ function openDetail(id){
       <div><div class="detail-lbl">ประเภท</div><div class="detail-val">${t.category||'—'}</div></div>
       <div><div class="detail-lbl">สถานที่</div><div class="detail-val">${t.building||t.location||'—'} ${t.room?'ห้อง '+t.room:''}</div></div>
       <div><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||t.userId||'—'}</div></div>
+      <div><div class="detail-lbl">แผนกผู้แจ้ง</div><div class="detail-val">${t.reporter_dept||'—'}</div></div>
       <div><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
       <div><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ รอง: '+t.assigned_secondary+'</span>':''}</div></div>
       <div><div class="detail-lbl">มอบหมายเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
@@ -2893,7 +2896,12 @@ window.addEventListener('popstate',function(e){
   if(document.getElementById('page-'+p)) showPage(p,null,true);
 });
 try{ history.replaceState({page:'dashboard'},'','#dashboard'); }catch(e){}
-function onTeam(){currentTeam=document.getElementById('team-filter').value;renderAll();}
+function onTeam(){currentTeam=document.getElementById('team-filter').value;updateEngineeringMenu();renderAll();}
+// แสดงเมนู GENERATOR FUEL LOG เฉพาะเมื่อเลือกทีม Engineering
+function updateEngineeringMenu(){
+  const el=document.getElementById('nav-genlog');
+  if(el) el.style.display=(currentTeam==='Engineering')?'flex':'none';
+}
 function clearMemberFilter(){memberFilter='';const si=document.getElementById('search-input');if(si)si.value='';renderTicketsPage();}
 function onSearch(){
   const ap=document.querySelector('.page.active')?.id;
