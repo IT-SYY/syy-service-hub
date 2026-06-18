@@ -606,6 +606,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
     <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span>บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-sec">Management</div>
     <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="window.open('https://it-syy.github.io/Generator-System/','_blank')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
@@ -766,6 +767,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <div class="tickets-toolbar">
         <div class="toolbar-ttl" id="tickets-title">🎫 จัดการ Ticket ทั้งหมด</div>
         <button class="btn-primary" id="btn-add-project" style="display:none;background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="openAddProject()">+ เพิ่มงานโครงการ</button>
+        <button class="btn-primary" id="btn-pm-plans" style="display:none;background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openPmPlans()">🗓️ จัดการแผน PM</button>
         <button class="btn-secondary2" onclick="loadData()">↻ รีเฟรช</button>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
         <button class="btn-secondary2" onclick="exportExcel()">📊 Export Excel</button>
@@ -826,6 +828,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
       <div class="report-grid" id="report-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
+      <div class="report-card" id="pm-report-card" style="margin-top:10px"></div>
       <div class="report-card" id="recurring-card" style="margin-top:10px">
         <div class="report-ttl">🔁 จุดที่ซ่อมซ้ำซาก <span style="font-weight:400;font-size:11px;color:var(--text3)">(จุดเดิม + ประเภทเดิม ซ่อม ≥3 ครั้งใน 90 วัน — ควรพิจารณาแก้ที่ต้นเหตุ)</span></div>
         <div id="recurring-body"></div>
@@ -882,6 +885,49 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <div class="modal-field"><label class="modal-lbl">เหตุผลที่ปฏิเสธ *</label><textarea class="modal-ta" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ..."></textarea></div>
       <button class="btn-ok red" id="btn-reject-ok" style="width:100%;margin-top:6px" onclick="doReject()">❌ ยืนยันปฏิเสธ</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-pmplans">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-ttl">🗓️ จัดการแผนบำรุงรักษา (PM Plans)<button class="modal-x" onclick="closeM('m-pmplans')">×</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:12px;color:var(--text3)">ตั้งกำหนดการบำรุงรักษาตามรอบ ระบบจะสร้างงานให้อัตโนมัติเมื่อครบกำหนด</span>
+      <button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="openPmForm()">+ เพิ่มแผนใหม่</button>
+    </div>
+    <div id="pm-plans-list" style="max-height:60vh;overflow-y:auto"><div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลดแผน...</div></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-pmplans')">ปิด</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-pmform">
+  <div class="modal">
+    <div class="modal-ttl" id="pmform-title">+ เพิ่มแผน PM<button class="modal-x" onclick="closeM('m-pmform')">×</button></div>
+    <input type="hidden" id="pf-id">
+    <div class="modal-field"><label class="modal-lbl">ชื่องานบำรุงรักษา <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-name" placeholder="เช่น ล้างแอร์ทุกห้องพัก, ตรวจเครื่องสำรองไฟ"></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ทีม</label>
+        <select class="modal-sel" id="pf-team"><option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option></select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขา</label>
+        <select class="modal-sel" id="pf-branch"><option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
+      </div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">สถานที่/อุปกรณ์</label><input class="modal-sel" id="pf-building" placeholder="เช่น ห้องเครื่อง, อาคารหลัก"></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ทุก ๆ</label><input class="modal-sel" id="pf-interval" type="number" min="1" value="1"></div>
+      <div class="modal-field" style="flex:1.4"><label class="modal-lbl">รอบ</label>
+        <select class="modal-sel" id="pf-frequency"><option value="day">วัน</option><option value="week">สัปดาห์</option><option value="month" selected>เดือน</option><option value="quarter">ไตรมาส</option><option value="year">ปี</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ครบกำหนดครั้งแรก <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-due" type="date"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ความสำคัญ</label>
+        <select class="modal-sel" id="pf-priority"><option value="low">ปกติ</option><option value="medium">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+      </div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">รายละเอียดงาน</label><textarea class="modal-ta" id="pf-detail" placeholder="ขั้นตอน/สิ่งที่ต้องทำ..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-pmform')">ยกเลิก</button><button class="btn-ok green" id="btn-pmform-ok" onclick="savePmForm()">💾 บันทึกแผน</button></div>
   </div>
 </div>
 
@@ -1479,8 +1525,9 @@ function getBase(){ return filterByWorkType(viewWorkType); }
 function filterByWorkType(wtype){
   const myName=(currentUser&&currentUser.name)||'';
   return tickets.filter(t=>{
-    // กรองประเภทงาน: ซ่อมบำรุง (repair) หรือ โครงการ (project) — งานเก่าที่ไม่มีค่า = repair
-    const wt=(String(t.work_type||'').toLowerCase()==='project')?'project':'repair';
+    // กรองประเภทงาน: repair / project / pm — งานเก่าที่ไม่มีค่า = repair
+    const raw=String(t.work_type||'').toLowerCase();
+    const wt = (raw==='project'||raw==='pm') ? raw : 'repair';
     if(wt!==wtype) return false;
     // ช่างเห็นงานที่ถูกมอบหมายให้ตัวเองเสมอ (หลักหรือรอง) แม้เป็นงานข้ามสาขา
     const sec=String(t.assigned_secondary||'');
@@ -1584,6 +1631,7 @@ function renderPendingBadge(){
   const waiting=(wtype)=> filterByWorkType(wtype).filter(t=>t.status==='pending'||t.status==='assigned').length;
   setNavBadge('pending-badge', waiting('repair'));
   setNavBadge('project-badge', waiting('project'));
+  setNavBadge('pm-badge', waiting('pm'));
 }
 function setNavBadge(id,n){
   const b=document.getElementById(id); if(!b) return;
@@ -2171,6 +2219,7 @@ function renderReport(){
   renderHeatmap();
   renderSLA();
   renderLeaderboard();
+  renderPmReport();
   const b=getBase();
   const done=b.filter(t=>t.status==='done');
   document.getElementById('report-grid').innerHTML=`
@@ -2421,6 +2470,131 @@ function openAccept(id){
   document.getElementById('m-accept').classList.add('show');
 }
 function showRejectForm(){document.getElementById('reject-form').style.display='block';}
+// ===== รายงาน PM (กำหนดการบำรุงรักษา) =====
+async function renderPmReport(){
+  const card=document.getElementById('pm-report-card'); if(!card) return;
+  card.innerHTML='<div class="report-title">🔧 กำหนดการบำรุงรักษา (PM)</div><div style="color:var(--text3);font-size:12px;padding:6px">⏳ กำลังโหลด...</div>';
+  let plans=[];
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})})).json();
+    plans=(r.plans||[]).filter(p=>p.active);
+  }catch(e){ card.innerHTML='<div class="report-title">🔧 กำหนดการบำรุงรักษา (PM)</div><div style="color:var(--red);padding:6px">โหลดไม่สำเร็จ</div>'; return; }
+  // กรองตามสาขา/ทีมที่เลือก
+  if(currentBranch!=='all') plans=plans.filter(p=>String(p.branch).toUpperCase()===currentBranch);
+  if(currentTeam!=='all') plans=plans.filter(p=>p.team===currentTeam);
+  const overdue=plans.filter(p=>p.days_until<0);
+  const soon=plans.filter(p=>p.days_until>=0&&p.days_until<=7);
+  const ok=plans.filter(p=>p.days_until>7);
+  const stat=(n,l,c)=>`<div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:${c}">${n}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`;
+  const upcoming=plans.slice().sort((a,b)=>a.days_until-b.days_until).slice(0,12);
+  let rows=upcoming.map(p=>{
+    const di=p.days_until, c=di<0?'#EF4444':di<=7?'#F59E0B':'#10B981';
+    const st=di<0?('เลย '+Math.abs(di)+' วัน'):di===0?'วันนี้':('อีก '+di+' วัน');
+    return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${p.name}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${p.branch} · ${p.team}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${p.next_due}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:${c};font-weight:700">${st}</td></tr>`;
+  }).join('');
+  if(!upcoming.length) rows='<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3)">ยังไม่มีแผน PM</td></tr>';
+  card.innerHTML=`<div class="report-title">🔧 กำหนดการบำรุงรักษา (PM)${currentBranch!=='all'?' · '+currentBranch:''}</div>
+    <div style="display:flex;gap:8px;margin:8px 0">
+      ${stat(plans.length,'แผนทั้งหมด','var(--blue)')}
+      ${stat(overdue.length,'เลยกำหนด','#EF4444')}
+      ${stat(soon.length,'ใกล้ครบ (7 วัน)','#F59E0B')}
+      ${stat(ok.length,'ตามแผน','#10B981')}
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:11px;text-align:left"><th style="padding:6px 8px">งานบำรุงรักษา</th><th style="padding:6px 8px">สาขา/ทีม</th><th style="padding:6px 8px">ครบกำหนด</th><th style="padding:6px 8px">สถานะ</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+// ===== จัดการแผน PM =====
+let pmPlansCache=[];
+const PM_FREQ_LABEL={day:'วัน',week:'สัปดาห์',month:'เดือน',quarter:'ไตรมาส',year:'ปี'};
+async function openPmPlans(){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  document.getElementById('m-pmplans').classList.add('show');
+  await loadPmPlans();
+}
+async function loadPmPlans(){
+  const box=document.getElementById('pm-plans-list');
+  box.innerHTML='<div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลด...</div>';
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})})).json();
+    pmPlansCache=(r.plans||[]);
+    renderPmPlansList();
+  }catch(e){ box.innerHTML='<div style="color:var(--red);padding:20px">โหลดไม่สำเร็จ</div>'; }
+}
+function renderPmPlansList(){
+  const box=document.getElementById('pm-plans-list');
+  if(!pmPlansCache.length){ box.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">ยังไม่มีแผน — กด "เพิ่มแผนใหม่"</div>'; return; }
+  box.innerHTML=pmPlansCache.map(p=>{
+    const di=p.days_until;
+    const stColor = di<0?'#EF4444':di<=7?'#F59E0B':'#10B981';
+    const stText  = di<0?('เลยกำหนด '+Math.abs(di)+' วัน') : di===0?'ครบกำหนดวันนี้' : ('อีก '+di+' วัน');
+    const freq = 'ทุก '+(p.interval>1?p.interval+' ':'')+(PM_FREQ_LABEL[p.frequency]||p.frequency);
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid ${stColor};border-radius:8px;padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--text)">${p.name} ${p.active?'':'<span style=\"font-size:10px;color:var(--text3)\">(ปิดอยู่)</span>'}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${p.branch||'-'} · ${p.team||'-'}${p.building?' · '+p.building:''} · ${freq}</div>
+          <div style="font-size:11px;margin-top:3px">ครบกำหนด: <b>${p.next_due}</b> · <span style="color:${stColor};font-weight:700">${stText}</span></div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn-done2" style="background:#0EA5E9" onclick="editPmPlan('${p.plan_id}')">แก้ไข</button>
+          <button class="btn-done2" style="background:#EF4444" onclick="removePmPlan('${p.plan_id}','${(p.name||'').replace(/'/g,'')}')">ลบ</button>
+        </div>
+      </div></div>`;
+  }).join('');
+}
+function openPmForm(){
+  document.getElementById('pmform-title').firstChild.textContent='+ เพิ่มแผน PM';
+  document.getElementById('pf-id').value='';
+  document.getElementById('pf-name').value='';
+  document.getElementById('pf-building').value='';
+  document.getElementById('pf-detail').value='';
+  document.getElementById('pf-interval').value=1;
+  document.getElementById('pf-frequency').value='month';
+  document.getElementById('pf-priority').value='low';
+  document.getElementById('pf-due').value=new Date(Date.now()+86400000*30).toISOString().slice(0,10);
+  if(currentBranch!=='all') document.getElementById('pf-branch').value=currentBranch;
+  document.getElementById('m-pmform').classList.add('show');
+}
+function editPmPlan(id){
+  const p=pmPlansCache.find(x=>x.plan_id===id); if(!p)return;
+  document.getElementById('pmform-title').firstChild.textContent='✏️ แก้ไขแผน PM';
+  document.getElementById('pf-id').value=p.plan_id;
+  document.getElementById('pf-name').value=p.name||'';
+  document.getElementById('pf-team').value=p.team||'IT Support';
+  document.getElementById('pf-branch').value=p.branch||'SYY';
+  document.getElementById('pf-building').value=p.building||'';
+  document.getElementById('pf-interval').value=p.interval||1;
+  document.getElementById('pf-frequency').value=p.frequency||'month';
+  document.getElementById('pf-priority').value=p.priority||'low';
+  document.getElementById('pf-due').value=p.next_due||'';
+  document.getElementById('pf-detail').value=p.detail||'';
+  document.getElementById('m-pmform').classList.add('show');
+}
+async function savePmForm(){
+  const name=document.getElementById('pf-name').value.trim();
+  const due=document.getElementById('pf-due').value;
+  if(!name){toast('กรุณากรอกชื่องาน','⚠️','info');return;}
+  if(!due){toast('กรุณาเลือกวันครบกำหนดครั้งแรก','⚠️','info');return;}
+  const btn=document.getElementById('btn-pmform-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  const plan={
+    plan_id:document.getElementById('pf-id').value||'',
+    name:name, team:document.getElementById('pf-team').value, branch:document.getElementById('pf-branch').value,
+    building:document.getElementById('pf-building').value.trim(),
+    frequency:document.getElementById('pf-frequency').value, interval:parseInt(document.getElementById('pf-interval').value,10)||1,
+    next_due:due, priority:document.getElementById('pf-priority').value, detail:document.getElementById('pf-detail').value.trim()
+  };
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'save_pm_plan',plan:plan,access_token:authToken()})})).json();
+    if(r.success){closeM('m-pmform');toast('บันทึกแผนแล้ว','💾','success');loadPmPlans();}
+    else toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','info');
+  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+  btn.disabled=false;btn.textContent='💾 บันทึกแผน';
+}
+function removePmPlan(id,name){
+  if(!confirm('ลบแผน "'+name+'" ?\nงานที่สร้างไปแล้วจะไม่หาย แต่จะไม่สร้างงานใหม่ตามรอบนี้อีก')) return;
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'delete_pm_plan',plan_id:id,access_token:authToken()})})
+    .then(r=>r.json()).then(r=>{ if(r.success){toast('ลบแผนแล้ว','✓','success');loadPmPlans();} else toast('ลบไม่สำเร็จ','❌','info'); })
+    .catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
+}
 // ===== เพิ่มงานโครงการ (admin สร้างเอง) =====
 function openAddProject(){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
@@ -2841,7 +3015,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,tickets:1,projects:2,technicians:3,history:4,archive:5,report:6};
+const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,technicians:5,history:6,archive:7,report:8};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
@@ -2882,30 +3056,28 @@ function archiveSearchKey(ev){ if(ev && ev.key==='Enter') doArchiveSearch(); }
 
 function showPage(p,el,fromPop){
   window._navByMember=false;
-  // งานโครงการใช้หน้าเดียวกับ tickets แต่กรองเฉพาะ project
-  const domPage = (p==='projects') ? 'tickets' : p;
-  viewWorkType = (p==='projects') ? 'project' : 'repair';
+  // งานโครงการ/PM ใช้หน้าเดียวกับ tickets แต่กรองตามประเภท
+  const domPage = (p==='projects'||p==='pm') ? 'tickets' : p;
+  viewWorkType = (p==='projects') ? 'project' : (p==='pm' ? 'pm' : 'repair');
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+domPage).classList.add('active');
   if(!el) el=document.querySelectorAll('.nav-item')[PAGE_NAV[p]||0];
   el.classList.add('active');
-  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',projects:'📁 งานโครงการ',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
+  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',projects:'📁 งานโครงการ',pm:'🔧 บำรุงรักษาตามแผน (PM)',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
-  // สลับ UI ของหน้า tickets ระหว่างโหมดซ่อมบำรุง / โครงการ
-  const tt=document.getElementById('tickets-title'); const addBtn=document.getElementById('btn-add-project');
-  if(p==='projects'){ if(tt)tt.textContent='📁 จัดการงานโครงการ'; if(addBtn)addBtn.style.display='inline-block'; }
-  else if(domPage==='tickets'){ if(tt)tt.textContent='🎫 จัดการ Ticket ซ่อมบำรุง'; if(addBtn)addBtn.style.display='none'; }
-  // บันทึกประวัติการเปิดหน้า เพื่อให้ปุ่ม back ย้อนกลับได้
-  if(!fromPop && p!==currentPage){
-    try{ history.pushState({page:p},'','#'+p); }catch(e){}
-  }
+  // สลับ UI ของหน้า tickets ตามประเภทงาน
+  const tt=document.getElementById('tickets-title'); const addBtn=document.getElementById('btn-add-project'); const pmBtn=document.getElementById('btn-pm-plans');
+  if(addBtn) addBtn.style.display = (p==='projects')?'inline-block':'none';
+  if(pmBtn)  pmBtn.style.display  = (p==='pm')?'inline-block':'none';
+  if(tt){ tt.textContent = (p==='projects')?'📁 จัดการงานโครงการ' : (p==='pm')?'🔧 งานบำรุงรักษาตามแผน (PM)' : '🎫 จัดการ Ticket ซ่อมบำรุง'; }
+  if(!fromPop && p!==currentPage){ try{ history.pushState({page:p},'','#'+p); }catch(e){} }
   currentPage=p;
   const sb=document.getElementById('sidebar');
   if(sb) sb.classList.remove('open');
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
-  if(p==='tickets'||p==='projects') renderTicketsPage();
+  if(p==='tickets'||p==='projects'||p==='pm') renderTicketsPage();
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
   if(p==='report') renderReport();
