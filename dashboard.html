@@ -607,6 +607,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span>บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span>ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
     <div class="nav-sec">Management</div>
     <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="window.open('https://it-syy.github.io/Generator-System/','_blank')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
@@ -829,6 +830,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       </div>
       <div class="report-grid" id="report-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
       <div class="report-card" id="pm-report-card" style="margin-top:10px"></div>
+      <div class="report-card" id="claim-report-card" style="margin-top:10px"></div>
       <div class="report-card" id="recurring-card" style="margin-top:10px">
         <div class="report-ttl">🔁 จุดที่ซ่อมซ้ำซาก <span style="font-weight:400;font-size:11px;color:var(--text3)">(จุดเดิม + ประเภทเดิม ซ่อม ≥3 ครั้งใน 90 วัน — ควรพิจารณาแก้ที่ต้นเหตุ)</span></div>
         <div id="recurring-body"></div>
@@ -885,6 +887,31 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <div class="modal-field"><label class="modal-lbl">เหตุผลที่ปฏิเสธ *</label><textarea class="modal-ta" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ..."></textarea></div>
       <button class="btn-ok red" id="btn-reject-ok" style="width:100%;margin-top:6px" onclick="doReject()">❌ ยืนยันปฏิเสธ</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-claimstage">
+  <div class="modal">
+    <div class="modal-ttl">📦 อัปเดตสถานะส่งซ่อม/เคลม<button class="modal-x" onclick="closeM('m-claimstage')">×</button></div>
+    <div class="modal-field"><label class="modal-lbl">สถานะปัจจุบัน <span style="color:var(--red)">*</span></label>
+      <select class="modal-sel" id="cs-stage">
+        <option value="ส่งซ่อม">1. ส่งซ่อม / ส่งเคลม</option>
+        <option value="ส่งเรื่องให้จัดซื้อ">2. ส่งเรื่องให้จัดซื้อแล้ว</option>
+        <option value="รออะไหล่">3. รออะไหล่</option>
+        <option value="ระหว่างซ่อม">4. ระหว่างซ่อม</option>
+        <option value="รับสินค้ากลับ">5. รับสินค้ากลับ</option>
+        <option value="ติดตั้ง/ส่งคืน">6. ติดตั้ง / ส่งคืน</option>
+        <option value="ปิดงาน">7. เสร็จสิ้น / ปิดงาน</option>
+      </select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="cs-note" placeholder="รายละเอียด เช่น ส่งร้าน ABC, ส่งเรื่องให้จัดซื้อคุณ... แล้ว"></textarea></div>
+    <div class="modal-field">
+      <label class="modal-lbl">📷 แนบรูปยืนยัน (เช่น หลักฐานส่งจัดซื้อ)</label>
+      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('cs-photos').click()">+ เลือกรูป (สูงสุด 3)</button>
+      <input type="file" id="cs-photos" accept="image/*" multiple style="display:none" onchange="csPickPhotos(this)">
+      <div id="cs-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-claimstage')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" id="btn-cs-ok" onclick="doClaimStage()">📦 บันทึกสถานะ</button></div>
   </div>
 </div>
 
@@ -1395,6 +1422,8 @@ async function loadData(silent=false){
         branch:       g(r,'branch'),
         reporter_dept:g(r,'reporter_dept'),
         work_type:    g(r,'work_type'),
+        claim_stage:  g(r,'claim_stage'),
+        doc_url:      g(r,'doc_url'),
         progress:     g(r,'progress'),
         assigned_secondary:g(r,'assigned_secondary'),
         department:   g(r,'department','team'),
@@ -1527,7 +1556,7 @@ function filterByWorkType(wtype){
   return tickets.filter(t=>{
     // กรองประเภทงาน: repair / project / pm — งานเก่าที่ไม่มีค่า = repair
     const raw=String(t.work_type||'').toLowerCase();
-    const wt = (raw==='project'||raw==='pm') ? raw : 'repair';
+    const wt = (raw==='project'||raw==='pm'||raw==='claim') ? raw : 'repair';
     if(wt!==wtype) return false;
     // ช่างเห็นงานที่ถูกมอบหมายให้ตัวเองเสมอ (หลักหรือรอง) แม้เป็นงานข้ามสาขา
     const sec=String(t.assigned_secondary||'');
@@ -1632,6 +1661,7 @@ function renderPendingBadge(){
   setNavBadge('pending-badge', waiting('repair'));
   setNavBadge('project-badge', waiting('project'));
   setNavBadge('pm-badge', waiting('pm'));
+  setNavBadge('claim-badge', waiting('claim'));
 }
 function setNavBadge(id,n){
   const b=document.getElementById(id); if(!b) return;
@@ -2220,6 +2250,7 @@ function renderReport(){
   renderSLA();
   renderLeaderboard();
   renderPmReport();
+  renderClaimReport();
   const b=getBase();
   const done=b.filter(t=>t.status==='done');
   document.getElementById('report-grid').innerHTML=`
@@ -2470,6 +2501,31 @@ function openAccept(id){
   document.getElementById('m-accept').classList.add('show');
 }
 function showRejectForm(){document.getElementById('reject-form').style.display='block';}
+// ===== รายงานงานส่งซ่อม/เคลม =====
+function renderClaimReport(){
+  const card=document.getElementById('claim-report-card'); if(!card) return;
+  const claims=filterByWorkType('claim').filter(t=>t.status!=='rejected');
+  if(!claims.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const STAGES=['ส่งซ่อม','ส่งเรื่องให้จัดซื้อ','รออะไหล่','ระหว่างซ่อม','รับสินค้ากลับ','ติดตั้ง/ส่งคืน','ปิดงาน'];
+  const active=claims.filter(t=>t.status!=='done');
+  const doneN=claims.filter(t=>t.status==='done').length;
+  const cnt=s=>claims.filter(t=>(t.claim_stage||'ส่งซ่อม')===s && t.status!=='done').length;
+  const stat=(n,l,c)=>`<div style="flex:1;min-width:90px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:${c}">${n}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`;
+  const rows=active.slice().sort((a,b)=>STAGES.indexOf(a.claim_stage||'ส่งซ่อม')-STAGES.indexOf(b.claim_stage||'ส่งซ่อม')).slice(0,12).map(t=>{
+    const stg=t.claim_stage||'ส่งซ่อม';
+    return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:monospace;font-size:11px">${t.ticket_id}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${t.category||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${t.branch||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:#EA580C;font-weight:700">📦 ${stg}</td></tr>`;
+  }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3)">ไม่มีงานเคลมที่กำลังดำเนินการ</td></tr>';
+  card.innerHTML=`<div class="report-title">📦 งานส่งซ่อม/เคลมนอก${currentBranch!=='all'?' · '+currentBranch:''}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">
+      ${stat(claims.length,'ทั้งหมด','var(--blue)')}
+      ${stat(active.length,'กำลังดำเนินการ','#EA580C')}
+      ${stat(cnt('รออะไหล่'),'รออะไหล่','#F59E0B')}
+      ${stat(cnt('ระหว่างซ่อม'),'ระหว่างซ่อม','#8B5CF6')}
+      ${stat(doneN,'เสร็จสิ้น','#10B981')}
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:11px;text-align:left"><th style="padding:6px 8px">Ticket</th><th style="padding:6px 8px">รายการ</th><th style="padding:6px 8px">สาขา</th><th style="padding:6px 8px">สถานะปัจจุบัน</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
 // ===== รายงาน PM (กำหนดการบำรุงรักษา) =====
 async function renderPmReport(){
   const card=document.getElementById('pm-report-card'); if(!card) return;
@@ -2501,6 +2557,66 @@ async function renderPmReport(){
       ${stat(ok.length,'ตามแผน','#10B981')}
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:11px;text-align:left"><th style="padding:6px 8px">งานบำรุงรักษา</th><th style="padding:6px 8px">สาขา/ทีม</th><th style="padding:6px 8px">ครบกำหนด</th><th style="padding:6px 8px">สถานะ</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+// ===== อัปเดตสถานะส่งซ่อม/เคลม =====
+let claimPhotos=[];
+function csPickPhotos(input){
+  const files=Array.from(input.files||[]);
+  (async()=>{
+    for(const f of files){
+      if(claimPhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
+      try{ claimPhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+    }
+    input.value=''; renderCsPreviews();
+  })();
+}
+function csRemovePhoto(i){ claimPhotos.splice(i,1); renderCsPreviews(); }
+function renderCsPreviews(){
+  const box=document.getElementById('cs-previews'); if(!box)return;
+  box.innerHTML=claimPhotos.map((d,i)=>'<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)"><button type="button" onclick="csRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>').join('');
+}
+function openClaimStage(id){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  currentId=id;
+  const t=tickets.find(x=>x.ticket_id===id);
+  document.getElementById('cs-stage').value=(t&&t.claim_stage)||'ส่งซ่อม';
+  document.getElementById('cs-note').value='';
+  claimPhotos=[]; renderCsPreviews();
+  document.getElementById('m-claimstage').classList.add('show');
+}
+async function doClaimStage(){
+  const stage=document.getElementById('cs-stage').value;
+  const note=document.getElementById('cs-note').value.trim();
+  const t=tickets.find(x=>x.ticket_id===currentId); if(!t)return;
+  const btn=document.getElementById('btn-cs-ok');if(btn.disabled)return;btn.disabled=true;const _o=btn.textContent;btn.textContent='กำลังบันทึก...';
+  // อัปโหลดรูปยืนยัน (ถ้ามี)
+  const imgUrls=[];
+  for(let i=0;i<claimPhotos.length;i++){
+    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+claimPhotos.length+'...';
+    try{
+      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+        action:'upload_image', ticket_id:currentId,
+        base64:claimPhotos[i].split(',')[1], mimeType:'image/jpeg',
+        fileName:currentId+'_claim_'+(i+1)+'_'+Date.now()+'.jpg', skip_sheet:true
+      })})).json();
+      if(u.success&&u.imageUrl) imgUrls.push(u.imageUrl);
+    }catch(e){}
+  }
+  btn.textContent='กำลังบันทึก...';
+  // ถ้าเลือก "ปิดงาน" ให้ปิดงานจริง มิฉะนั้นอัปเดตสถานะย่อย
+  const isClose = (stage==='ปิดงาน');
+  const body = isClose
+    ? {action:'done',ticket_id:currentId,notes:'[เคลม] '+(note||'เสร็จสิ้น'),access_token:authToken()}
+    : {action:'update_claim_stage',ticket_id:currentId,claim_stage:stage,note:note,image_url:imgUrls.join(','),access_token:authToken()};
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)})).json();
+    if(r.success){
+      if(isClose){ t.status='done'; t.claim_stage='ปิดงาน'; }
+      else { t.claim_stage=stage; if(t.status==='pending'||t.status==='assigned') t.status='in_progress'; }
+      closeM('m-claimstage');renderAll();
+      toast('อัปเดตสถานะเคลมแล้ว: '+stage,'📦','success');
+    }else{ toast('ไม่สำเร็จ: '+(r.error||''),'❌','info'); btn.disabled=false; btn.textContent=_o; }
+  }catch(e){ toast('เกิดข้อผิดพลาด','❌','info'); btn.disabled=false; btn.textContent=_o; }
 }
 // ===== จัดการแผน PM =====
 let pmPlansCache=[];
@@ -2784,6 +2900,8 @@ function openDetail(id){
       <div><div class="detail-lbl">สถานที่</div><div class="detail-val">${t.building||t.location||'—'} ${t.room?'ห้อง '+t.room:''}</div></div>
       <div><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||t.userId||'—'}</div></div>
       <div><div class="detail-lbl">แผนกผู้แจ้ง</div><div class="detail-val">${t.reporter_dept||'—'}</div></div>
+      ${String(t.work_type).toLowerCase()==='claim'?`<div><div class="detail-lbl">สถานะเคลม</div><div class="detail-val" style="color:#EA580C;font-weight:700">📦 ${t.claim_stage||'ส่งซ่อม'}</div></div>`:''}
+      ${t.doc_url?`<div style="grid-column:1/-1"><div class="detail-lbl">เอกสารส่งซ่อม/เคลม</div><div class="detail-val">${String(t.doc_url).split(',').filter(Boolean).map((u,i)=>`<a href="${u}" target="_blank" style="color:#0EA5E9;text-decoration:underline">📄 เปิดเอกสาร${i+1}</a>`).join(' · ')}</div></div>`:''}
       <div><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
       <div><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ รอง: '+t.assigned_secondary+'</span>':''}</div></div>
       <div><div class="detail-lbl">มอบหมายเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
@@ -2806,6 +2924,9 @@ function openDetail(id){
   else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">↩️ เปิดงานใหม่</button>`;
   else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button>`;
   else if(t.status==='in_progress') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">📊 อัปเดต %</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  // งานเคลม: ปุ่มอัปเดตสถานะย่อย (ส่งซ่อม→รออะไหล่→...)
+  if(String(t.work_type).toLowerCase()==='claim' && t.status!=='done' && t.status!=='rejected')
+    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="closeM('m-detail');openClaimStage('${t.ticket_id}')">📦 อัปเดตสถานะเคลม</button>`;
   // ย้ายงานซ่อม → โครงการ (เฉพาะงาน repair ที่ยังไม่ปิด/ยังไม่ถูกปฏิเสธ — งานบานปลาย)
   if(viewWorkType==='repair' && (t.status==='pending'||t.status==='assigned'||t.status==='in_progress'))
     ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="closeM('m-detail');moveToProject('${t.ticket_id}')">📁 ย้ายเป็นงานโครงการ</button>`;
@@ -3015,7 +3136,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,technicians:5,history:6,archive:7,report:8};
+const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,claim:4,technicians:6,history:7,archive:8,report:9};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
@@ -3057,27 +3178,27 @@ function archiveSearchKey(ev){ if(ev && ev.key==='Enter') doArchiveSearch(); }
 function showPage(p,el,fromPop){
   window._navByMember=false;
   // งานโครงการ/PM ใช้หน้าเดียวกับ tickets แต่กรองตามประเภท
-  const domPage = (p==='projects'||p==='pm') ? 'tickets' : p;
-  viewWorkType = (p==='projects') ? 'project' : (p==='pm' ? 'pm' : 'repair');
+  const domPage = (p==='projects'||p==='pm'||p==='claim') ? 'tickets' : p;
+  viewWorkType = (p==='projects') ? 'project' : (p==='pm' ? 'pm' : (p==='claim' ? 'claim' : 'repair'));
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+domPage).classList.add('active');
   if(!el) el=document.querySelectorAll('.nav-item')[PAGE_NAV[p]||0];
   el.classList.add('active');
-  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',projects:'📁 งานโครงการ',pm:'🔧 บำรุงรักษาตามแผน (PM)',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
+  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',projects:'📁 งานโครงการ',pm:'🔧 บำรุงรักษาตามแผน (PM)',claim:'📦 ส่งซ่อม/เคลมนอก',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
   // สลับ UI ของหน้า tickets ตามประเภทงาน
   const tt=document.getElementById('tickets-title'); const addBtn=document.getElementById('btn-add-project'); const pmBtn=document.getElementById('btn-pm-plans');
   if(addBtn) addBtn.style.display = (p==='projects')?'inline-block':'none';
   if(pmBtn)  pmBtn.style.display  = (p==='pm')?'inline-block':'none';
-  if(tt){ tt.textContent = (p==='projects')?'📁 จัดการงานโครงการ' : (p==='pm')?'🔧 งานบำรุงรักษาตามแผน (PM)' : '🎫 จัดการ Ticket ซ่อมบำรุง'; }
+  if(tt){ tt.textContent = (p==='projects')?'📁 จัดการงานโครงการ' : (p==='pm')?'🔧 งานบำรุงรักษาตามแผน (PM)' : (p==='claim')?'📦 งานส่งซ่อม/เคลมนอก (Asset)' : '🎫 จัดการ Ticket ซ่อมบำรุง'; }
   if(!fromPop && p!==currentPage){ try{ history.pushState({page:p},'','#'+p); }catch(e){} }
   currentPage=p;
   const sb=document.getElementById('sidebar');
   if(sb) sb.classList.remove('open');
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
-  if(p==='tickets'||p==='projects'||p==='pm') renderTicketsPage();
+  if(p==='tickets'||p==='projects'||p==='pm'||p==='claim') renderTicketsPage();
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
   if(p==='report') renderReport();
