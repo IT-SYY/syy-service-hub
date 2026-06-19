@@ -277,7 +277,7 @@
 <div class="page content" id="page-3">
   <div class="card">
     <div class="card-title"><span>3</span> สถานที่และรายละเอียด / Location & Details</div>
-    <div class="field-row">
+    <div class="field-row" id="location-row">
       <div class="field">
         <label>อาคาร/โซน <span class="en">Building</span><span class="req">*</span></label>
         <select id="field-building">
@@ -549,10 +549,13 @@ function selectCat(name, el, wtype) {
   else { state._claimTeam = ''; }
   toggleClaimDocUI();
 }
-// แสดง/ซ่อนช่องแนบเอกสารส่งซ่อม (เฉพาะงานเคลม)
+// แสดง/ซ่อนช่องแนบเอกสารส่งซ่อม (เฉพาะงานเคลม) + ซ่อน building/room
 function toggleClaimDocUI(){
+  const isClaim = (state.work_type === 'claim');
   const blk = document.getElementById('claim-doc-block');
-  if (blk) blk.style.display = (state.work_type === 'claim') ? 'block' : 'none';
+  if (blk) blk.style.display = isClaim ? 'block' : 'none';
+  const locRow = document.getElementById('location-row');
+  if (locRow) locRow.style.display = isClaim ? 'none' : 'flex';
 }
 // แนบเอกสารส่งซ่อม/เคลม (PDF หรือรูป) — เก็บเป็น base64 รออัปโหลดตอนส่ง
 function handleDoc(input){
@@ -855,7 +858,9 @@ function validateStep() {
     state.room        = document.getElementById('field-room').value;
     state.description = document.getElementById('field-desc').value.trim();
     state.department  = document.getElementById('field-dept').value;
-    if (!state.building)    { alert('กรุณาเลือกอาคาร/โซน\nPlease select a building.'); return false; }
+    // งานเคลม: ใช้สถานที่ใช้งานเป็น building ไม่ต้องเลือกอาคารซ้ำ
+    if (state.work_type === 'claim' && !state.building) state.building = state.claim_usage || '-';
+    if (state.work_type !== 'claim' && !state.building) { alert('กรุณาเลือกอาคาร/โซน\nPlease select a building.'); return false; }
     if (!state.description) { alert('กรุณาอธิบายปัญหา\nPlease describe the issue.'); return false; }
   }
   return true;
