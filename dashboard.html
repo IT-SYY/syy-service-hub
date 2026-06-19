@@ -1801,7 +1801,10 @@ function mkCard(t){
   }else if(t.status==='assigned'){
     btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
   }else if(t.status==='in_progress'){
-    btns+=`<button class="btn-done2" style="background:#F59E0B" onclick="event.stopPropagation();openProgress('${t.ticket_id}')">📊 %</button><button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+    if(String(t.work_type).toLowerCase()==='claim')
+      btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">📦 สถานะ</button>`;
+    else
+      btns+=`<button class="btn-done2" style="background:#F59E0B" onclick="event.stopPropagation();openProgress('${t.ticket_id}')">📊 %</button><button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
   }
   btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
 
@@ -1973,7 +1976,10 @@ function renderTicketsPage(_keepPage){
     let btns='';
     if(t.status==='pending') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
     if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
-    if(t.status==='in_progress') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+    if(t.status==='in_progress'){
+      if(String(t.work_type).toLowerCase()==='claim') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">📦 สถานะ</button>`;
+      else btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+    }
     btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
     
     return `<tr onclick="openDetail('${t.ticket_id}')">
@@ -3051,14 +3057,15 @@ function openDetail(id){
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at} โดย ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
     </div>`;
   const ac=document.getElementById('m-detail-actions');
+  const isClaim = String(t.work_type).toLowerCase()==='claim';
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">ปิด</button>`;
   if(t.status==='pending') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">❌ ปฏิเสธ</button>`;
   else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">↩️ เปิดงานใหม่</button>`;
   else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button>`;
-  else if(t.status==='in_progress') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">📊 อัปเดต %</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
-  // งานเคลม: ปุ่มอัปเดตสถานะย่อย (ส่งซ่อม→รออะไหล่→...)
-  if(String(t.work_type).toLowerCase()==='claim' && t.status!=='done' && t.status!=='rejected')
-    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="closeM('m-detail');openClaimStage('${t.ticket_id}')">📦 อัปเดตสถานะเคลม</button>`;
+  else if(t.status==='in_progress' && !isClaim) ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">📊 อัปเดต %</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  // งานเคลม: ใช้ปุ่มอัปเดตสถานะอย่างเดียว (รวมการปิดงานในตัว) — แสดงเมื่อมีผู้รับผิดชอบแล้ว
+  if(isClaim && (t.status==='assigned'||t.status==='in_progress'))
+    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="closeM('m-detail');openClaimStage('${t.ticket_id}')">📦 อัปเดตสถานะ</button>`;
   // ย้ายงานซ่อม → โครงการ (เฉพาะงาน repair ที่ยังไม่ปิด/ยังไม่ถูกปฏิเสธ — งานบานปลาย)
   if(viewWorkType==='repair' && (t.status==='pending'||t.status==='assigned'||t.status==='in_progress'))
     ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="closeM('m-detail');moveToProject('${t.ticket_id}')">📁 ย้ายเป็นงานโครงการ</button>`;
