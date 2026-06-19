@@ -910,6 +910,18 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-field"><label class="modal-lbl">ความสำคัญ</label>
       <select class="modal-sel" id="ac-priority"><option value="low">ปกติ</option><option value="medium">สำคัญ</option><option value="high">เร่งด่วน</option></select>
     </div>
+    <div class="modal-field">
+      <label class="modal-lbl">📄 แนบเอกสารส่งซ่อม/เคลม (PDF/รูป)</label>
+      <button type="button" class="btn-cancel" style="width:100%;border-color:#EA580C;color:#C2410C" onclick="document.getElementById('ac-doc').click()">+ เลือกเอกสาร</button>
+      <input type="file" id="ac-doc" accept="application/pdf,image/*" style="display:none" onchange="acPickDoc(this)">
+      <div id="ac-doc-preview" style="margin-top:6px"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-lbl">📷 แนบรูปสินค้า/อุปกรณ์ (สูงสุด 3)</label>
+      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('ac-photos').click()">+ เลือกรูป</button>
+      <input type="file" id="ac-photos" accept="image/*" multiple style="display:none" onchange="acPickPhotos(this)">
+      <div id="ac-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addclaim')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" id="btn-ac-ok" onclick="doAddClaim()">📦 สร้างงานเคลม</button></div>
   </div>
 </div>
@@ -2583,10 +2595,39 @@ async function renderPmReport(){
     <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:11px;text-align:left"><th style="padding:6px 8px">งานบำรุงรักษา</th><th style="padding:6px 8px">สาขา/ทีม</th><th style="padding:6px 8px">ครบกำหนด</th><th style="padding:6px 8px">สถานะ</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 // ===== เพิ่มงานเคลมจาก Dashboard (admin/Asset) =====
+let acPhotos=[], acDocFile=null;
+function acPickPhotos(input){
+  const files=Array.from(input.files||[]);
+  (async()=>{
+    for(const f of files){
+      if(acPhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
+      try{ acPhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+    }
+    input.value=''; renderAcPreviews();
+  })();
+}
+function acRemovePhoto(i){ acPhotos.splice(i,1); renderAcPreviews(); }
+function renderAcPreviews(){
+  const box=document.getElementById('ac-previews'); if(!box)return;
+  box.innerHTML=acPhotos.map((d,i)=>'<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)"><button type="button" onclick="acRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>').join('');
+}
+function acPickDoc(input){
+  const f=input.files&&input.files[0]; if(!f)return;
+  if(f.size>10*1024*1024){toast('ไฟล์ใหญ่เกิน 10MB','⚠️','info');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    acDocFile={name:f.name,mime:f.type||'application/pdf',base64:String(reader.result).split(',')[1]};
+    const isPdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);
+    document.getElementById('ac-doc-preview').innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px"><span style="font-size:18px">'+(isPdf?'📕':'🖼️')+'</span><span style="flex:1;font-size:12px;color:#9A3412;word-break:break-all">'+f.name+'</span><span style="cursor:pointer;color:#EA580C;font-weight:700" onclick="acClearDoc()">✕</span></div>';
+  };
+  reader.readAsDataURL(f);
+}
+function acClearDoc(){ acDocFile=null; document.getElementById('ac-doc-preview').innerHTML=''; document.getElementById('ac-doc').value=''; }
 function openAddClaim(){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
   ['ac-device','ac-model','ac-serial','ac-usage','ac-desc','ac-dept'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ac-priority').value='low';
+  acPhotos=[]; acDocFile=null; renderAcPreviews(); acClearDoc();
   if(currentBranch!=='all') document.getElementById('ac-branch').value=currentBranch;
   document.getElementById('m-addclaim').classList.add('show');
 }
@@ -2603,10 +2644,30 @@ async function doAddClaim(){
   const priority=document.getElementById('ac-priority').value;
   const fullDesc='📦 ส่งเคลม/ซ่อมนอก\n🔧 อุปกรณ์: '+device+'\n📋 รุ่น/Model: '+(model||'-')+'\n📍 สถานที่ใช้งาน: '+usage+(serial?'\n🏷️ เลขครุภัณฑ์/SN: '+serial:'')+'\n──────────\n'+(desc||'-');
   const btn=document.getElementById('btn-ac-ok');btn.disabled=true;btn.textContent='กำลังสร้าง...';
+  const tkId='TK-'+Date.now();
+  // อัปโหลดรูปสินค้า
+  const imgUrls=[];
+  for(let i=0;i<acPhotos.length;i++){
+    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+acPhotos.length+'...';
+    try{
+      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',ticket_id:tkId,base64:acPhotos[i].split(',')[1],mimeType:'image/jpeg',fileName:tkId+'_'+(i+1)+'.jpg',skip_sheet:true})})).json();
+      if(u.success&&u.imageUrl) imgUrls.push(u.imageUrl);
+    }catch(e){}
+  }
+  // อัปโหลดเอกสาร
+  let docUrl='';
+  if(acDocFile){
+    btn.textContent='อัปโหลดเอกสาร...';
+    try{
+      const dr=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',skip_sheet:true,column:'doc_url',fileName:acDocFile.name,mimeType:acDocFile.mime,base64:acDocFile.base64})})).json();
+      docUrl=dr.url||dr.imageUrl||'';
+    }catch(e){}
+  }
+  btn.textContent='กำลังสร้าง...';
   const liff_data={
-    work_type:'claim', claim_stage:'ส่งซ่อม', category:'ส่งซ่อม/เคลมนอก',
+    ticket_id:tkId, work_type:'claim', claim_stage:'ส่งซ่อม', category:'ส่งซ่อม/เคลมนอก',
     team:'Asset', branch:branch, building:usage, room:'', description:fullDesc,
-    priority:priority, reporter_dept:dept||'Asset',
+    priority:priority, reporter_dept:dept||'Asset', image_url:imgUrls.join(','), doc_url:docUrl,
     displayName:(currentUser&&currentUser.name)||'Asset', userId:(currentUser&&currentUser.userId)||''
   };
   try{
