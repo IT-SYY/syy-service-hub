@@ -1734,9 +1734,14 @@ function renderCharts(){
 // ===== KANBAN =====
 function renderKanban(){
   const b=getBase();
-  const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
-  const inprog=b.filter(t=>t.status==='in_progress');
-  const done=b.filter(t=>t.status==='done').sort((a,c)=>(c.resolved_at||c.created_at||'').localeCompare(a.resolved_at||a.created_at||'')).slice(0,20);
+  // เรียง: งานที่เพิ่งเข้า (NEW) ลอยบนสุดก่อน แล้วตามด้วยวันที่แจ้งล่าสุด
+  const byNewest=(a,c)=>{
+    if(!!c._new!==!!a._new) return (c._new?1:0)-(a._new?1:0);
+    return dmyKey(c.created_at).localeCompare(dmyKey(a.created_at));
+  };
+  const pend=b.filter(t=>t.status==='pending'||t.status==='assigned').sort(byNewest);
+  const inprog=b.filter(t=>t.status==='in_progress').sort(byNewest);
+  const done=b.filter(t=>t.status==='done').sort(byNewest).slice(0,20);
 
   document.getElementById('kb-count-pending').textContent=pend.length;
   document.getElementById('kb-count-inprog').textContent=inprog.length;
@@ -1933,7 +1938,7 @@ function renderTicketsPage(_keepPage){
     const hay=(t.ticket_id+' '+t.description+' '+t.category+' '+(t.assigned_to||'')+' '+(t.building||t.location||'')+' '+(t.room||'')+' '+(t.displayName||t.reported_by||'')).toLowerCase();
     const searchOk=!tokens.length||tokens.every(tk=>hay.includes(tk));
     return sm&&mm&&dm&&(pf==='all'||t.priority===pf)&&(cf==='all'||t.category===cf)&&searchOk;
-  }).sort((a,c)=>dmyKey(c.created_at).localeCompare(dmyKey(a.created_at))); // วันที่ล่าสุด (วันนี้) ขึ้นก่อนเสมอ
+  }).sort((a,c)=>{ if(!!c._new!==!!a._new) return (c._new?1:0)-(a._new?1:0); return dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)); }); // งานใหม่ + วันที่ล่าสุดขึ้นก่อน
   
   const mfBar=document.getElementById('member-filter-bar');
   if(mfBar){
