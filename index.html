@@ -274,6 +274,18 @@
       <textarea id="field-desc" placeholder="อธิบายปัญหาที่พบ / Describe the issue..."></textarea>
     </div>
 
+    <!-- CLAIM DOCUMENT UPLOAD (เฉพาะงานส่งซ่อม/เคลมนอก) -->
+    <div class="field" id="claim-doc-block" style="display:none">
+      <label>📄 แนบเอกสารส่งซ่อม/เคลม <span class="en">Document (PDF/รูป)</span></label>
+      <div class="photo-area" style="border-color:#EA580C" onclick="document.getElementById('doc-input').click()">
+        <div class="photo-icon">📄</div>
+        <div class="photo-text">กดเพื่อแนบเอกสารส่งซ่อม<br><strong>Tap to attach document</strong></div>
+        <div class="photo-sub">รองรับ PDF, JPG, PNG · เอกสารที่อนุมัติแล้ว</div>
+      </div>
+      <input type="file" id="doc-input" class="hidden-input" accept="application/pdf,image/*" onchange="handleDoc(this)">
+      <div class="photo-preview" id="doc-preview"></div>
+    </div>
+
     <!-- PHOTO UPLOAD -->
     <div class="field">
       <label>📷 แนบรูปภาพ <span class="en">Photos (optional)</span></label>
@@ -321,7 +333,7 @@ const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน uploa
 
 // ===== STATE =====
 let state = {
-  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', priority:'low',
+  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, priority:'low',
   building:'', room:'', description:'', department:'',
   photos:[], uploadedUrls:[],
   userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
@@ -476,6 +488,7 @@ function renderCategories(code) {
   ).join('');
   // หัวข้อย่อยพิเศษ: ขอเปิดงานโครงการ (งานติดตั้ง/พัฒนา/ร้องขอใหม่ ที่ไม่ใช่ซ่อมเล็ก)
   html += '<button class="cat-btn cat-project" onclick="selectCat(\'ขอเปิดงานโครงการ\',this,\'project\')" style="border-color:#7C3AED;color:#7C3AED">📁 ขอเปิดงานโครงการ / Request Project</button>';
+  html += '<button class="cat-btn cat-claim" onclick="selectCat(\'ส่งซ่อม/เคลมนอก\',this,\'claim\')" style="border-color:#EA580C;color:#EA580C">📦 ส่งซ่อม / เคลมนอก (Asset)</button>';
   document.getElementById('cat-list').innerHTML = html;
   state.category = '';
   state.work_type = 'repair';
@@ -485,6 +498,37 @@ function selectCat(name, el, wtype) {
   el.classList.add('selected');
   state.category = name;
   state.work_type = wtype || 'repair';
+  // งานส่งซ่อม/เคลมนอก: ทีมรับผิดชอบคือ Asset เสมอ
+  if (wtype === 'claim') { state._claimTeam = 'Asset'; }
+  else { state._claimTeam = ''; }
+  toggleClaimDocUI();
+}
+// แสดง/ซ่อนช่องแนบเอกสารส่งซ่อม (เฉพาะงานเคลม)
+function toggleClaimDocUI(){
+  const blk = document.getElementById('claim-doc-block');
+  if (blk) blk.style.display = (state.work_type === 'claim') ? 'block' : 'none';
+}
+// แนบเอกสารส่งซ่อม/เคลม (PDF หรือรูป) — เก็บเป็น base64 รออัปโหลดตอนส่ง
+function handleDoc(input){
+  const f = input.files && input.files[0];
+  if (!f) return;
+  if (f.size > 10*1024*1024) { alert('ไฟล์ใหญ่เกิน 10MB กรุณาเลือกไฟล์เล็กลง'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(){
+    state.docFile = { name:f.name, mime:f.type||'application/pdf', base64:String(reader.result).split(',')[1] };
+    const isPdf = /pdf/i.test(f.type) || /\.pdf$/i.test(f.name);
+    document.getElementById('doc-preview').innerHTML =
+      '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;margin-top:6px">'+
+      '<span style="font-size:20px">'+(isPdf?'📕':'🖼️')+'</span>'+
+      '<span style="flex:1;font-size:13px;color:#9A3412;word-break:break-all">'+f.name+'</span>'+
+      '<span style="cursor:pointer;color:#EA580C;font-weight:700" onclick="clearDoc()">✕</span></div>';
+  };
+  reader.readAsDataURL(f);
+}
+function clearDoc(){
+  state.docFile = null;
+  document.getElementById('doc-preview').innerHTML='';
+  document.getElementById('doc-input').value='';
 }
 function selectPriority(p, el) {
   document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
@@ -772,7 +816,7 @@ function buildSummary() {
   const rows = [
     ['สาขา / Branch', state.branch],
     ['แผนกผู้แจ้ง / Dept', state.department || '-'],
-    ['ทีม / Team', state.team],
+    ['ทีม / Team', (state._claimTeam || state.team)],
     ['ประเภท / Category', state.category],
     ['ความเร่งด่วน', priLabel[state.priority]],
     ['อาคาร / Building', state.building],
@@ -783,12 +827,23 @@ function buildSummary() {
   let html = rows.map(([l,v]) =>
     '<div class="summary-row"><span class="summary-label">'+l+'</span><span class="summary-value">'+v+'</span></div>'
   ).join('');
+  // งานเคลม: แสดงสถานะเอกสารส่งซ่อม
+  if (state.work_type === 'claim') {
+    const docHtml = state.docFile
+      ? '<span style="color:#16A34A;font-weight:700">✅ แนบแล้ว: '+state.docFile.name+'</span>'
+      : '<span style="color:#DC2626;font-weight:700">⚠️ ยังไม่ได้แนบเอกสาร</span>';
+    html += '<div class="summary-row"><span class="summary-label">📄 เอกสารส่งซ่อม</span><span class="summary-value">'+docHtml+'</span></div>';
+  }
   html += '<div class="summary-row"><span class="summary-label">รูปภาพ / Photos</span><span class="summary-value">'+photoHtml+'</span></div>';
   document.getElementById('summary-content').innerHTML = html;
 }
 
 // ===== SUBMIT =====
 async function submitForm() {
+  // งานเคลม: เตือนถ้ายังไม่แนบเอกสารส่งซ่อม
+  if (state.work_type === 'claim' && !state.docFile) {
+    if (!confirm('⚠️ คุณยังไม่ได้แนบเอกสารส่งซ่อม/เคลม\n\nงานส่งซ่อม/เคลมควรแนบเอกสารที่อนุมัติแล้ว\nต้องการส่งโดยไม่แนบเอกสารหรือไม่?')) return;
+  }
   const ticketId  = 'TK-' + Date.now();
   const now       = new Date();
   const thaiTime  = new Date(now.getTime() + 7*60*60*1000);
@@ -812,6 +867,21 @@ async function submitForm() {
     }
   }
 
+  // Step 1.5: อัปโหลดเอกสารส่งซ่อม/เคลม (ถ้ามี)
+  let docUrl = '';
+  if (state.work_type === 'claim' && state.docFile) {
+    document.getElementById('loading-title').textContent = 'กำลังอัปโหลดเอกสาร...';
+    document.getElementById('loading-sub').textContent   = 'Uploading document...';
+    try {
+      const dr = await fetch(GAS_URL, {
+        method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'upload_image', skip_sheet:true, column:'doc_url',
+          fileName: state.docFile.name, mimeType: state.docFile.mime, base64: state.docFile.base64 })
+      }).then(r=>r.json());
+      docUrl = dr.url || dr.imageUrl || '';
+    } catch(e){ console.error('doc upload failed:', e); }
+  }
+
   // Step 2: ส่ง Ticket ไป GAS พร้อม image_url
   document.getElementById('loading-title').textContent = 'กำลังส่งข้อมูล...';
   document.getElementById('loading-sub').textContent   = 'Submitting request...';
@@ -822,10 +892,12 @@ async function submitForm() {
     ticket_id:         ticketId,
     branch:            state.branch,
     reporter_dept:     state.department,
-    team:              state.team,
+    team:              state._claimTeam || state.team,
     team_code:         state.teamCode,
     category:          state.category,
     work_type:         state.work_type || 'repair',
+    claim_stage:       state.work_type === 'claim' ? 'ส่งซ่อม' : '',
+    doc_url:           docUrl,
     priority:          state.priority,
     building:          state.building,
     room:              state.room,
