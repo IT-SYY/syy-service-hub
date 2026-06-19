@@ -223,12 +223,37 @@
         <div class="team-desc">สระว่ายน้ำ, ขยะ</div>
       </div>
     </div>
+    <div style="margin-top:14px;border-top:1px dashed var(--border);padding-top:14px">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">หรืองานส่งซ่อม/เคลมภายนอก (ทีม Asset)</div>
+      <button type="button" id="btn-claim-mode" onclick="selectClaimMode()" style="width:100%;padding:14px;border:2px solid #EA580C;border-radius:12px;background:#FFF7ED;color:#C2410C;font-size:15px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
+        📦 ส่งเคลม / ส่งซ่อมนอก
+      </button>
+    </div>
   </div>
 </div>
 
 <!-- PAGE 2 -->
 <div class="page content" id="page-2">
-  <div class="card">
+  <div class="card" id="claim-detail-card" style="display:none;border:2px solid #FED7AA">
+    <div class="card-title"><span style="background:#FFEDD5;color:#C2410C">📦</span> รายละเอียดอุปกรณ์ส่งเคลม / ซ่อมนอก</div>
+    <div class="field">
+      <label>ชื่ออุปกรณ์ <span class="en">Device Name</span><span class="req">*</span></label>
+      <input type="text" id="claim-device" placeholder="เช่น เครื่องปรับอากาศ, ทีวี, ปั๊มน้ำ">
+    </div>
+    <div class="field">
+      <label>รุ่น / Model <span class="en">Model</span></label>
+      <input type="text" id="claim-model" placeholder="เช่น Samsung AR18, Daikin FTKC...">
+    </div>
+    <div class="field">
+      <label>สถานที่ใช้งาน <span class="en">Usage Location</span><span class="req">*</span></label>
+      <input type="text" id="claim-usage" placeholder="เช่น ห้องพัก 502, ครัวหลัก, ล็อบบี้">
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>เลขครุภัณฑ์/Serial <span class="en">Asset/Serial No. (ถ้ามี)</span></label>
+      <input type="text" id="claim-serial" placeholder="เช่น SYY-AC-0042 หรือ S/N">
+    </div>
+  </div>
+  <div class="card" id="category-card">
     <div class="card-title"><span>2</span> ประเภทงาน / Type of Work</div>
     <div class="cat-list" id="cat-list"></div>
   </div>
@@ -333,7 +358,7 @@ const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน uploa
 
 // ===== STATE =====
 let state = {
-  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, priority:'low',
+  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, claim_device:'', claim_model:'', claim_usage:'', claim_serial:'', priority:'low',
   building:'', room:'', description:'', department:'',
   photos:[], uploadedUrls:[],
   userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
@@ -479,7 +504,29 @@ function selectTeam(name, code) {
   document.getElementById('team-' + name).classList.add('selected');
   state.team     = name;
   state.teamCode = code;
+  state.work_type = 'repair';
+  state._claimTeam = '';
+  state.category = '';
+  // ออกจากโหมดเคลม
+  const cb=document.getElementById('btn-claim-mode'); if(cb){cb.style.background='#FFF7ED';cb.style.color='#C2410C';}
+  document.getElementById('claim-detail-card').style.display='none';
+  document.getElementById('category-card').style.display='';
+  toggleClaimDocUI();
   renderCategories(code);
+}
+// เลือกโหมดส่งเคลม/ซ่อมนอก → ทีม Asset + ฟอร์มเฉพาะ
+function selectClaimMode() {
+  document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('selected'));
+  state.team = 'Asset';
+  state.teamCode = 'asset';
+  state._claimTeam = 'Asset';
+  state.work_type = 'claim';
+  state.category = 'ส่งซ่อม/เคลมนอก';
+  const cb=document.getElementById('btn-claim-mode'); if(cb){cb.style.background='#EA580C';cb.style.color='#fff';}
+  // step 2: แสดงการ์ดรายละเอียดเคลม ซ่อนการ์ดประเภทงาน
+  document.getElementById('claim-detail-card').style.display='';
+  document.getElementById('category-card').style.display='none';
+  toggleClaimDocUI();
 }
 function renderCategories(code) {
   const cats = categories[code] || [];
@@ -488,7 +535,6 @@ function renderCategories(code) {
   ).join('');
   // หัวข้อย่อยพิเศษ: ขอเปิดงานโครงการ (งานติดตั้ง/พัฒนา/ร้องขอใหม่ ที่ไม่ใช่ซ่อมเล็ก)
   html += '<button class="cat-btn cat-project" onclick="selectCat(\'ขอเปิดงานโครงการ\',this,\'project\')" style="border-color:#7C3AED;color:#7C3AED">📁 ขอเปิดงานโครงการ / Request Project</button>';
-  html += '<button class="cat-btn cat-claim" onclick="selectCat(\'ส่งซ่อม/เคลมนอก\',this,\'claim\')" style="border-color:#EA580C;color:#EA580C">📦 ส่งซ่อม / เคลมนอก (Asset)</button>';
   document.getElementById('cat-list').innerHTML = html;
   state.category = '';
   state.work_type = 'repair';
@@ -789,7 +835,17 @@ function validateStep() {
     alert('กรุณาเลือกสาขาก่อน\nPlease select a branch.'); return false;
   }
   if (state.step === 1 && !state.team) {
-    alert('กรุณาเลือกทีมก่อน\nPlease select a team.'); return false;
+    alert('กรุณาเลือกทีม หรือ "ส่งเคลม/ซ่อมนอก"\nPlease select a team.'); return false;
+  }
+  // โหมดเคลม: ตรวจรายละเอียดอุปกรณ์แทนประเภทงาน
+  if (state.step === 2 && state.work_type === 'claim') {
+    state.claim_device = document.getElementById('claim-device').value.trim();
+    state.claim_model  = document.getElementById('claim-model').value.trim();
+    state.claim_usage  = document.getElementById('claim-usage').value.trim();
+    state.claim_serial = document.getElementById('claim-serial').value.trim();
+    if (!state.claim_device) { alert('กรุณากรอกชื่ออุปกรณ์\nPlease enter device name.'); return false; }
+    if (!state.claim_usage)  { alert('กรุณากรอกสถานที่ใช้งาน\nPlease enter usage location.'); return false; }
+    return true;
   }
   if (state.step === 2 && !state.category) {
     alert('กรุณาเลือกประเภทงาน\nPlease select a category.'); return false;
@@ -827,8 +883,12 @@ function buildSummary() {
   let html = rows.map(([l,v]) =>
     '<div class="summary-row"><span class="summary-label">'+l+'</span><span class="summary-value">'+v+'</span></div>'
   ).join('');
-  // งานเคลม: แสดงสถานะเอกสารส่งซ่อม
+  // งานเคลม: แสดงรายละเอียดอุปกรณ์ + สถานะเอกสาร
   if (state.work_type === 'claim') {
+    html += '<div class="summary-row"><span class="summary-label">🔧 อุปกรณ์</span><span class="summary-value">'+(state.claim_device||'-')+'</span></div>';
+    if (state.claim_model) html += '<div class="summary-row"><span class="summary-label">📋 รุ่น/Model</span><span class="summary-value">'+state.claim_model+'</span></div>';
+    html += '<div class="summary-row"><span class="summary-label">📍 สถานที่ใช้งาน</span><span class="summary-value">'+(state.claim_usage||'-')+'</span></div>';
+    if (state.claim_serial) html += '<div class="summary-row"><span class="summary-label">🏷️ เลขครุภัณฑ์/SN</span><span class="summary-value">'+state.claim_serial+'</span></div>';
     const docHtml = state.docFile
       ? '<span style="color:#16A34A;font-weight:700">✅ แนบแล้ว: '+state.docFile.name+'</span>'
       : '<span style="color:#DC2626;font-weight:700">⚠️ ยังไม่ได้แนบเอกสาร</span>';
@@ -901,7 +961,9 @@ async function submitForm() {
     priority:          state.priority,
     building:          state.building,
     room:              state.room,
-    description:       state.description,
+    description:       state.work_type==='claim'
+      ? ('📦 ส่งเคลม/ซ่อมนอก\n🔧 อุปกรณ์: '+(state.claim_device||'-')+'\n📋 รุ่น/Model: '+(state.claim_model||'-')+'\n📍 สถานที่ใช้งาน: '+(state.claim_usage||'-')+(state.claim_serial?'\n🏷️ เลขครุภัณฑ์/SN: '+state.claim_serial:'')+'\n──────────\n'+state.description)
+      : state.description,
     department:        state.department,
     userId:            state.userId,
     displayName:       state.displayName,
