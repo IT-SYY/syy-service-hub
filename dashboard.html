@@ -340,7 +340,7 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 /* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 .overlay.show{display:flex;}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px;width:460px;max-width:90vw;animation:popUp 0.2s ease;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px;width:460px;max-width:90vw;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:popUp 0.2s ease;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
 @keyframes popUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-ttl{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
 .modal-x{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;}
@@ -2728,13 +2728,15 @@ async function doClaimStage(){
     ? {action:'done',ticket_id:currentId,notes:'[เคลม] '+(note||'เสร็จสิ้น'),access_token:authToken()}
     : {action:'update_claim_stage',ticket_id:currentId,claim_stage:stage,note:note,image_url:imgUrls.join(','),access_token:authToken()};
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)})).json();
-    if(r.success){
+    const r=await gasPost(body);
+    if(r.ok){
       if(isClose){ t.status='done'; t.claim_stage='ปิดงาน'; }
       else { t.claim_stage=stage; if(t.status==='pending'||t.status==='assigned') t.status='in_progress'; }
       closeM('m-claimstage');renderAll();
       toast('อัปเดตสถานะเคลมแล้ว: '+stage,'📦','success');
-    }else{ toast('ไม่สำเร็จ: '+(r.error||''),'❌','info'); btn.disabled=false; btn.textContent=_o; }
+      if(r.soft) setTimeout(()=>loadData(true),2500);
+    }else if(r.networkError){ toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error'); btn.disabled=false; btn.textContent=_o; }
+    else{ toast('ไม่สำเร็จ: '+(r.error||''),'❌','info'); btn.disabled=false; btn.textContent=_o; }
   }catch(e){ toast('เกิดข้อผิดพลาด','❌','info'); btn.disabled=false; btn.textContent=_o; }
 }
 // ===== จัดการแผน PM =====
@@ -2963,8 +2965,14 @@ async function doProgress(){
   }
   btn.textContent='กำลังบันทึก...';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'update_progress',ticket_id:currentId,percent:pct,note:note||'',image_url:imgUrls.join(','),access_token:authToken()})})).json();
-    if(r.success){t.progress=String(pct);if(t.status==='pending'||t.status==='assigned')t.status='in_progress';closeM('m-progress');renderAll();toast(`บันทึกความคืบหน้า ${pct}% แล้ว`,'📊','success');}
+    const r=await gasPost({action:'update_progress',ticket_id:currentId,percent:pct,note:note||'',image_url:imgUrls.join(','),access_token:authToken()});
+    if(r.ok){
+      t.progress=String(pct);if(t.status==='pending'||t.status==='assigned')t.status='in_progress';
+      closeM('m-progress');renderAll();
+      toast(`บันทึกความคืบหน้า ${pct}% แล้ว`,'📊','success');
+      if(r.soft) setTimeout(()=>loadData(true),2500);
+    }
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
     else toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','info');
   }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
   btn.disabled=false;btn.textContent='📊 บันทึกความคืบหน้า';
@@ -3054,6 +3062,23 @@ function openDetail(id){
 }
 let lastActionAt=0;   // เวลาทำรายการล่าสุด (กันรีเฟรชอัตโนมัติมาทับทันที)
 function closeM(id){document.getElementById(id).classList.remove('show'); lastActionAt=Date.now();}
+// ส่งคำสั่งไป GAS แบบทนทาน: ถ้าส่งถึงเซิร์ฟเวอร์แล้วแต่อ่าน response ไม่ได้ (redirect/timeout ของ GAS)
+// มักแปลว่าเซิร์ฟเวอร์ทำสำเร็จแล้ว → คืน soft:true เพื่อให้ผู้เรียกอัปเดตจอ + รีเฟรชยืนยันแทนการขึ้น error
+async function gasPost(body){
+  let res;
+  try{
+    res = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});
+  }catch(netErr){
+    return {ok:false, networkError:true, error:netErr.message};   // เครือข่ายล้มจริง
+  }
+  let txt='';
+  try{ txt = await res.text(); }catch(e){ txt=''; }
+  if(txt){
+    try{ const j=JSON.parse(txt); return {ok:!!j.success, data:j, error:j.error}; }
+    catch(parseErr){ /* parse JSON ไม่ได้ */ }
+  }
+  return {ok:true, soft:true};   // ส่งถึงแล้วแต่อ่าน response ไม่ได้ → ถือว่าน่าจะสำเร็จ
+}
 
 // ===== API CALLS =====
 async function doAssign(){
@@ -3129,8 +3154,8 @@ async function doDone(){
   }
   btn.textContent='กำลังบันทึก...';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||'',access_token:authToken()})})).json();
-    if(r.success){
+    const r=await gasPost({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||'',access_token:authToken()});
+    if(r.ok){
       t.status='done';
       t.resolved_at=ts;
       if(note) t.notes=note;
@@ -3143,7 +3168,10 @@ async function doDone(){
       if(idx>0){ tickets.splice(idx,1); tickets.unshift(t); }
       closeM('m-done');
       renderAll();
-      toast('ปิดงาน '+currentId+' เรียบร้อย','🎉','success');
+      if(r.soft){ toast('ปิดงาน '+currentId+' แล้ว','🎉','success'); setTimeout(()=>loadData(true),2500); }
+      else toast('ปิดงาน '+currentId+' เรียบร้อย','🎉','success');
+    }else if(r.networkError){
+      toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
     }else{
       toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
     }
