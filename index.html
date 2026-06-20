@@ -758,30 +758,18 @@ function uploadPhotoXHR(ticketId, base64, index) {
 
 async function uploadPhotos(ticketId) {
   if (state.photos.length === 0) return [];
-  const urls   = [];
   const prog   = document.getElementById('upload-progress');
   const bar    = document.getElementById('upload-bar');
   const status = document.getElementById('upload-status');
   prog.classList.add('show');
+  status.textContent = 'กำลังอัปโหลดรูป '+state.photos.length+' รูปพร้อมกัน...';
+  bar.style.width    = '70%';
 
-  for (let i = 0; i < state.photos.length; i++) {
-    const photo = state.photos[i];
-    const kb    = photo.compKB || '?';
-    status.textContent = 'กำลังอัปโหลดรูป '+(i+1)+'/'+state.photos.length+' ('+kb+'KB)...';
-    bar.style.width    = Math.round(50 + (i / state.photos.length) * 45) + '%';
-
-    const base64 = photo.dataUrl.split(',')[1];
-    const url    = await uploadPhotoXHR(ticketId, base64, i+1);
-    if (url && url !== 'pending') {
-      urls.push(url);
-      status.textContent = 'อัปโหลดรูป '+(i+1)+' สำเร็จ ✅';
-    } else if (url === 'pending') {
-      status.textContent = 'ส่งรูป '+(i+1)+' แล้ว (กำลังประมวลผล)';
-    } else {
-      console.warn('Upload photo '+(i+1)+' failed');
-      status.textContent = 'รูป '+(i+1)+' ไม่สามารถอัปโหลด';
-    }
-  }
+  // อัปโหลดทุกใบพร้อมกัน (parallel) — เร็วกว่ารอทีละใบมากเมื่อมีหลายรูป
+  const results = await Promise.all(state.photos.map(function(photo, i){
+    return uploadPhotoXHR(ticketId, photo.dataUrl.split(',')[1], i+1).catch(function(){ return ''; });
+  }));
+  const urls = results.filter(function(u){ return u && u !== 'pending'; });
 
   bar.style.width    = '100%';
   status.textContent = urls.length > 0
