@@ -278,10 +278,10 @@ async function submitProgress(){
   btn.disabled=true; btn.textContent='กำลังบันทึก...';
   // อัปโหลดรูปความคืบหน้า (ถ้ามี) — เก็บใน Drive ไม่เขียนทับ TICKETS
   let imgUrls=[];
-  for(let i=0;i<progressPhotos.length;i++){
-    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+progressPhotos.length+'...';
-    const url=await uploadPhotoXHR(selectedId, progressPhotos[i], i+1, 'progress', 'progress_image_url', true);
-    if(url) imgUrls.push(url);
+  if(progressPhotos.length){
+    btn.textContent='อัปโหลดรูป '+progressPhotos.length+' ใบ...';
+    const ups=await Promise.all(progressPhotos.map((p,i)=>uploadPhotoXHR(selectedId, p, i+1, 'progress', 'progress_image_url', true).catch(()=> '')));
+    ups.forEach(u=>{ if(u) imgUrls.push(u); });
   }
   btn.textContent='กำลังบันทึก...';
   const res=await postGAS({ action:'update_progress', ticket_id:selectedId, percent:pct, note:note, image_url:imgUrls.join(',') });
@@ -416,13 +416,13 @@ async function submitClose(){
   const btn=document.getElementById('btn-submit');
   btn.disabled=true;
 
-  let okPhotos=0;
-  for(let i=0;i<photos.length;i++){
-    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+photos.length+'...';
-    const url=await uploadPhotoXHR(selectedId, photos[i], i+1, "done", "done_image_url", false);
-    if(url) okPhotos++;
+  let okPhotos=0; const doneUrls=[];
+  if(photos.length){
+    btn.textContent='อัปโหลดรูป '+photos.length+' ใบ...';
+    const ups=await Promise.all(photos.map((p,i)=>uploadPhotoXHR(selectedId, p, i+1, "done", "done_image_url", true).catch(()=> '')));
+    ups.forEach(u=>{ if(u){ okPhotos++; doneUrls.push(u); } });
+    if(okPhotos<photos.length) toast('บางรูปอัปโหลดไม่สำเร็จ ('+okPhotos+'/'+photos.length+')');
   }
-  if(photos.length && okPhotos<photos.length) toast('บางรูปอัปโหลดไม่สำเร็จ ('+okPhotos+'/'+photos.length+')');
 
   btn.textContent='กำลังปิดงาน...';
   const note=document.getElementById('note').value.trim();
@@ -431,6 +431,7 @@ async function submitClose(){
   const r=await postGAS({
     action:'done', ticket_id:selectedId,
     resolved_at:ts, timestamp:ts,
+    done_image_url:doneUrls.join(','),
     notes:(note?note:'')+(who?(note?' ':'')+'— ปิดโดย '+who:'')
   });
 
