@@ -1205,6 +1205,8 @@ async function loadMembers(){
       emp_id:(row[5]||'').trim(),
       position:(row[6]||'').trim(),
     })).filter(m=>m.name && m.active && (m.role==='admin'||m.role==='tech'));
+    // ถ้าผู้ใช้เปิดหน้าทีมช่างอยู่ก่อนโหลดเสร็จ ให้รีเฟรชด้วยข้อมูลจริงทันที (กันเห็นรายชื่อค้าง/ว่างชั่วคราว)
+    if(currentPage==='technicians') renderTechGrid();
   }catch(e){ console.log('loadMembers error:',e); }
 }
 // ตำแหน่งงานสำรอง (ถ้า USERS ไม่มีคอลัมน์ position) — เดิม
@@ -2661,8 +2663,8 @@ async function doAddClaim(){
   for(let i=0;i<acPhotos.length;i++){
     btn.textContent='อัปโหลดรูป '+(i+1)+'/'+acPhotos.length+'...';
     try{
-      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',ticket_id:tkId,base64:acPhotos[i].split(',')[1],mimeType:'image/jpeg',fileName:tkId+'_'+(i+1)+'.jpg',skip_sheet:true})})).json();
-      if(u.success&&u.imageUrl) imgUrls.push(u.imageUrl);
+      const u=await gasPost({action:'upload_image',ticket_id:tkId,base64:acPhotos[i].split(',')[1],mimeType:'image/jpeg',fileName:tkId+'_'+(i+1)+'.jpg',skip_sheet:true});
+      if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl);
     }catch(e){}
   }
   // อัปโหลดเอกสาร
@@ -2670,8 +2672,8 @@ async function doAddClaim(){
   if(acDocFile){
     btn.textContent='อัปโหลดเอกสาร...';
     try{
-      const dr=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',skip_sheet:true,column:'doc_url',fileName:acDocFile.name,mimeType:acDocFile.mime,base64:acDocFile.base64})})).json();
-      docUrl=dr.url||dr.imageUrl||'';
+      const dr=await gasPost({action:'upload_image',skip_sheet:true,column:'doc_url',fileName:acDocFile.name,mimeType:acDocFile.mime,base64:acDocFile.base64});
+      docUrl=(dr.data&&(dr.data.url||dr.data.imageUrl))||'';
     }catch(e){}
   }
   btn.textContent='กำลังสร้าง...';
@@ -2682,8 +2684,9 @@ async function doAddClaim(){
     displayName:(currentUser&&currentUser.name)||'Asset', userId:(currentUser&&currentUser.userId)||''
   };
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({liff_data:liff_data,access_token:authToken()})})).json();
-    if(r.success){closeM('m-addclaim');toast('สร้างงานเคลมแล้ว','📦','success');setTimeout(loadData,400);}
+    const r=await gasPost({liff_data:liff_data,access_token:authToken()});
+    if(r.ok){closeM('m-addclaim');toast('สร้างงานเคลมแล้ว','📦','success');setTimeout(loadData,r.soft?1200:400);}
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
     else toast('สร้างไม่สำเร็จ: '+(r.error||''),'❌','info');
   }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
   btn.disabled=false;btn.textContent='📦 สร้างงานเคลม';
@@ -2724,12 +2727,12 @@ async function doClaimStage(){
   for(let i=0;i<claimPhotos.length;i++){
     btn.textContent='อัปโหลดรูป '+(i+1)+'/'+claimPhotos.length+'...';
     try{
-      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      const u=await gasPost({
         action:'upload_image', ticket_id:currentId,
         base64:claimPhotos[i].split(',')[1], mimeType:'image/jpeg',
         fileName:currentId+'_claim_'+(i+1)+'_'+Date.now()+'.jpg', skip_sheet:true
-      })})).json();
-      if(u.success&&u.imageUrl) imgUrls.push(u.imageUrl);
+      });
+      if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl);
     }catch(e){}
   }
   btn.textContent='กำลังบันทึก...';
@@ -2839,9 +2842,11 @@ async function savePmForm(){
 }
 function removePmPlan(id,name){
   if(!confirm('ลบแผน "'+name+'" ?\nงานที่สร้างไปแล้วจะไม่หาย แต่จะไม่สร้างงานใหม่ตามรอบนี้อีก')) return;
-  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'delete_pm_plan',plan_id:id,access_token:authToken()})})
-    .then(r=>r.json()).then(r=>{ if(r.success){toast('ลบแผนแล้ว','✓','success');loadPmPlans();} else toast('ลบไม่สำเร็จ','❌','info'); })
-    .catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
+  gasPost({action:'delete_pm_plan',plan_id:id,access_token:authToken()}).then(r=>{
+    if(r.ok){toast('ลบแผนแล้ว','✓','success');loadPmPlans();}
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
+    else toast('ลบไม่สำเร็จ: '+(r.error||''),'❌','info');
+  });
 }
 // ===== เพิ่มงานโครงการ (admin สร้างเอง) =====
 function openAddProject(){
@@ -2871,8 +2876,9 @@ async function doAddProject(){
     reporter_dept:'Admin', displayName:(currentUser&&currentUser.name)||'Admin', userId:(currentUser&&currentUser.userId)||''
   };
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({liff_data:liff_data,access_token:authToken()})})).json();
-    if(r.success){closeM('m-addproj');toast('สร้างงานโครงการแล้ว','📁','success');setTimeout(loadData,400);}
+    const r=await gasPost({liff_data:liff_data,access_token:authToken()});
+    if(r.ok){closeM('m-addproj');toast('สร้างงานโครงการแล้ว','📁','success');setTimeout(loadData,r.soft?1200:400);}
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
     else toast('สร้างไม่สำเร็จ: '+(r.error||''),'❌','info');
   }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
   btn.disabled=false;btn.textContent='📁 สร้างงานโครงการ';
@@ -2882,11 +2888,11 @@ function moveToProject(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
   if(!confirm('ย้ายงานนี้ไปเป็น "งานโครงการ"?\n\nงานจะออกจากหน้างานซ่อมบำรุง ไปอยู่ในเมนูงานโครงการ (สถานะและประวัติคงเดิม) เหมาะกับงานที่บานปลายเกินซ่อมเล็ก')) return;
   const t=tickets.find(x=>x.ticket_id===id);
-  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'convert_project',ticket_id:id,access_token:authToken()})})
-    .then(r=>r.json()).then(r=>{
-      if(r.success){if(t)t.work_type='project';closeM('m-detail');renderAll();toast('ย้ายเป็นงานโครงการแล้ว','📁','success');}
-      else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
-    }).catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
+  gasPost({action:'convert_project',ticket_id:id,access_token:authToken()}).then(r=>{
+    if(r.ok){ if(t)t.work_type='project'; closeM('m-detail'); renderAll(); toast('ย้ายเป็นงานโครงการแล้ว','📁','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
+    else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+  });
 }
 // ===== โอนงานข้ามแผนก/สาขา =====
 function openTransfer(id){
@@ -2908,13 +2914,15 @@ async function doTransfer(){
   const btn=document.getElementById('btn-transfer-ok');btn.disabled=true;btn.textContent='กำลังโอน...';
   const t=tickets.find(x=>x.ticket_id===currentId);
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'transfer',ticket_id:currentId,new_team:newTeam,new_branch:newBranch,transfer_reason:reason,access_token:authToken()})})).json();
-    if(r.success){
+    const r=await gasPost({action:'transfer',ticket_id:currentId,new_team:newTeam,new_branch:newBranch,transfer_reason:reason,access_token:authToken()});
+    if(r.ok){
       t.team=newTeam;t.department=newTeam;if(newBranch)t.branch=newBranch;
       t.status='pending';t.assigned_to='';t.assigned_secondary='';
       closeM('m-transfer');renderAll();
       toast(`โอนงานไป ${newTeam}${newBranch?' สาขา '+newBranch:''} แล้ว`,'🔀','success');
-    } else toast('โอนไม่สำเร็จ: '+(r.error||''),'❌','info');
+      if(r.soft) setTimeout(()=>loadData(true),2500);
+    } else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
+    else toast('โอนไม่สำเร็จ: '+(r.error||''),'❌','info');
   }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
   btn.disabled=false;btn.textContent='🔀 ยืนยันโอนงาน';
 }
@@ -2924,11 +2932,11 @@ function rejectPending(id){
   const reason=prompt('เหตุผลที่ปฏิเสธงานนี้ (เช่น งานซ้ำ / ไม่ใช่งานซ่อม / ข้อมูลไม่ครบ):');
   if(reason===null) return;
   const t=tickets.find(x=>x.ticket_id===id);
-  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'decline',ticket_id:id,rejected_by:(currentUser&&currentUser.name)||'admin',reject_reason:reason||'ไม่ระบุ',access_token:authToken()})})
-    .then(r=>r.json()).then(r=>{
-      if(r.success){if(t){t.status='rejected';t.reject_reason=reason;t.assigned_to='';}closeM('m-detail');renderAll();toast('ปฏิเสธงานแล้ว (ปิดงาน)','✓','success');}
-      else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
-    }).catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
+  gasPost({action:'decline',ticket_id:id,rejected_by:(currentUser&&currentUser.name)||'admin',reject_reason:reason||'ไม่ระบุ',access_token:authToken()}).then(r=>{
+    if(r.ok){ if(t){t.status='rejected';t.reject_reason=reason;t.assigned_to='';} closeM('m-detail'); renderAll(); toast('ปฏิเสธงานแล้ว (ปิดงาน)','✓','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
+    else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+  });
 }
 // ===== อัปเดตความคืบหน้า (สำหรับงานที่กำลังทำแต่ยังไม่เสร็จ) =====
 var M_PCT_OPTIONS=[10,25,50,75,90];
@@ -2965,13 +2973,13 @@ async function doProgress(){
   for(let i=0;i<progressPhotos.length;i++){
     btn.textContent='อัปโหลดรูป '+(i+1)+'/'+progressPhotos.length+'...';
     try{
-      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      const u=await gasPost({
         action:'upload_image', ticket_id:currentId,
         base64:progressPhotos[i].split(',')[1], mimeType:'image/jpeg',
         fileName:currentId+'_progress_'+(i+1)+'_'+Date.now()+'.jpg',
         column:'progress_image_url', skip_sheet:true
-      })})).json();
-      if(u.success&&u.imageUrl) imgUrls.push(u.imageUrl);
+      });
+      if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl);
     }catch(e){}
   }
   btn.textContent='กำลังบันทึก...';
@@ -2993,11 +3001,11 @@ function reopenTicket(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
   if(!confirm('เปิดงานนี้กลับมาเป็น "รอดำเนินการ" ใหม่?')) return;
   const t=tickets.find(x=>x.ticket_id===id);
-  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reopen',ticket_id:id,access_token:authToken()})})
-    .then(r=>r.json()).then(r=>{
-      if(r.success){if(t){t.status='pending';t.reject_reason='';}closeM('m-detail');renderAll();toast('เปิดงานใหม่แล้ว','↩️','success');}
-      else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
-    }).catch(()=>toast('เกิดข้อผิดพลาด','❌','info'));
+  gasPost({action:'reopen',ticket_id:id,access_token:authToken()}).then(r=>{
+    if(r.ok){ if(t){t.status='pending';t.reject_reason='';} closeM('m-detail'); renderAll(); toast('เปิดงานใหม่แล้ว','↩️','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
+    else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+  });
 }
 function openDone(id){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
@@ -3102,8 +3110,9 @@ async function doAssign(){
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'assign',ticket_id:currentId,assigned_to:member,assigned_secondary:secondary,assigned_at:ts,notes:note||'',access_token:authToken()})})).json();
-    if(r.success){t.status='assigned';t.assigned_to=member;t.assigned_secondary=secondary;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(`มอบหมายให้ ${member}${secondary?' + '+secondary:''} เรียบร้อย — รอช่างรับงาน`,'🎉','success');}
+    const r=await gasPost({action:'assign',ticket_id:currentId,assigned_to:member,assigned_secondary:secondary,assigned_at:ts,notes:note||'',access_token:authToken()});
+    if(r.ok){t.status='assigned';t.assigned_to=member;t.assigned_secondary=secondary;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(`มอบหมายให้ ${member}${secondary?' + '+secondary:''} เรียบร้อย — รอช่างรับงาน`,'🎉','success');if(r.soft)setTimeout(()=>loadData(true),2500);}
+    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
     else toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันมอบหมาย';
@@ -3113,15 +3122,17 @@ async function doAccept(){
   const btn=document.getElementById('btn-accept-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent='กำลังบันทึก...';
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'accept',ticket_id:currentId,accepted_at:ts,timestamp:ts,access_token:authToken()})})).json();
-    if(r.success){
+    const r=await gasPost({action:'accept',ticket_id:currentId,accepted_at:ts,timestamp:ts,access_token:authToken()});
+    if(r.ok){
       t.status='in_progress';
       t.accepted_at=ts;
       t.response_min=t.assigned_at?String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.assigned_at)))/60000))):'';
       closeM('m-accept');
       renderAll();
       toast('รับงาน '+currentId+' เรียบร้อย','✅','success');
-    }else{ toast('บันทึกไม่สำเร็จ','❌','error'); btn.disabled=false; btn.textContent=_o; }
+      if(r.soft) setTimeout(()=>loadData(true),2500);
+    }else if(r.networkError){ toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error'); btn.disabled=false; btn.textContent=_o; }
+    else{ toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','error'); btn.disabled=false; btn.textContent=_o; }
   }catch(e){toast('Error: '+e.message,'❌','error'); btn.disabled=false; btn.textContent=_o;}
 }
 async function doReject(){
@@ -3131,8 +3142,8 @@ async function doReject(){
   const btn=document.getElementById('btn-reject-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent='กำลังบันทึก...';
   const ts=thaiTime();
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason,access_token:authToken()})})).json();
-    if(r.success){
+    const r=await gasPost({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason,access_token:authToken()});
+    if(r.ok){
       t.status='pending';
       t.assigned_to='';
       t.assigned_at='';
@@ -3141,7 +3152,9 @@ async function doReject(){
       closeM('m-accept');
       renderAll();
       toast('ปฏิเสธงาน '+currentId+' — กรุณามอบหมายใหม่','⚠️','info');
-    }else{ toast('บันทึกไม่สำเร็จ','❌','error'); btn.disabled=false; btn.textContent=_o; }
+      if(r.soft) setTimeout(()=>loadData(true),2500);
+    }else if(r.networkError){ toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error'); btn.disabled=false; btn.textContent=_o; }
+    else{ toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','error'); btn.disabled=false; btn.textContent=_o; }
   }catch(e){toast('Error: '+e.message,'❌','error'); btn.disabled=false; btn.textContent=_o;}
 }
 async function doDone(){
@@ -3154,13 +3167,14 @@ async function doDone(){
   for(let i=0;i<donePhotos.length;i++){
     btn.textContent='อัปโหลดรูป '+(i+1)+'/'+donePhotos.length+'...';
     try{
-      const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      const r=await gasPost({
         action:'upload_image', ticket_id:currentId,
         base64:donePhotos[i].split(',')[1], mimeType:'image/jpeg',
         fileName:currentId+'_done_'+(i+1)+'_'+Date.now()+'.jpg',
         column:'done_image_url', skip_sheet:false
-      })})).json();
-      if(r.success&&r.imageUrl) uploadedUrls.push(r.imageUrl);
+      });
+      if(r.ok && r.data && r.data.imageUrl) uploadedUrls.push(r.data.imageUrl);
+      else if(r.ok && r.soft) { /* เขียนชีตน่าจะสำเร็จแล้วแต่อ่าน url คืนไม่ได้ — ไม่ต้องเตือน ให้รีเฟรชยืนยันทีหลัง */ }
       else toast('รูป '+(i+1)+' อัปโหลดไม่สำเร็จ','⚠️','info');
     }catch(e){ toast('รูป '+(i+1)+' อัปโหลดไม่สำเร็จ','⚠️','info'); }
   }
