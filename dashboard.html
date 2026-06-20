@@ -610,9 +610,11 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span>ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
     <div class="nav-sec">Management</div>
     <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="window.open('https://it-syy.github.io/Generator-System/','_blank')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
+    <div class="nav-item" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.3)" onclick="window.open('http://118.174.142.153:8080/login','_blank')"><span class="nav-icon">🗃️</span><span style="color:#2563EB;font-weight:700">IT Asset Management</span></div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
     <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span>ประวัติงาน</span></div>
     <div class="nav-item" onclick="showPage('archive',this)"><span class="nav-icon">🗄️</span><span>ค้นประวัติ (Archive)</span></div>
+    <div class="nav-item" id="nav-errorlog" style="display:none" onclick="openErrorLogs()"><span class="nav-icon">🩺</span><span>Error Log / Health</span></div>
     <div class="nav-sec">Reports</div>
     <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span>รายงาน</span></div>
     <div class="nav-item" onclick="window.open('https://it-syy.github.io/syy-service-hub/tracker.html','_blank')"><span class="nav-icon">🔗</span><span>หน้าติดตามสถานะงาน</span></div>
@@ -948,6 +950,19 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <div id="cs-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-claimstage')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" id="btn-cs-ok" onclick="doClaimStage()">📦 บันทึกสถานะ</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-errorlog">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-ttl">🩺 Error Log & Health Check<button class="modal-x" onclick="closeM('m-errorlog')">×</button></div>
+    <div id="health-summary" style="margin-bottom:12px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:12px;color:var(--text3)">รายการ error ล่าสุดจากระบบ (ไม่ใช่ของผู้ใช้ทั่วไป — สำหรับ admin สืบหาปัญหา)</span>
+      <button class="btn-secondary2" onclick="loadErrorLogs()">↻ รีเฟรช</button>
+    </div>
+    <div id="error-log-list" style="max-height:50vh;overflow-y:auto"><div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลด...</div></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-errorlog')">ปิด</button></div>
   </div>
 </div>
 
@@ -1300,6 +1315,7 @@ function enterAs(user, degraded){
   buildBranchFilter();
   loadMembers();
   updateEngineeringMenu();
+  const elNav=document.getElementById('nav-errorlog'); if(elNav) elNav.style.display=(userRole==='admin')?'flex':'none';
   document.body.classList.toggle('viewer', userRole==='viewer');
   const rb=document.getElementById('role-badge');
   if(rb){
@@ -2753,6 +2769,55 @@ async function doClaimStage(){
     else{ toast('ไม่สำเร็จ: '+(r.error||''),'❌','info'); btn.disabled=false; btn.textContent=_o; }
   }catch(e){ toast('เกิดข้อผิดพลาด','❌','info'); btn.disabled=false; btn.textContent=_o; }
 }
+// ===== Error Log / Health Check (admin) =====
+function openErrorLogs(){
+  if(userRole!=='admin'){toast('เฉพาะผู้ดูแลระบบ','🔒','info');return;}
+  document.getElementById('m-errorlog').classList.add('show');
+  loadHealthCheck();
+  loadErrorLogs();
+}
+async function loadHealthCheck(){
+  const box=document.getElementById('health-summary');
+  box.innerHTML='<div style="color:var(--text3);font-size:12px">⏳ กำลังตรวจสุขภาพระบบ...</div>';
+  try{
+    const r=await(await fetch(GAS_URL+'?check=full')).json();
+    const statusColor={ok:'#10B981',warning:'#F59E0B',error:'#EF4444'}[r.status]||'#6B7280';
+    const statusLabel={ok:'✓ ระบบปกติ',warning:'⚠️ มีข้อสังเกต',error:'❌ พบปัญหา'}[r.status]||r.status;
+    let rows='';
+    Object.keys(r.checks||{}).forEach(k=>{
+      const c=r.checks[k];
+      rows+=`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="width:18px">${c.ok?'✅':'❌'}</span>
+        <span style="flex:1"><b>${k}</b><br><span style="color:var(--text3)">${c.detail}</span></span>
+      </div>`;
+    });
+    box.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid ${statusColor};border-radius:8px;padding:12px">
+      <div style="font-weight:700;color:${statusColor};margin-bottom:8px">${statusLabel} (เช็คเมื่อ ${r.time||'-'})</div>
+      ${rows}
+    </div>`;
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:12px">โหลด health check ไม่สำเร็จ — ตรวจ GAS_URL หรือ deploy ใหม่</div>';
+  }
+}
+async function loadErrorLogs(){
+  const box=document.getElementById('error-log-list');
+  box.innerHTML='<div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลด...</div>';
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_error_logs',limit:50,access_token:authToken()})})).json();
+    if(!r.success){ box.innerHTML='<div style="color:var(--red);padding:20px;text-align:center">'+(r.error||'โหลดไม่สำเร็จ')+'</div>'; return; }
+    const logs=r.logs||[];
+    if(!logs.length){ box.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">✅ ไม่มี error บันทึกไว้</div>'; return; }
+    box.innerHTML=logs.map(l=>`<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid #EF4444;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <span style="font-weight:700;color:#EF4444">${l.source||'-'}</span>
+        <span style="color:var(--text3);font-family:monospace;font-size:11px">${l.timestamp||''}</span>
+      </div>
+      <div style="margin-top:4px">${l.message||''}</div>
+      ${l.context?`<div style="color:var(--text3);font-size:11px;margin-top:2px">context: ${l.context}</div>`:''}
+    </div>`).join('');
+  }catch(e){ box.innerHTML='<div style="color:var(--red);padding:20px;text-align:center">เกิดข้อผิดพลาดในการโหลด</div>'; }
+}
+
 // ===== จัดการแผน PM =====
 let pmPlansCache=[];
 const PM_FREQ_LABEL={day:'วัน',week:'สัปดาห์',month:'เดือน',quarter:'ไตรมาส',year:'ปี'};
@@ -3309,7 +3374,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,claim:4,technicians:6,history:7,archive:8,report:9};
+const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,claim:4,technicians:7,history:8,archive:9,report:11};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
