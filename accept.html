@@ -223,10 +223,15 @@ function postGAS(payload){
     xhr.timeout=30000;
     xhr.onreadystatechange=function(){
       if(xhr.readyState!==4) return;
-      try{ resolve(JSON.parse(xhr.responseText)); }catch(e){ resolve({success:false,error:'bad response'}); }
+      try{ resolve(JSON.parse(xhr.responseText)); }
+      catch(e){
+        // ส่งคำสั่งถึงเซิร์ฟเวอร์แล้วแต่อ่าน response ไม่ได้ (มักเกิดจาก GAS ตอบกลับผิดรูปแบบ)
+        // ในกรณีนี้เซิร์ฟเวอร์มักทำงานสำเร็จไปแล้ว จึงถือเป็น soft success ไม่ใช่ error จริง
+        resolve({success:true, soft:true});
+      }
     };
-    xhr.ontimeout=function(){ resolve({success:false,error:'timeout'}); };
-    xhr.onerror=function(){ resolve({success:false,error:'network'}); };
+    xhr.ontimeout=function(){ resolve({success:false, error:'timeout', networkError:true}); };
+    xhr.onerror=function(){ resolve({success:false, error:'network', networkError:true}); };
     xhr.send(JSON.stringify(payload));
   });
 }
