@@ -910,7 +910,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-field"><label class="modal-lbl">สถานที่ใช้งาน <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ac-usage" placeholder="เช่น ห้องพัก 502, ครัวหลัก"></div>
     <div class="modal-field"><label class="modal-lbl">อาการ/รายละเอียด</label><textarea class="modal-ta" id="ac-desc" placeholder="อาการเสีย เหตุผลที่ต้องส่งซ่อม/เคลม..."></textarea></div>
     <div class="modal-field"><label class="modal-lbl">ความสำคัญ</label>
-      <select class="modal-sel" id="ac-priority"><option value="low">ปกติ</option><option value="medium">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+      <select class="modal-sel" id="ac-priority"><option value="low">ปกติ</option><option value="med">สำคัญ</option><option value="high">เร่งด่วน</option></select>
     </div>
     <div class="modal-field">
       <label class="modal-lbl">📄 แนบเอกสารส่งซ่อม/เคลม (PDF/รูป)</label>
@@ -1001,7 +1001,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div style="display:flex;gap:8px">
       <div class="modal-field" style="flex:1"><label class="modal-lbl">ครบกำหนดครั้งแรก <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-due" type="date"></div>
       <div class="modal-field" style="flex:1"><label class="modal-lbl">ความสำคัญ</label>
-        <select class="modal-sel" id="pf-priority"><option value="low">ปกติ</option><option value="medium">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+        <select class="modal-sel" id="pf-priority"><option value="low">ปกติ</option><option value="med">สำคัญ</option><option value="high">เร่งด่วน</option></select>
       </div>
     </div>
     <div class="modal-field"><label class="modal-lbl">รายละเอียดงาน</label><textarea class="modal-ta" id="pf-detail" placeholder="ขั้นตอน/สิ่งที่ต้องทำ..."></textarea></div>
@@ -1024,7 +1024,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-field"><label class="modal-lbl">สถานที่ / อาคาร</label><input class="modal-sel" id="ap-building" placeholder="เช่น อาคารหลัก, ล็อบบี้"></div>
     <div class="modal-field"><label class="modal-lbl">รายละเอียดงาน</label><textarea class="modal-ta" id="ap-desc" placeholder="ขอบเขตงาน สิ่งที่ต้องทำ อุปกรณ์ที่ต้องใช้..."></textarea></div>
     <div class="modal-field"><label class="modal-lbl">ความสำคัญ</label>
-      <select class="modal-sel" id="ap-priority"><option value="low">ปกติ</option><option value="medium">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+      <select class="modal-sel" id="ap-priority"><option value="low">ปกติ</option><option value="med">สำคัญ</option><option value="high">เร่งด่วน</option></select>
     </div>
     <div class="modal-field"><label class="modal-lbl">กำหนดเสร็จ <span style="color:var(--text3);font-weight:400">(ไม่บังคับ)</span></label><input class="modal-sel" id="ap-due" type="date"></div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addproj')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" id="btn-addproj-ok" onclick="doAddProject()">📁 สร้างงานโครงการ</button></div>
