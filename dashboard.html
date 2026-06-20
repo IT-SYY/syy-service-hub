@@ -2676,12 +2676,12 @@ async function doAddClaim(){
   const tkId='TK-'+Date.now();
   // อัปโหลดรูปสินค้า
   const imgUrls=[];
-  for(let i=0;i<acPhotos.length;i++){
-    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+acPhotos.length+'...';
-    try{
-      const u=await gasPost({action:'upload_image',ticket_id:tkId,base64:acPhotos[i].split(',')[1],mimeType:'image/jpeg',fileName:tkId+'_'+(i+1)+'.jpg',skip_sheet:true});
-      if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl);
-    }catch(e){}
+  if(acPhotos.length){
+    btn.textContent='อัปโหลดรูป '+acPhotos.length+' ใบ...';
+    const ups=await Promise.all(acPhotos.map((p,i)=>
+      gasPost({action:'upload_image',ticket_id:tkId,base64:p.split(',')[1],mimeType:'image/jpeg',fileName:tkId+'_'+(i+1)+'.jpg',skip_sheet:true}).catch(()=>({ok:false}))
+    ));
+    ups.forEach(u=>{ if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl); });
   }
   // อัปโหลดเอกสาร
   let docUrl='';
@@ -2740,16 +2740,16 @@ async function doClaimStage(){
   const btn=document.getElementById('btn-cs-ok');if(btn.disabled)return;btn.disabled=true;const _o=btn.textContent;btn.textContent='กำลังบันทึก...';
   // อัปโหลดรูปยืนยัน (ถ้ามี)
   const imgUrls=[];
-  for(let i=0;i<claimPhotos.length;i++){
-    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+claimPhotos.length+'...';
-    try{
-      const u=await gasPost({
+  if(claimPhotos.length){
+    btn.textContent='อัปโหลดรูป '+claimPhotos.length+' ใบ...';
+    const ups=await Promise.all(claimPhotos.map((p,i)=>
+      gasPost({
         action:'upload_image', ticket_id:currentId,
-        base64:claimPhotos[i].split(',')[1], mimeType:'image/jpeg',
+        base64:p.split(',')[1], mimeType:'image/jpeg',
         fileName:currentId+'_claim_'+(i+1)+'_'+Date.now()+'.jpg', skip_sheet:true
-      });
-      if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl);
-    }catch(e){}
+      }).catch(()=>({ok:false}))
+    ));
+    ups.forEach(u=>{ if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl); });
   }
   btn.textContent='กำลังบันทึก...';
   // ถ้าเลือก "ปิดงาน" ให้ปิดงานจริง มิฉะนั้นอัปเดตสถานะย่อย
@@ -3035,17 +3035,17 @@ async function doProgress(){
   const t=tickets.find(x=>x.ticket_id===currentId);
   // อัปโหลดรูปความคืบหน้า (ถ้ามี) — เก็บใน Drive ไม่เขียนทับ TICKETS (skip_sheet)
   const imgUrls=[];
-  for(let i=0;i<progressPhotos.length;i++){
-    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+progressPhotos.length+'...';
-    try{
-      const u=await gasPost({
+  if(progressPhotos.length){
+    btn.textContent='อัปโหลดรูป '+progressPhotos.length+' ใบ...';
+    const ups=await Promise.all(progressPhotos.map((p,i)=>
+      gasPost({
         action:'upload_image', ticket_id:currentId,
-        base64:progressPhotos[i].split(',')[1], mimeType:'image/jpeg',
+        base64:p.split(',')[1], mimeType:'image/jpeg',
         fileName:currentId+'_progress_'+(i+1)+'_'+Date.now()+'.jpg',
-        column:'progress_image_url', skip_sheet:true
-      });
-      if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl);
-    }catch(e){}
+        skip_sheet:true
+      }).catch(()=>({ok:false}))
+    ));
+    ups.forEach(u=>{ if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl); });
   }
   btn.textContent='กำลังบันทึก...';
   try{
@@ -3227,25 +3227,25 @@ async function doDone(){
   const btn=document.getElementById('btn-done-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
-  // อัปโหลดรูปหลังงาน (ถ้ามี) — GAS เขียนลงคอลัมน์ done_image_url ให้เอง
+  // อัปโหลดรูปหลังงานทุกใบพร้อมกัน (parallel, ไม่เขียนชีตทีละใบ) แล้วเก็บ url ส่งไปเขียนทีเดียวกับ done — เร็ว + กัน race
   const uploadedUrls=[];
-  for(let i=0;i<donePhotos.length;i++){
-    btn.textContent='อัปโหลดรูป '+(i+1)+'/'+donePhotos.length+'...';
-    try{
-      const r=await gasPost({
+  if(donePhotos.length){
+    btn.textContent='อัปโหลดรูป '+donePhotos.length+' ใบ...';
+    const results=await Promise.all(donePhotos.map((p,i)=>
+      gasPost({
         action:'upload_image', ticket_id:currentId,
-        base64:donePhotos[i].split(',')[1], mimeType:'image/jpeg',
+        base64:p.split(',')[1], mimeType:'image/jpeg',
         fileName:currentId+'_done_'+(i+1)+'_'+Date.now()+'.jpg',
-        column:'done_image_url', skip_sheet:false
-      });
-      if(r.ok && r.data && r.data.imageUrl) uploadedUrls.push(r.data.imageUrl);
-      else if(r.ok && r.soft) { /* เขียนชีตน่าจะสำเร็จแล้วแต่อ่าน url คืนไม่ได้ — ไม่ต้องเตือน ให้รีเฟรชยืนยันทีหลัง */ }
-      else toast('รูป '+(i+1)+' อัปโหลดไม่สำเร็จ','⚠️','info');
-    }catch(e){ toast('รูป '+(i+1)+' อัปโหลดไม่สำเร็จ','⚠️','info'); }
+        skip_sheet:true
+      }).catch(()=>({ok:false}))
+    ));
+    let failed=0;
+    results.forEach(r=>{ if(r.ok && r.data && r.data.imageUrl) uploadedUrls.push(r.data.imageUrl); else failed++; });
+    if(failed) toast(failed+' รูปอัปโหลดไม่สำเร็จ','⚠️','info');
   }
   btn.textContent='กำลังบันทึก...';
   try{
-    const r=await gasPost({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||'',access_token:authToken()});
+    const r=await gasPost({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||'',done_image_url:uploadedUrls.join(','),access_token:authToken()});
     if(r.ok){
       t.status='done';
       t.resolved_at=ts;
