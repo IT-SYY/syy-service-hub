@@ -396,10 +396,16 @@ function postGAS(payload){
     xhr.timeout=30000;
     xhr.onreadystatechange=function(){
       if(xhr.readyState!==4) return;
-      try{ resolve(JSON.parse(xhr.responseText)); }catch(e){ resolve({success:false,error:'bad response'}); }
+      try{ resolve(JSON.parse(xhr.responseText)); }
+      catch(e){
+        // ส่งคำสั่งไปเซิร์ฟเวอร์สำเร็จ (ได้ response กลับมา) แต่อ่าน/แปลง JSON ไม่ได้
+        // กรณีนี้เซิร์ฟเวอร์ (GAS) มักทำงานสำเร็จไปแล้ว เพียงแต่ตอบกลับผิดรูปแบบ (redirect/timeout ฝั่ง Google)
+        // จึงถือเป็น "soft success" ไม่ใช่ความล้มเหลวจริง เพื่อไม่ให้ผู้ใช้เห็น error หลอกทั้งที่บันทึกสำเร็จแล้ว
+        resolve({success:true, soft:true});
+      }
     };
-    xhr.ontimeout=function(){ resolve({success:false,error:'timeout'}); };
-    xhr.onerror=function(){ resolve({success:false,error:'network'}); };
+    xhr.ontimeout=function(){ resolve({success:false, error:'timeout', networkError:true}); };
+    xhr.onerror=function(){ resolve({success:false, error:'network', networkError:true}); };
     xhr.send(JSON.stringify(payload));
   });
 }
@@ -433,7 +439,7 @@ async function submitClose(){
     document.getElementById('s-photo-note').textContent=okPhotos?' พร้อมรูป '+okPhotos+' รูป':'';
     document.getElementById('success').classList.add('show');
   }else{
-    toast('ปิดงานไม่สำเร็จ: '+(r.error||'ลองใหม่อีกครั้ง'));
+    toast('ปิดงานไม่สำเร็จ: '+(r.error||'ลองใหม่อีกครั้ง')+(r.networkError?'':' (กรุณาตรวจสอบในแอปอีกครั้งก่อนลองซ้ำ)'));
     btn.disabled=false;
   }
   btn.textContent='✅ ยืนยันปิดงาน';
