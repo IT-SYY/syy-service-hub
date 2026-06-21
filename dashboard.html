@@ -120,6 +120,8 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 @keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.4)}50%{opacity:0.8;box-shadow:0 0 0 4px rgba(16,185,129,0)}}
 .live-txt{font-size:11px;color:var(--green);font-weight:600;}
 .btn-tb{background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-family:'Prompt',sans-serif;font-size:11px;padding:5px 10px;cursor:pointer;transition:all 0.15s;}
+.btn-lang{flex-shrink:0;white-space:nowrap;background:var(--green-dim,rgba(6,199,85,0.12));border:1.5px solid var(--green);border-radius:7px;color:var(--green);font-family:'Prompt',sans-serif;font-size:12px;font-weight:700;padding:5px 11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:3px;}
+.btn-lang:hover{background:var(--green);color:#fff;}
 .btn-tb:hover{border-color:var(--green);color:var(--green);}
 .btn-tb{flex-shrink:0;white-space:nowrap;}
 .topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto;}
@@ -661,7 +663,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <button class="hamburger" onclick="toggleSB()">☰</button>
     <button class="back-btn" id="back-btn" onclick="goBack()" style="display:none">←</button>
     <div class="topbar-title" id="page-title">📊 Dashboard Overview</div>
-    <div class="topbar-search"><span style="color:var(--text3)">🔍</span><input type="text" placeholder="ค้นหา..." id="search-input" oninput="onSearch()"></div>
+    <div class="topbar-search"><span style="color:var(--text3)">🔍</span><input type="text" data-th-ph="ค้นหา..." data-en-ph="Search..." placeholder="ค้นหา..." id="search-input" oninput="onSearch()"></div>
+    <button class="btn-lang" id="lang-btn" onclick="toggleLang()" title="เปลี่ยนภาษา / Language">🌐 <span id="lang-btn-txt">TH</span></button>
     <div class="live-dot"></div><span class="live-txt" id="live-txt">Live</span>
     <span id="role-badge"></span>
     <span class="viewer-note">👁 ดูอย่างเดียว</span>
@@ -1190,6 +1193,9 @@ function applyLang(lang){
   // ป้ายปุ่มสลับภาษาเอง
   const ll=document.getElementById('lang-label');
   if(ll) ll.textContent = (curLang==='th') ? 'ภาษา: ไทย' : 'Language: EN';
+  // ปุ่มบนแถบบน: แสดงภาษาเป้าหมายที่จะสลับไป (อยู่ไทย→โชว์ EN, อยู่อังกฤษ→โชว์ TH)
+  const lb=document.getElementById('lang-btn-txt');
+  if(lb) lb.textContent = (curLang==='th') ? 'EN' : 'TH';
 }
 function toggleLang(){ applyLang(curLang==='th'?'en':'th'); }
 // คืนข้อความตามภาษาปัจจุบัน (ใช้ในข้อความ JS แบบ dynamic เช่น toast/alert)
