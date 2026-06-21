@@ -615,27 +615,28 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     </div>
   </div>
   <div class="sidebar-nav">
-    <div class="nav-sec">Overview</div>
-    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
-    <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span>Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
-    <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
-    <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span>บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
-    <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span>ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
-    <div class="nav-item" onclick="window.open('https://it-syy.github.io/syy-service-hub/tracker.html','_blank')"><span class="nav-icon">🔗</span><span>หน้าติดตามสถานะงาน</span></div>
-    <div class="nav-sec">Management</div>
+    <div class="nav-sec" data-th="ภาพรวม" data-en="Overview">Overview</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span data-th="แดชบอร์ด" data-en="Dashboard">Dashboard</span></div>
+    <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span data-th="Tickets ซ่อมบำรุง" data-en="Maintenance Tickets">Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span data-th="งานโครงการ" data-en="Projects">งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
+    <div class="nav-item" onclick="window.open('https://it-syy.github.io/syy-service-hub/tracker.html','_blank')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
+    <div class="nav-sec" data-th="การจัดการ" data-en="Management">Management</div>
     <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="window.open('https://it-syy.github.io/Generator-System/','_blank')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
     <div class="nav-item" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.3)" onclick="window.open('http://118.174.142.153:8080/login','_blank')"><span class="nav-icon">🗃️</span><span style="color:#2563EB;font-weight:700">IT Asset Management</span></div>
-    <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span>ทีมช่าง</span></div>
-    <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span>ประวัติงาน</span></div>
-    <div class="nav-item" onclick="showPage('archive',this)"><span class="nav-icon">🗄️</span><span>ค้นประวัติ (Archive)</span></div>
+    <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span data-th="ทีมช่าง" data-en="Technicians">ทีมช่าง</span></div>
+    <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span data-th="ประวัติงาน" data-en="History">ประวัติงาน</span></div>
+    <div class="nav-item" onclick="showPage('archive',this)"><span class="nav-icon">🗄️</span><span data-th="ค้นประวัติ (Archive)" data-en="Archive Search">ค้นประวัติ (Archive)</span></div>
     <div class="nav-item" id="nav-errorlog" style="display:none" onclick="openErrorLogs()"><span class="nav-icon">🩺</span><span>Error Log / Health</span></div>
-    <div class="nav-sec">Reports</div>
-    <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span>รายงาน</span></div>
-    <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span>Export PDF</span></div>
-    <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">📊</span><span>Export Excel</span></div>
-    <div class="nav-sec">มุมมอง</div>
-    <div class="nav-item" onclick="toggleTheme()"><span class="nav-icon">🌓</span><span>สลับธีมเข้ม/สว่าง</span></div>
-    <div class="nav-item" onclick="toggleTV()"><span class="nav-icon">📺</span><span>โหมดทีวี</span></div>
+    <div class="nav-sec" data-th="รายงาน" data-en="Reports">Reports</div>
+    <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span data-th="รายงาน" data-en="Reports">รายงาน</span></div>
+    <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span data-th="ส่งออก PDF" data-en="Export PDF">Export PDF</span></div>
+    <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">📊</span><span data-th="ส่งออก Excel" data-en="Export Excel">Export Excel</span></div>
+    <div class="nav-sec" data-th="มุมมอง" data-en="View">มุมมอง</div>
+    <div class="nav-item" onclick="toggleLang()"><span class="nav-icon">🌐</span><span id="lang-label" data-th="ภาษา: ไทย" data-en="Language: EN">ภาษา: ไทย</span></div>
+    <div class="nav-item" onclick="toggleTheme()"><span class="nav-icon">🌓</span><span data-th="สลับธีมเข้ม/สว่าง" data-en="Toggle Dark/Light">สลับธีมเข้ม/สว่าง</span></div>
+    <div class="nav-item" onclick="toggleTV()"><span class="nav-icon">📺</span><span data-th="โหมดทีวี" data-en="TV Mode">โหมดทีวี</span></div>
   </div>
   <div class="team-filter">
     <div style="font-size:10px;color:#64748B;margin-bottom:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase">กรองสาขา</div>
@@ -1163,6 +1164,37 @@ function applyTheme(t){
 function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dark':'light');}
 try{ if(localStorage.getItem('syy-theme')==='light'){document.body.classList.add('light');} }catch(e){}
 
+// ===== ระบบ 2 ภาษา (i18n) =====
+let curLang='th';
+try{ const sv=localStorage.getItem('syy-lang'); if(sv==='en'||sv==='th') curLang=sv; }catch(e){}
+// ใช้ค่า data-th / data-en บนทุก element ที่ต้องแปล + data-th-ph / data-en-ph สำหรับ placeholder
+function applyLang(lang){
+  curLang = (lang==='en') ? 'en' : 'th';
+  try{ localStorage.setItem('syy-lang', curLang); }catch(e){}
+  document.documentElement.setAttribute('lang', curLang);
+  // ข้อความทั่วไป
+  document.querySelectorAll('[data-th]').forEach(function(el){
+    const v = el.getAttribute('data-'+curLang);
+    if(v!==null && v!==undefined) el.textContent = v;
+  });
+  // placeholder ของ input/textarea
+  document.querySelectorAll('[data-th-ph]').forEach(function(el){
+    const v = el.getAttribute('data-'+curLang+'-ph');
+    if(v!==null && v!==undefined) el.setAttribute('placeholder', v);
+  });
+  // title attribute (tooltip)
+  document.querySelectorAll('[data-th-title]').forEach(function(el){
+    const v = el.getAttribute('data-'+curLang+'-title');
+    if(v!==null && v!==undefined) el.setAttribute('title', v);
+  });
+  // ป้ายปุ่มสลับภาษาเอง
+  const ll=document.getElementById('lang-label');
+  if(ll) ll.textContent = (curLang==='th') ? 'ภาษา: ไทย' : 'Language: EN';
+}
+function toggleLang(){ applyLang(curLang==='th'?'en':'th'); }
+// คืนข้อความตามภาษาปัจจุบัน (ใช้ในข้อความ JS แบบ dynamic เช่น toast/alert)
+function L(th,en){ return curLang==='en' ? en : th; }
+
 // ===== TV / WALLBOARD MODE =====
 let tvClock=null;
 function toggleTV(){
@@ -1379,7 +1411,7 @@ function showSkeletons(){
   if(ks) ks.innerHTML='<span class="skel" style="width:130px;height:11px"></span>';
 }
 
-document.addEventListener('DOMContentLoaded',()=>{ applyTheme(document.body.classList.contains('light')?'light':'dark'); initAuth(); });
+document.addEventListener('DOMContentLoaded',()=>{ applyTheme(document.body.classList.contains('light')?'light':'dark'); applyLang(curLang); initAuth(); });
 
 // ===== HELPERS: IMAGE (ปรับปรุงแล้ว) =====
 let donePhotos = []; // dataURL ของรูปหลังปิดงานที่รอ upload
