@@ -687,26 +687,26 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
           <div class="kpi-new" id="kpi-new">NEW</div>
           <div class="kpi-top"><div class="kpi-icon">🎫</div><div class="kpi-badge">Total</div></div>
           <div class="kpi-num" id="k-all">—</div>
-          <div class="kpi-label">งานทั้งหมด</div>
+          <div class="kpi-label" data-th="งานทั้งหมด" data-en="Total Tickets">งานทั้งหมด</div>
           <div class="kpi-sub" id="k-sub">กำลังโหลด...</div>
         </div>
         <div class="kpi-card pending" onclick="gotoTickets({status:'pending'})">
           <div class="kpi-top"><div class="kpi-icon">⏳</div><div class="kpi-badge">Pending</div></div>
           <div class="kpi-num" id="k-pending">—</div>
-          <div class="kpi-label">รอดำเนินการ</div>
+          <div class="kpi-label" data-th="รอดำเนินการ" data-en="Pending">รอดำเนินการ</div>
           <div class="kpi-sub" id="k-pending-sub">รอมอบหมาย + รอรับงาน</div>
         </div>
         <div class="kpi-card inprog" onclick="gotoTickets({status:'in_progress'})">
           <div class="kpi-top"><div class="kpi-icon">🔄</div><div class="kpi-badge">Active</div></div>
           <div class="kpi-num" id="k-inprog">—</div>
-          <div class="kpi-label">กำลังดำเนินการ</div>
+          <div class="kpi-label" data-th="กำลังดำเนินการ" data-en="In Progress">กำลังดำเนินการ</div>
           <div class="kpi-sub" id="k-inprog-sub">รับงานแล้ว</div>
         </div>
         <div class="kpi-card done" onclick="gotoTickets({status:'done'})">
           <div class="kpi-top"><div class="kpi-icon">✅</div><div class="kpi-badge">Done</div></div>
           <div class="kpi-num" id="k-done">—</div>
-          <div class="kpi-label">เสร็จสิ้น</div>
-          <div class="kpi-sub" id="k-done-sub">Completed</div>
+          <div class="kpi-label" data-th="เสร็จสิ้น" data-en="Completed">เสร็จสิ้น</div>
+          <div class="kpi-sub" id="k-done-sub" data-th="เสร็จสมบูรณ์" data-en="Completed">Completed</div>
         </div>
       </div>
 
@@ -715,22 +715,22 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
       <!-- CHARTS -->
       <div class="charts-row">
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะงาน</div></div><canvas id="chart-status" height="55"></canvas></div>
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl">ประเภทงาน</div></div><canvas id="chart-cat" height="55"></canvas></div>
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="55"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl" data-th="สถานะงาน" data-en="Job Status">สถานะงาน</div></div><canvas id="chart-status" height="55"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl" data-th="ประเภทงาน" data-en="Job Category">ประเภทงาน</div></div><canvas id="chart-cat" height="55"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl" data-th="งานรายวัน 7 วัน" data-en="Daily (7 days)">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="55"></canvas></div>
       </div>
 
       <!-- KANBAN -->
       <div class="kanban-hdr">
-        <div class="kanban-ttl">📋 Ticket ล่าสุด</div>
-        <span class="kanban-link" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">ดูทั้งหมดที่เมนู Tickets →</span>
+        <div class="kanban-ttl" data-th="📋 Ticket ล่าสุด" data-en="📋 Recent Tickets">📋 Ticket ล่าสุด</div>
+        <span class="kanban-link" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])" data-th="ดูทั้งหมดที่เมนู Tickets →" data-en="View all in Tickets →">ดูทั้งหมดที่เมนู Tickets →</span>
       </div>
       <div class="kanban-grid">
         <!-- รอดำเนินการ -->
         <div class="kb-col">
           <div class="kb-col-hdr pending">
             <span class="kb-col-icon">⏳</span>
-            <span class="kb-col-name">รอดำเนินการ</span>
+            <span class="kb-col-name" data-th="รอดำเนินการ" data-en="Pending">รอดำเนินการ</span>
             <span class="kb-col-count" id="kb-count-pending">0</span>
           </div>
           <div class="kb-col-body pending" id="kb-pending">
@@ -741,7 +741,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <div class="kb-col">
           <div class="kb-col-hdr inprog">
             <span class="kb-col-icon">🔄</span>
-            <span class="kb-col-name">กำลังดำเนินการ</span>
+            <span class="kb-col-name" data-th="กำลังดำเนินการ" data-en="In Progress">กำลังดำเนินการ</span>
             <span class="kb-col-count" id="kb-count-inprog">0</span>
           </div>
           <div class="kb-col-body inprog" id="kb-inprog">
@@ -752,7 +752,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <div class="kb-col">
           <div class="kb-col-hdr done">
             <span class="kb-col-icon">✅</span>
-            <span class="kb-col-name">เสร็จสิ้น</span>
+            <span class="kb-col-name" data-th="เสร็จสิ้น" data-en="Completed">เสร็จสิ้น</span>
             <span class="kb-col-count" id="kb-count-done">0</span>
           </div>
           <div class="kb-col-body done" id="kb-done">
@@ -763,8 +763,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
       <!-- BOTTOM -->
       <div class="bottom-row">
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">สถานะทีม</div></div><div class="tech-list" id="tech-list"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div></div>
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl">กิจกรรมล่าสุด</div></div><div class="timeline" id="timeline"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl" data-th="สถานะทีม" data-en="Team Status">สถานะทีม</div></div><div class="tech-list" id="tech-list"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl" data-th="กิจกรรมล่าสุด" data-en="Recent Activity">กิจกรรมล่าสุด</div></div><div class="timeline" id="timeline"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div></div>
       </div>
     </div>
 
@@ -1196,10 +1196,22 @@ function applyLang(lang){
   // ปุ่มบนแถบบน: แสดงภาษาเป้าหมายที่จะสลับไป (อยู่ไทย→โชว์ EN, อยู่อังกฤษ→โชว์ TH)
   const lb=document.getElementById('lang-btn-txt');
   if(lb) lb.textContent = (curLang==='th') ? 'EN' : 'TH';
+  // รีเฟรชหัวข้อหน้า + เนื้อหา dynamic ที่สร้างด้วย JS ให้เปลี่ยนภาษาตามทันที
+  try{ if(typeof refreshDynamicLang==='function') refreshDynamicLang(); }catch(e){}
 }
 function toggleLang(){ applyLang(curLang==='th'?'en':'th'); }
 // คืนข้อความตามภาษาปัจจุบัน (ใช้ในข้อความ JS แบบ dynamic เช่น toast/alert)
 function L(th,en){ return curLang==='en' ? en : th; }
+// รีเฟรชส่วนที่สร้างด้วย JS (หัวข้อหน้า + การ์ด/ตาราง) ให้เปลี่ยนภาษาทันทีที่สลับ
+function refreshDynamicLang(){
+  // หัวข้อหน้าปัจจุบัน
+  try{
+    const tt={dashboard:L('📊 ภาพรวมแดชบอร์ด','📊 Dashboard Overview'),tickets:L('🎫 จัดการ Ticket','🎫 Ticket Management'),projects:L('📁 งานโครงการ','📁 Projects'),pm:L('🔧 บำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance'),claim:L('📦 ส่งซ่อม/เคลมนอก','📦 Claim / External Repair'),technicians:L('👥 ทีมช่าง','👥 Technicians'),history:L('📋 ประวัติงาน','📋 History'),archive:L('🗄️ ค้นประวัติ (Archive)','🗄️ Archive Search'),report:L('📈 รายงาน','📈 Reports')};
+    const pt=document.getElementById('page-title'); if(pt && tt[currentPage]) pt.textContent=tt[currentPage];
+  }catch(e){}
+  // re-render เนื้อหาที่มีข้อความ JS (ถ้าโหลดข้อมูลแล้ว)
+  try{ if(typeof tickets!=='undefined' && tickets.length){ if(typeof renderAll==='function') renderAll(); } }catch(e){}
+}
 
 // ===== TV / WALLBOARD MODE =====
 let tvClock=null;
@@ -3625,7 +3637,17 @@ function showPage(p,el,fromPop){
   document.getElementById('page-'+domPage).classList.add('active');
   if(!el) el=document.querySelectorAll('.nav-item')[PAGE_NAV[p]||0];
   el.classList.add('active');
-  const titles={dashboard:'📊 Dashboard Overview',tickets:'🎫 จัดการ Ticket',projects:'📁 งานโครงการ',pm:'🔧 บำรุงรักษาตามแผน (PM)',claim:'📦 ส่งซ่อม/เคลมนอก',technicians:'👥 ทีมช่าง',history:'📋 ประวัติงาน',archive:'🗄️ ค้นประวัติ (Archive)',report:'📈 รายงาน'};
+  const titles={
+    dashboard:L('📊 ภาพรวมแดชบอร์ด','📊 Dashboard Overview'),
+    tickets:L('🎫 จัดการ Ticket','🎫 Ticket Management'),
+    projects:L('📁 งานโครงการ','📁 Projects'),
+    pm:L('🔧 บำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance'),
+    claim:L('📦 ส่งซ่อม/เคลมนอก','📦 Claim / External Repair'),
+    technicians:L('👥 ทีมช่าง','👥 Technicians'),
+    history:L('📋 ประวัติงาน','📋 History'),
+    archive:L('🗄️ ค้นประวัติ (Archive)','🗄️ Archive Search'),
+    report:L('📈 รายงาน','📈 Reports')
+  };
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
   // สลับ UI ของหน้า tickets ตามประเภทงาน
   const tt=document.getElementById('tickets-title'); const addBtn=document.getElementById('btn-add-project'); const pmBtn=document.getElementById('btn-pm-plans');
