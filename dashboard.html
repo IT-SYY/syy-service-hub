@@ -786,34 +786,34 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="page" id="page-tickets">
       <div class="tickets-toolbar">
         <div class="toolbar-ttl" id="tickets-title">🎫 จัดการ Ticket ทั้งหมด</div>
-        <button class="btn-primary" id="btn-add-project" style="display:none;background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="openAddProject()">+ เพิ่มงานโครงการ</button>
-        <button class="btn-primary" id="btn-pm-plans" style="display:none;background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openPmPlans()">🗓️ จัดการแผน PM</button>
-        <button class="btn-primary" id="btn-add-claim" style="display:none;background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="openAddClaim()">+ เพิ่มงานเคลม</button>
-        <button class="btn-secondary2" onclick="loadData()">↻ รีเฟรช</button>
+        <button class="btn-primary" id="btn-add-project" style="display:none;background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="openAddProject()" data-th="+ เพิ่มงานโครงการ" data-en="+ Add Project">+ เพิ่มงานโครงการ</button>
+        <button class="btn-primary" id="btn-pm-plans" style="display:none;background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openPmPlans()" data-th="🗓️ จัดการแผน PM" data-en="🗓️ Manage PM Plans">🗓️ จัดการแผน PM</button>
+        <button class="btn-primary" id="btn-add-claim" style="display:none;background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="openAddClaim()" data-th="+ เพิ่มงานเคลม" data-en="+ Add Claim">+ เพิ่มงานเคลม</button>
+        <button class="btn-secondary2" onclick="loadData()" data-th="↻ รีเฟรช" data-en="↻ Refresh">↻ รีเฟรช</button>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
         <button class="btn-secondary2" onclick="exportExcel()">📊 Export Excel</button>
       </div>
       <div class="filter-bar">
         <select class="fsel" id="f-status" title="กรองสถานะ" onchange="resetTicketPage();renderTicketsPage()">
-          <option value="all">ทุกสถานะ</option>
-          <option value="pending">⏳ รอดำเนินการ / มอบหมายแล้ว</option>
-          <option value="in_progress">🔄 กำลังดำเนินการ</option>
-          <option value="done">✅ เสร็จสิ้น</option>
+          <option value="all" data-th="ทุกสถานะ" data-en="All Status">ทุกสถานะ</option>
+          <option value="pending" data-th="⏳ รอดำเนินการ / มอบหมายแล้ว" data-en="⏳ Pending / Assigned">⏳ รอดำเนินการ / มอบหมายแล้ว</option>
+          <option value="in_progress" data-th="🔄 กำลังดำเนินการ" data-en="🔄 In Progress">🔄 กำลังดำเนินการ</option>
+          <option value="done" data-th="✅ เสร็จสิ้น" data-en="✅ Completed">✅ เสร็จสิ้น</option>
         </select>
         <select class="fsel" id="f-priority" title="กรองความเร่งด่วน" onchange="resetTicketPage();renderTicketsPage()">
-          <option value="all">ทุกความเร่งด่วน</option>
-          <option value="high">🔴 ฉุกเฉิน</option>
-          <option value="med">🟡 เร่งด่วน</option>
-          <option value="low">🟢 ปกติ</option>
+          <option value="all" data-th="ทุกความเร่งด่วน" data-en="All Priority">ทุกความเร่งด่วน</option>
+          <option value="high" data-th="🔴 ฉุกเฉิน" data-en="🔴 Urgent">🔴 ฉุกเฉิน</option>
+          <option value="med" data-th="🟡 เร่งด่วน" data-en="🟡 High">🟡 เร่งด่วน</option>
+          <option value="low" data-th="🟢 ปกติ" data-en="🟢 Normal">🟢 ปกติ</option>
         </select>
-        <select class="fsel" id="f-category" title="กรองประเภทงาน" onchange="resetTicketPage();renderTicketsPage()"><option value="all">ทุกประเภท</option></select>
+        <select class="fsel" id="f-category" title="กรองประเภทงาน" onchange="resetTicketPage();renderTicketsPage()"><option value="all" data-th="ทุกประเภท" data-en="All Categories">ทุกประเภท</option></select>
       </div>
       <div class="member-filter-bar" id="member-filter-bar" style="display:none"></div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
         <thead><tr>
-          <th>Ticket ID</th><th>วันที่</th><th>ทีม</th><th>ประเภท</th><th>สถานที่</th>
-          <th>รายละเอียด</th><th>ผู้แจ้ง</th><th>ความเร่งด่วน</th><th>สถานะ</th>
-          <th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>หมายเหตุ</th><th>ดำเนินการ</th>
+          <th>Ticket ID</th><th data-th="วันที่" data-en="Date">วันที่</th><th data-th="ทีม" data-en="Team">ทีม</th><th data-th="ประเภท" data-en="Category">ประเภท</th><th data-th="สถานที่" data-en="Location">สถานที่</th>
+          <th data-th="รายละเอียด" data-en="Details">รายละเอียด</th><th data-th="ผู้แจ้ง" data-en="Reporter">ผู้แจ้ง</th><th data-th="ความเร่งด่วน" data-en="Priority">ความเร่งด่วน</th><th data-th="สถานะ" data-en="Status">สถานะ</th>
+          <th data-th="ผู้รับงาน" data-en="Assignee">ผู้รับงาน</th><th data-th="รับงานเมื่อ" data-en="Accepted">รับงานเมื่อ</th><th data-th="เสร็จเมื่อ" data-en="Resolved">เสร็จเมื่อ</th><th data-th="หมายเหตุ" data-en="Notes">หมายเหตุ</th><th data-th="ดำเนินการ" data-en="Actions">ดำเนินการ</th>
         </tr></thead>
         <tbody id="tickets-tbody"><tr><td colspan="14"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></td></tr></tbody>
       </table></div>
@@ -822,22 +822,22 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
     <!-- TECHNICIANS PAGE -->
     <div class="page" id="page-technicians">
-      <div class="tickets-toolbar"><div class="toolbar-ttl" id="tech-title">👥 ทีมช่าง</div></div>
+      <div class="tickets-toolbar"><div class="toolbar-ttl" id="tech-title" data-th="👥 ทีมช่าง" data-en="👥 Technicians">👥 ทีมช่าง</div></div>
       <div class="tech-grid" id="tech-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
     </div>
 
     <!-- HISTORY PAGE -->
     <div class="page" id="page-history">
       <div class="tickets-toolbar">
-        <div class="toolbar-ttl">📋 ประวัติงานที่เสร็จสิ้น</div>
+        <div class="toolbar-ttl" data-th="📋 ประวัติงานที่เสร็จสิ้น" data-en="📋 Completed Jobs History">📋 ประวัติงานที่เสร็จสิ้น</div>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
       <div class="filter-bar">
-        <select class="fsel" id="h-member" title="กรองสมาชิก" onchange="renderHistory()"><option value="all">ทุกคน</option><option>Chana</option><option>Farid</option><option>Radthaphol</option><option>Pongsakorn</option><option>Nianas</option></select>
-        <select class="fsel" id="h-cat" title="กรองประเภท" onchange="renderHistory()"><option value="all">ทุกประเภท</option></select>
+        <select class="fsel" id="h-member" title="กรองสมาชิก" onchange="renderHistory()"><option value="all" data-th="ทุกคน" data-en="Everyone">ทุกคน</option><option>Chana</option><option>Farid</option><option>Radthaphol</option><option>Pongsakorn</option><option>Nianas</option></select>
+        <select class="fsel" id="h-cat" title="กรองประเภท" onchange="renderHistory()"><option value="all" data-th="ทุกประเภท" data-en="All Categories">ทุกประเภท</option></select>
       </div>
       <div class="tbl-card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Ticket ID</th><th>วันที่แจ้ง</th><th>ประเภท</th><th>สถานที่</th><th>รายละเอียด</th><th>ผู้รับงาน</th><th>รับงานเมื่อ</th><th>เสร็จเมื่อ</th><th>⭐ คะแนน</th><th>หมายเหตุ</th></tr></thead>
+        <thead><tr><th>Ticket ID</th><th data-th="วันที่แจ้ง" data-en="Reported">วันที่แจ้ง</th><th data-th="ประเภท" data-en="Category">ประเภท</th><th data-th="สถานที่" data-en="Location">สถานที่</th><th data-th="รายละเอียด" data-en="Details">รายละเอียด</th><th data-th="ผู้รับงาน" data-en="Assignee">ผู้รับงาน</th><th data-th="รับงานเมื่อ" data-en="Accepted">รับงานเมื่อ</th><th data-th="เสร็จเมื่อ" data-en="Resolved">เสร็จเมื่อ</th><th data-th="⭐ คะแนน" data-en="⭐ Rating">⭐ คะแนน</th><th data-th="หมายเหตุ" data-en="Notes">หมายเหตุ</th></tr></thead>
         <tbody id="history-tbody"><tr><td colspan="9"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></td></tr></tbody>
       </table></div></div>
     </div>
@@ -1208,6 +1208,9 @@ function refreshDynamicLang(){
   try{
     const tt={dashboard:L('📊 ภาพรวมแดชบอร์ด','📊 Dashboard Overview'),tickets:L('🎫 จัดการ Ticket','🎫 Ticket Management'),projects:L('📁 งานโครงการ','📁 Projects'),pm:L('🔧 บำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance'),claim:L('📦 ส่งซ่อม/เคลมนอก','📦 Claim / External Repair'),technicians:L('👥 ทีมช่าง','👥 Technicians'),history:L('📋 ประวัติงาน','📋 History'),archive:L('🗄️ ค้นประวัติ (Archive)','🗄️ Archive Search'),report:L('📈 รายงาน','📈 Reports')};
     const pt=document.getElementById('page-title'); if(pt && tt[currentPage]) pt.textContent=tt[currentPage];
+    // หัวข้อ toolbar ของหน้า tickets/projects/pm/claim
+    const ttl=document.getElementById('tickets-title');
+    if(ttl){ ttl.textContent=(currentPage==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management'):(currentPage==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)'):(currentPage==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)'):L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
   }catch(e){}
   // re-render เนื้อหาที่มีข้อความ JS (ถ้าโหลดข้อมูลแล้ว)
   try{ if(typeof tickets!=='undefined' && tickets.length){ if(typeof renderAll==='function') renderAll(); } }catch(e){}
@@ -2593,7 +2596,7 @@ function updateCats(){
   ['f-category','h-cat'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
     const v=el.value;
-    el.innerHTML='<option value="all">ทุกประเภท</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    el.innerHTML='<option value="all" data-th="ทุกประเภท" data-en="All Categories">ทุกประเภท</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
     el.value=v;
   });
 }
@@ -3654,7 +3657,7 @@ function showPage(p,el,fromPop){
   if(addBtn) addBtn.style.display = (p==='projects')?'inline-block':'none';
   if(pmBtn)  pmBtn.style.display  = (p==='pm')?'inline-block':'none';
   const claimBtn=document.getElementById('btn-add-claim'); if(claimBtn) claimBtn.style.display=(p==='claim')?'inline-block':'none';
-  if(tt){ tt.textContent = (p==='projects')?'📁 จัดการงานโครงการ' : (p==='pm')?'🔧 งานบำรุงรักษาตามแผน (PM)' : (p==='claim')?'📦 งานส่งซ่อม/เคลมนอก (Asset)' : '🎫 จัดการ Ticket ซ่อมบำรุง'; }
+  if(tt){ tt.textContent = (p==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management') : (p==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)') : (p==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)') : L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
   if(!fromPop && p!==currentPage){ try{ history.pushState({page:p},'','#'+p); }catch(e){} }
   currentPage=p;
   const sb=document.getElementById('sidebar');
