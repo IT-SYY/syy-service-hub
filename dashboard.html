@@ -429,6 +429,12 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 .img-viewer-img{max-width:90vw;max-height:80vh;border-radius:10px;object-fit:contain;}
 .img-viewer-close{position:absolute;top:16px;right:16px;background:none;border:none;color:white;font-size:28px;cursor:pointer;line-height:1;}
 .img-viewer-link{color:var(--green);font-size:12px;text-decoration:underline;cursor:pointer;}
+.img-viewer-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:40px;width:54px;height:54px;border-radius:50%;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;transition:background 0.15s;z-index:2;}
+.img-viewer-nav:hover{background:rgba(255,255,255,0.3);}
+.img-viewer-prev{left:16px;}
+.img-viewer-next{right:16px;}
+.img-viewer-counter{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#fff;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;}
+@media(max-width:600px){.img-viewer-nav{width:44px;height:44px;font-size:32px;}}
 
 /* ===== RATING STARS ===== */
 .stars { display:inline-flex; gap:1px; }
@@ -1098,7 +1104,10 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 <!-- IMAGE VIEWER -->
 <div class="img-viewer-overlay" id="img-viewer" onclick="closeImgViewer()">
   <button class="img-viewer-close" onclick="closeImgViewer()">×</button>
-  <img class="img-viewer-img" id="img-viewer-src" src="" alt="">
+  <button class="img-viewer-nav img-viewer-prev" id="img-viewer-prev" onclick="event.stopPropagation();imgViewerStep(-1)">‹</button>
+  <img class="img-viewer-img" id="img-viewer-src" src="" alt="" onclick="event.stopPropagation()">
+  <button class="img-viewer-nav img-viewer-next" id="img-viewer-next" onclick="event.stopPropagation();imgViewerStep(1)">›</button>
+  <div class="img-viewer-counter" id="img-viewer-counter" style="display:none"></div>
   <a class="img-viewer-link" id="img-viewer-link" href="" target="_blank" onclick="event.stopPropagation()">เปิดรูปเต็ม ↗</a>
 </div>
 
@@ -1429,32 +1438,85 @@ function mkCardImage(t){
   const urls = getImageURLsFromTicket(t);
   if(!urls.length) return '';
   const url = urls[0];
-  const escapedUrl = url.replace(/'/g, "\\'");
-  return '<div style="margin-bottom:6px"><img style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:pointer" src="'+url+'" onclick="event.stopPropagation();openImgViewer(\''+escapedUrl+'\')"></div>';
+  const badge = urls.length>1 ? '<span style="position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,0.7);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px">📷 '+urls.length+'</span>' : '';
+  return '<div style="margin-bottom:6px;position:relative;display:inline-block"><img style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:pointer" src="'+url+'" onclick="event.stopPropagation();openTicketImages(\''+t.ticket_id+'\',0)">'+badge+'</div>';
+}
+// เปิด gallery จากรูปทั้งหมดของ ticket (รวมรูปแจ้งงาน + รูปหลังปิดงาน) เลี่ยงปัญหา escaping ใน HTML
+function openTicketImages(ticketId, startIdx){
+  const t=tickets.find(x=>x.ticket_id===ticketId); if(!t) return;
+  const a=(t.image_url||'').split(',').map(u=>u.trim()).filter(Boolean);
+  const b=(t.done_image_url||'').split(',').map(u=>u.trim()).filter(Boolean);
+  const urls=a.concat(b);
+  if(!urls.length) return;
+  openImgViewer(null, urls, startIdx||0);
 }
 
 function mkDetailImages(t){
   const mk=function(csv,label){
     const urls=(csv||'').split(',').map(function(u){return u.trim();}).filter(Boolean);
     if(!urls.length) return '';
-    const imgs=urls.map(function(u){
-      const escapedUrl=u.replace(/'/g,"\\'");
-      return '<img class="img-thumb" src="'+u+'" onclick="openImgViewer(\''+escapedUrl+'\')">';
+    const grpJson=JSON.stringify(urls).replace(/"/g,'&quot;');
+    const imgs=urls.map(function(u,i){
+      return '<img class="img-thumb" src="'+u+'" data-grp="'+grpJson+'" data-idx="'+i+'" onclick="openImgGroup(this)">';
     }).join('');
-    return '<div style="grid-column:1/-1"><div class="detail-lbl">'+label+'</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
+    return '<div style="grid-column:1/-1"><div class="detail-lbl">'+label+(urls.length>1?' ('+urls.length+' รูป)':'')+'</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
   };
   return mk(t.image_url,'📷 รูปตอนแจ้งงาน') + mk(t.done_image_url,'🏁 รูปหลังปิดงาน');
 }
-
-function openImgViewer(url){
-  document.getElementById('img-viewer-src').src=url;
-  document.getElementById('img-viewer-link').href=url;
-  document.getElementById('img-viewer').classList.add('show');
+// เปิด gallery จากกลุ่มรูป (อ่านรายการจาก data-attribute ที่ปลอดภัยกว่าการ inline ใน onclick)
+function openImgGroup(el){
+  try{
+    const list=JSON.parse(el.getAttribute('data-grp'));
+    const idx=parseInt(el.getAttribute('data-idx'),10)||0;
+    openImgViewer(null, list, idx);
+  }catch(e){ openImgViewer(el.src); }
 }
 
+// ตัวแปรสถานะ gallery ดูรูป
+let _imgViewerList=[], _imgViewerIdx=0;
+// เปิดดูรูป — รับได้ทั้ง url เดี่ยว หรือ (รายการรูป, ตำแหน่งเริ่ม)
+function openImgViewer(url, list, startIdx){
+  if(Array.isArray(list) && list.length){ _imgViewerList=list.slice(); _imgViewerIdx=startIdx||0; }
+  else { _imgViewerList=[url]; _imgViewerIdx=0; }
+  renderImgViewer();
+  document.getElementById('img-viewer').classList.add('show');
+}
+function renderImgViewer(){
+  const total=_imgViewerList.length;
+  if(_imgViewerIdx<0) _imgViewerIdx=total-1;
+  if(_imgViewerIdx>=total) _imgViewerIdx=0;
+  const url=_imgViewerList[_imgViewerIdx];
+  document.getElementById('img-viewer-src').src=url;
+  document.getElementById('img-viewer-link').href=url;
+  const multi=total>1;
+  document.getElementById('img-viewer-prev').style.display=multi?'flex':'none';
+  document.getElementById('img-viewer-next').style.display=multi?'flex':'none';
+  const counter=document.getElementById('img-viewer-counter');
+  counter.style.display=multi?'block':'none';
+  if(multi) counter.textContent=(_imgViewerIdx+1)+' / '+total;
+}
+function imgViewerStep(dir){ _imgViewerIdx+=dir; renderImgViewer(); }
 function closeImgViewer(){
   document.getElementById('img-viewer').classList.remove('show');
 }
+// คีย์บอร์ด: ←/→ เลื่อนรูป, Esc ปิด
+document.addEventListener('keydown',function(e){
+  if(!document.getElementById('img-viewer').classList.contains('show')) return;
+  if(e.key==='ArrowLeft') imgViewerStep(-1);
+  else if(e.key==='ArrowRight') imgViewerStep(1);
+  else if(e.key==='Escape') closeImgViewer();
+});
+// ปัดนิ้ว (มือถือ) เลื่อนรูป
+(function(){
+  let sx=0;
+  const ov=document.getElementById('img-viewer');
+  if(!ov) return;
+  ov.addEventListener('touchstart',function(e){ sx=e.changedTouches[0].clientX; },{passive:true});
+  ov.addEventListener('touchend',function(e){
+    const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>50 && _imgViewerList.length>1) imgViewerStep(dx<0?1:-1);
+  },{passive:true});
+})();
 
 // ===== LOAD =====
 async function loadData(silent=false){
@@ -1604,6 +1666,17 @@ function assigneeBadges(t, emptyHTML){
   }).join(' ');
 }
 function getBase(){ return filterByWorkType(viewWorkType); }
+
+// สีประจำแผนกช่าง (ตรงกับ Code.gs + ฟอร์ม) — ใช้กับงานซ่อมเท่านั้น
+const TEAM_COLORS={'IT Support':'#CA8A04','Engineering':'#DC2626','Landscape & Garden':'#16A34A','Environment':'#1D4ED8','Asset':'#C026D3'};
+// คืนสีของ ticket: งานโครงการ/PM/เคลม ใช้สีประเภทงาน, งานซ่อมใช้สีประจำแผนก
+function ticketColor(t){
+  const wt=String(t.work_type||'repair').toLowerCase();
+  if(wt==='project') return '#7C3AED';
+  if(wt==='pm') return '#0EA5E9';
+  if(wt==='claim') return '#EA580C';
+  return TEAM_COLORS[t.team]||TEAM_COLORS[t.department]||'#64748B';
+}
 // กรองงานตามประเภทที่ระบุ (repair/project) + สาขา/ทีม/สิทธิ์ — ใช้ร่วมกับ getBase และการนับ badge
 function filterByWorkType(wtype){
   const myName=(currentUser&&currentUser.name)||'';
@@ -1827,7 +1900,7 @@ function mkCard(t){
   btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
 
   const sc=t.status==='pending'?'pending':t.status==='assigned'?'assigned':t.status==='in_progress'?'inprog':'done';
-  return `<div class="kb-card ${sc} ${t._new?'new-card':''}" onclick="openDetail('${t.ticket_id}')">
+  return `<div class="kb-card ${sc} ${t._new?'new-card':''}" style="border-left-color:${ticketColor(t)}" onclick="openDetail('${t.ticket_id}')">
     <div class="kb-card-top">
       <span class="kb-id">${tid}</span>${newB}
       <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
@@ -1837,7 +1910,7 @@ function mkCard(t){
     ${mkCardImage(t)}
     ${timerHtml}
     <div class="kb-meta">
-      <span>📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
+      <span><span style="display:inline-block;padding:1px 7px;border-radius:4px;background:${ticketColor(t)};color:#fff;font-size:10px;font-weight:700;margin-right:4px">${t.team||t.department||'—'}</span> 📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
       <span>${assigneeBadge} &nbsp;·&nbsp; 🕐 ${ts}</span>
     </div>
     <div class="kb-actions">${btns}</div>
