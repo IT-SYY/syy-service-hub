@@ -143,6 +143,13 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 /* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:7px;}
 .kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 11px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
+.exec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.exec-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);}
+.exec-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.exec-body{min-width:0;}
+.exec-num{font-size:19px;font-weight:800;color:var(--text);line-height:1.1;font-family:'JetBrains Mono',monospace;}
+.exec-lbl{font-size:11px;color:var(--text3);margin-top:1px;}
+@media(max-width:700px){.exec-grid{grid-template-columns:repeat(2,1fr);}}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;}
 .kpi-card.all::before{background:var(--blue);}
@@ -614,6 +621,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span>งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span>บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span>ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
+    <div class="nav-item" onclick="window.open('https://it-syy.github.io/syy-service-hub/tracker.html','_blank')"><span class="nav-icon">🔗</span><span>หน้าติดตามสถานะงาน</span></div>
     <div class="nav-sec">Management</div>
     <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="window.open('https://it-syy.github.io/Generator-System/','_blank')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
     <div class="nav-item" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.3)" onclick="window.open('http://118.174.142.153:8080/login','_blank')"><span class="nav-icon">🗃️</span><span style="color:#2563EB;font-weight:700">IT Asset Management</span></div>
@@ -623,7 +631,6 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" id="nav-errorlog" style="display:none" onclick="openErrorLogs()"><span class="nav-icon">🩺</span><span>Error Log / Health</span></div>
     <div class="nav-sec">Reports</div>
     <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span>รายงาน</span></div>
-    <div class="nav-item" onclick="window.open('https://it-syy.github.io/syy-service-hub/tracker.html','_blank')"><span class="nav-icon">🔗</span><span>หน้าติดตามสถานะงาน</span></div>
     <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span>Export PDF</span></div>
     <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">📊</span><span>Export Excel</span></div>
     <div class="nav-sec">มุมมอง</div>
@@ -837,6 +844,24 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <div class="toolbar-ttl">📈 รายงานสรุป</div>
         <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
       </div>
+
+      <!-- EXECUTIVE SUMMARY (สรุปเชิงคุณภาพ สำหรับผู้บริหาร) -->
+      <div class="exec-grid" id="exec-summary">
+        <div class="exec-card"><div class="exec-ico" style="background:rgba(37,99,235,0.14);color:#2563EB">⏱️</div><div class="exec-body"><div class="exec-num" id="ex-avgtime">—</div><div class="exec-lbl">เวลาเฉลี่ยปิดงาน</div></div></div>
+        <div class="exec-card"><div class="exec-ico" style="background:rgba(16,163,74,0.14);color:#16A34A">🎯</div><div class="exec-body"><div class="exec-num" id="ex-sla">—</div><div class="exec-lbl">งานทันเวลา (SLA)</div></div></div>
+        <div class="exec-card"><div class="exec-ico" style="background:rgba(245,158,11,0.14);color:#F59E0B">⭐</div><div class="exec-body"><div class="exec-num" id="ex-rating">—</div><div class="exec-lbl">คะแนนรีวิวเฉลี่ย</div></div></div>
+        <div class="exec-card"><div class="exec-ico" style="background:rgba(124,58,237,0.14);color:#7C3AED">📈</div><div class="exec-body"><div class="exec-num" id="ex-closerate">—</div><div class="exec-lbl">อัตราปิดงาน</div></div></div>
+      </div>
+
+      <!-- MONTHLY TREND (แนวโน้มรายเดือน สำหรับผู้บริหาร) -->
+      <div class="chart-card" style="margin-bottom:10px">
+        <div class="chart-hdr" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:7px"><div class="chart-dot" style="background:var(--purple)"></div><div class="chart-ttl">📈 แนวโน้มรายเดือน (แจ้งเข้า vs ปิดได้)</div></div>
+          <div id="trend-summary" style="font-size:11px;color:var(--text3);font-weight:600"></div>
+        </div>
+        <canvas id="chart-monthly" height="70"></canvas>
+      </div>
+
       <div class="report-grid" id="report-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
       <div class="report-card" id="pm-report-card" style="margin-top:10px"></div>
       <div class="report-card" id="claim-report-card" style="margin-top:10px"></div>
@@ -1822,6 +1847,70 @@ function renderCharts(){
   });
 }
 
+// คำนวณ + แสดงสรุปเชิงคุณภาพ (ผู้บริหาร) — แสดงในหน้ารายงาน
+function renderExecSummary(){
+  if(!document.getElementById('ex-avgtime')) return;
+  const b=getBase();
+  const done=b.filter(t=>t.status==='done');
+  const durs=done.map(t=>parseInt(t.duration_min,10)).filter(v=>isFinite(v)&&v>0);
+  const avgMin=durs.length?Math.round(durs.reduce((a,c)=>a+c,0)/durs.length):0;
+  const fmtDur=m=>{ if(!m)return '—'; if(m<60)return m+' นาที'; const h=Math.floor(m/60),mm=m%60; return h+' ชม.'+(mm?' '+mm+' น.':''); };
+  document.getElementById('ex-avgtime').textContent=fmtDur(avgMin);
+  const slaJudged=done.filter(t=>t.sla_status==='on_time'||t.sla_status==='late');
+  const onTime=slaJudged.filter(t=>t.sla_status==='on_time').length;
+  document.getElementById('ex-sla').textContent=slaJudged.length?Math.round(onTime/slaJudged.length*100)+'%':'—';
+  const rates=done.map(t=>parseFloat(t.rating)).filter(v=>isFinite(v)&&v>0);
+  const avgRate=rates.length?(rates.reduce((a,c)=>a+c,0)/rates.length):0;
+  document.getElementById('ex-rating').textContent=rates.length?('★ '+avgRate.toFixed(1)):'—';
+  const active=b.filter(t=>t.status!=='rejected').length;
+  document.getElementById('ex-closerate').textContent=active?Math.round(done.length/active*100)+'%':'—';
+}
+
+// ===== กราฟแนวโน้มรายเดือน (6 เดือนล่าสุด) =====
+function renderMonthlyTrend(b){
+  const cv=document.getElementById('chart-monthly'); if(!cv) return;
+  const TH_MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  // สร้างถัง 6 เดือนล่าสุด (รวมเดือนปัจจุบัน)
+  const now=new Date();
+  const buckets=[]; // {key:'yyyymm', label:'มิ.ย. 68', created:0, done:0}
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const y=d.getFullYear(), mo=d.getMonth(); // 0-based
+    buckets.push({ key:String(y)+String(mo+1).padStart(2,'0'), label:TH_MONTHS[mo]+' '+String((y+543)%100), created:0, done:0 });
+  }
+  const idxByKey={}; buckets.forEach((bk,i)=>idxByKey[bk.key]=i);
+  // ฟังก์ชันดึง yyyymm จากวันที่ dd/mm/yyyy
+  const ym=v=>{ const k=dmyKey(v); return k?k.slice(0,6):''; };
+  b.forEach(t=>{
+    const ck=ym(t.created_at); if(ck && idxByKey[ck]!==undefined) buckets[idxByKey[ck]].created++;
+    if(t.status==='done'){ const dk=ym(t.resolved_at)||ck; if(dk && idxByKey[dk]!==undefined) buckets[idxByKey[dk]].done++; }
+  });
+  const labels=buckets.map(x=>x.label);
+  const createdData=buckets.map(x=>x.created);
+  const doneData=buckets.map(x=>x.done);
+  // สรุปแนวโน้ม: เทียบเดือนล่าสุด vs เดือนก่อน
+  const last=buckets[5].created, prev=buckets[4].created;
+  const diff=last-prev;
+  const trendTxt = prev===0 ? (last>0?'▲ เพิ่มขึ้น':'—')
+    : diff>0 ? ('▲ +'+Math.round(diff/prev*100)+'% จากเดือนก่อน')
+    : diff<0 ? ('▼ '+Math.round(diff/prev*100)+'% จากเดือนก่อน')
+    : 'เท่าเดือนก่อน';
+  const ts=document.getElementById('trend-summary');
+  if(ts){ ts.textContent='เดือนนี้แจ้ง '+last+' งาน · '+trendTxt; ts.style.color=diff>0?'#DC2626':diff<0?'#16A34A':'var(--text3)'; }
+  if(charts.monthly) charts.monthly.destroy();
+  charts.monthly=new Chart(cv.getContext('2d'),{
+    type:'bar',
+    data:{labels:labels,datasets:[
+      {label:'แจ้งเข้า',data:createdData,backgroundColor:'rgba(124,58,237,0.25)',borderColor:'#7C3AED',borderWidth:1.5,borderRadius:5,order:2},
+      {label:'ปิดได้',type:'line',data:doneData,borderColor:'#16A34A',backgroundColor:'rgba(22,163,74,0.1)',fill:true,tension:0.4,pointBackgroundColor:'#16A34A',pointRadius:4,pointHitRadius:12,borderWidth:2,order:1}
+    ]},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      onClick:(e,els)=>{if(!els.length)return;const bk=buckets[els[0].index];if(bk)toast('เดือน '+bk.label+': แจ้ง '+bk.created+' · ปิด '+bk.done+' งาน','📈','info');},
+      plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:10},usePointStyle:true,boxWidth:8}}},
+      scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:10}},grid:{display:false}},y:{ticks:{color:'#94A3B8',stepSize:1},grid:{color:'rgba(148,163,184,0.12)'},min:0}}}
+  });
+}
+
 // ===== KANBAN =====
 function renderKanban(){
   const b=getBase();
@@ -2383,6 +2472,8 @@ function renderHeatmap(){
 }
 
 function renderReport(){
+  renderExecSummary();
+  renderMonthlyTrend(getBase());
   renderRecurring();
   renderHeatmap();
   renderSLA();
@@ -3447,7 +3538,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,claim:4,technicians:7,history:8,archive:9,report:11};
+const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,claim:4,technicians:8,history:9,archive:10,report:12};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
