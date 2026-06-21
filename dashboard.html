@@ -898,93 +898,93 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 <!-- MODALS -->
 <div class="overlay" id="m-assign">
   <div class="modal">
-    <div class="modal-ttl">🔧 มอบหมายงาน<button class="modal-x" onclick="closeM('m-assign')">×</button></div>
+    <div class="modal-ttl"><span data-th="🔧 มอบหมายงาน" data-en="🔧 Assign Job">🔧 มอบหมายงาน</span><button class="modal-x" onclick="closeM('m-assign')">×</button></div>
     <div class="info-box" id="m-assign-info"></div>
-    <div class="modal-field"><label class="modal-lbl">ผู้รับหลัก <span style="color:var(--red)">*</span></label>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="ผู้รับหลัก" data-en="Primary Assignee">ผู้รับหลัก</span> <span style="color:var(--red)">*</span></label>
       <select class="modal-sel" id="m-assign-member" title="เลือกผู้รับหลัก" onchange="rebuildSecondary()">
-        <option value="">— เลือกสมาชิก —</option>
+        <option value="" data-th="— เลือกสมาชิก —" data-en="— Select member —">— เลือกสมาชิก —</option>
       </select>
     </div>
-    <div class="modal-field"><label class="modal-lbl">ผู้รับรอง <span style="color:var(--text3);font-weight:400">(เพิ่มเติม ไม่บังคับ)</span></label>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="ผู้รับรอง" data-en="Secondary Assignees">ผู้รับรอง</span> <span style="color:var(--text3);font-weight:400" data-th="(เพิ่มเติม ไม่บังคับ)" data-en="(optional)">(เพิ่มเติม ไม่บังคับ)</span></label>
       <div id="m-assign-secondary" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;background:var(--bg3);border-radius:8px;padding:8px"></div>
     </div>
-    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="m-assign-note" placeholder="เช่น กุญแจห้องอยู่ที่ Reception..."></textarea></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-assign')">ยกเลิก</button><button class="btn-ok green" id="btn-assign-ok" onclick="doAssign()">✅ ยืนยันมอบหมาย</button></div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="m-assign-note" data-th-ph="เช่น กุญแจห้องอยู่ที่ Reception..." data-en-ph="e.g. Room key at Reception..." placeholder="เช่น กุญแจห้องอยู่ที่ Reception..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-assign')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok green" id="btn-assign-ok" onclick="doAssign()" data-th="✅ ยืนยันมอบหมาย" data-en="✅ Confirm Assign">✅ ยืนยันมอบหมาย</button></div>
   </div>
 </div>
 
 <div class="overlay" id="m-accept">
   <div class="modal">
-    <div class="modal-ttl">⚡ รับหรือปฏิเสธงาน<button class="modal-x" onclick="closeM('m-accept')">×</button></div>
+    <div class="modal-ttl"><span data-th="⚡ รับหรือปฏิเสธงาน" data-en="⚡ Accept or Reject">⚡ รับหรือปฏิเสธงาน</span><button class="modal-x" onclick="closeM('m-accept')">×</button></div>
     <div class="info-box" id="m-accept-info"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn-ok green" id="btn-accept-ok" style="flex:1" onclick="doAccept()">✅ รับงาน</button>
-      <button class="btn-ok red" style="flex:1" onclick="showRejectForm()">❌ ปฏิเสธ</button>
+      <button class="btn-ok green" id="btn-accept-ok" style="flex:1" onclick="doAccept()" data-th="✅ รับงาน" data-en="✅ Accept">✅ รับงาน</button>
+      <button class="btn-ok red" style="flex:1" onclick="showRejectForm()" data-th="❌ ปฏิเสธ" data-en="❌ Reject">❌ ปฏิเสธ</button>
     </div>
     <div id="reject-form" style="display:none;margin-top:12px">
-      <div class="modal-field"><label class="modal-lbl">เหตุผลที่ปฏิเสธ *</label><textarea class="modal-ta" id="reject-reason" placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ..."></textarea></div>
-      <button class="btn-ok red" id="btn-reject-ok" style="width:100%;margin-top:6px" onclick="doReject()">❌ ยืนยันปฏิเสธ</button>
+      <div class="modal-field"><label class="modal-lbl" data-th="เหตุผลที่ปฏิเสธ *" data-en="Reason for rejection *">เหตุผลที่ปฏิเสธ *</label><textarea class="modal-ta" id="reject-reason" data-th-ph="เช่น ไม่ใช่งานในความรับผิดชอบ..." data-en-ph="e.g. Not under our responsibility..." placeholder="เช่น ไม่ใช่งานในความรับผิดชอบ..."></textarea></div>
+      <button class="btn-ok red" id="btn-reject-ok" style="width:100%;margin-top:6px" onclick="doReject()" data-th="❌ ยืนยันปฏิเสธ" data-en="❌ Confirm Reject">❌ ยืนยันปฏิเสธ</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="m-addclaim">
   <div class="modal" style="max-width:560px">
-    <div class="modal-ttl">📦 เพิ่มงานส่งซ่อม/เคลมนอก<button class="modal-x" onclick="closeM('m-addclaim')">×</button></div>
+    <div class="modal-ttl"><span data-th="📦 เพิ่มงานส่งซ่อม/เคลมนอก" data-en="📦 Add Claim / External Repair">📦 เพิ่มงานส่งซ่อม/เคลมนอก</span><button class="modal-x" onclick="closeM('m-addclaim')">×</button></div>
     <div style="display:flex;gap:8px">
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขา <span style="color:var(--red)">*</span></label>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl"><span data-th="สาขา" data-en="Branch">สาขา</span> <span style="color:var(--red)">*</span></label>
         <select class="modal-sel" id="ac-branch"><option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
       </div>
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">แผนกผู้แจ้ง</label><input class="modal-sel" id="ac-dept" placeholder="เช่น Housekeeping"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="แผนกผู้แจ้ง" data-en="Reporter Dept.">แผนกผู้แจ้ง</label><input class="modal-sel" id="ac-dept" data-th-ph="เช่น Housekeeping" data-en-ph="e.g. Housekeeping" placeholder="เช่น Housekeeping"></div>
     </div>
-    <div class="modal-field"><label class="modal-lbl">ชื่ออุปกรณ์ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ac-device" placeholder="เช่น เครื่องปรับอากาศ, ทีวี"></div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="ชื่ออุปกรณ์" data-en="Device Name">ชื่ออุปกรณ์</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ac-device" data-th-ph="เช่น เครื่องปรับอากาศ, ทีวี" data-en-ph="e.g. Air conditioner, TV" placeholder="เช่น เครื่องปรับอากาศ, ทีวี"></div>
     <div style="display:flex;gap:8px">
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">รุ่น / Model</label><input class="modal-sel" id="ac-model" placeholder="เช่น Samsung AR18"></div>
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">เลขครุภัณฑ์/SN</label><input class="modal-sel" id="ac-serial" placeholder="ถ้ามี"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="รุ่น / Model" data-en="Model">รุ่น / Model</label><input class="modal-sel" id="ac-model" data-th-ph="เช่น Samsung AR18" data-en-ph="e.g. Samsung AR18" placeholder="เช่น Samsung AR18"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="เลขครุภัณฑ์/SN" data-en="Asset/SN">เลขครุภัณฑ์/SN</label><input class="modal-sel" id="ac-serial" data-th-ph="ถ้ามี" data-en-ph="if any" placeholder="ถ้ามี"></div>
     </div>
-    <div class="modal-field"><label class="modal-lbl">สถานที่ใช้งาน <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ac-usage" placeholder="เช่น ห้องพัก 502, ครัวหลัก"></div>
-    <div class="modal-field"><label class="modal-lbl">อาการ/รายละเอียด</label><textarea class="modal-ta" id="ac-desc" placeholder="อาการเสีย เหตุผลที่ต้องส่งซ่อม/เคลม..."></textarea></div>
-    <div class="modal-field"><label class="modal-lbl">ความสำคัญ</label>
-      <select class="modal-sel" id="ac-priority"><option value="low">ปกติ</option><option value="med">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="สถานที่ใช้งาน" data-en="Usage Location">สถานที่ใช้งาน</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ac-usage" data-th-ph="เช่น ห้องพัก 502, ครัวหลัก" data-en-ph="e.g. Room 502, Main kitchen" placeholder="เช่น ห้องพัก 502, ครัวหลัก"></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="อาการ/รายละเอียด" data-en="Symptoms/Details">อาการ/รายละเอียด</label><textarea class="modal-ta" id="ac-desc" data-th-ph="อาการเสีย เหตุผลที่ต้องส่งซ่อม/เคลม..." data-en-ph="Fault symptoms, reason for repair/claim..." placeholder="อาการเสีย เหตุผลที่ต้องส่งซ่อม/เคลม..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="ความสำคัญ" data-en="Priority">ความสำคัญ</label>
+      <select class="modal-sel" id="ac-priority"><option value="low" data-th="ปกติ" data-en="Normal">ปกติ</option><option value="med" data-th="สำคัญ" data-en="High">สำคัญ</option><option value="high" data-th="เร่งด่วน" data-en="Urgent">เร่งด่วน</option></select>
     </div>
     <div class="modal-field">
-      <label class="modal-lbl">📄 แนบเอกสารส่งซ่อม/เคลม (PDF/รูป)</label>
-      <button type="button" class="btn-cancel" style="width:100%;border-color:#EA580C;color:#C2410C" onclick="document.getElementById('ac-doc').click()">+ เลือกเอกสาร</button>
+      <label class="modal-lbl" data-th="📄 แนบเอกสารส่งซ่อม/เคลม (PDF/รูป)" data-en="📄 Attach claim document (PDF/image)">📄 แนบเอกสารส่งซ่อม/เคลม (PDF/รูป)</label>
+      <button type="button" class="btn-cancel" style="width:100%;border-color:#EA580C;color:#C2410C" onclick="document.getElementById('ac-doc').click()" data-th="+ เลือกเอกสาร" data-en="+ Select document">+ เลือกเอกสาร</button>
       <input type="file" id="ac-doc" accept="application/pdf,image/*" style="display:none" onchange="acPickDoc(this)">
       <div id="ac-doc-preview" style="margin-top:6px"></div>
     </div>
     <div class="modal-field">
-      <label class="modal-lbl">📷 แนบรูปสินค้า/อุปกรณ์ (สูงสุด 3)</label>
-      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('ac-photos').click()">+ เลือกรูป</button>
+      <label class="modal-lbl" data-th="📷 แนบรูปสินค้า/อุปกรณ์ (สูงสุด 3)" data-en="📷 Attach item photos (max 3)">📷 แนบรูปสินค้า/อุปกรณ์ (สูงสุด 3)</label>
+      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('ac-photos').click()" data-th="+ เลือกรูป" data-en="+ Select photos">+ เลือกรูป</button>
       <input type="file" id="ac-photos" accept="image/*" multiple style="display:none" onchange="acPickPhotos(this)">
       <div id="ac-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addclaim')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" id="btn-ac-ok" onclick="doAddClaim()">📦 สร้างงานเคลม</button></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addclaim')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" id="btn-ac-ok" onclick="doAddClaim()" data-th="📦 สร้างงานเคลม" data-en="📦 Create Claim">📦 สร้างงานเคลม</button></div>
   </div>
 </div>
 
 <div class="overlay" id="m-claimstage">
   <div class="modal">
-    <div class="modal-ttl">📦 อัปเดตสถานะส่งซ่อม/เคลม<button class="modal-x" onclick="closeM('m-claimstage')">×</button></div>
-    <div class="modal-field"><label class="modal-lbl">สถานะปัจจุบัน <span style="color:var(--red)">*</span></label>
+    <div class="modal-ttl"><span data-th="📦 อัปเดตสถานะส่งซ่อม/เคลม" data-en="📦 Update Claim Status">📦 อัปเดตสถานะส่งซ่อม/เคลม</span><button class="modal-x" onclick="closeM('m-claimstage')">×</button></div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="สถานะปัจจุบัน" data-en="Current Status">สถานะปัจจุบัน</span> <span style="color:var(--red)">*</span></label>
       <select class="modal-sel" id="cs-stage">
-        <option value="ส่งซ่อม">1. ส่งซ่อม / ส่งเคลม</option>
-        <option value="ส่งเรื่องให้จัดซื้อ">2. ส่งเรื่องให้จัดซื้อแล้ว</option>
-        <option value="รออะไหล่">3. รออะไหล่</option>
-        <option value="ระหว่างซ่อม">4. ระหว่างซ่อม</option>
-        <option value="รับสินค้ากลับ">5. รับสินค้ากลับ</option>
-        <option value="ติดตั้ง/ส่งคืน">6. ติดตั้ง / ส่งคืน</option>
-        <option value="ปิดงาน">7. เสร็จสิ้น / ปิดงาน</option>
+        <option value="ส่งซ่อม" data-th="1. ส่งซ่อม / ส่งเคลม" data-en="1. Sent for repair/claim">1. ส่งซ่อม / ส่งเคลม</option>
+        <option value="ส่งเรื่องให้จัดซื้อ" data-th="2. ส่งเรื่องให้จัดซื้อแล้ว" data-en="2. Sent to Procurement">2. ส่งเรื่องให้จัดซื้อแล้ว</option>
+        <option value="รออะไหล่" data-th="3. รออะไหล่" data-en="3. Waiting for parts">3. รออะไหล่</option>
+        <option value="ระหว่างซ่อม" data-th="4. ระหว่างซ่อม" data-en="4. Under repair">4. ระหว่างซ่อม</option>
+        <option value="รับสินค้ากลับ" data-th="5. รับสินค้ากลับ" data-en="5. Item received back">5. รับสินค้ากลับ</option>
+        <option value="ติดตั้ง/ส่งคืน" data-th="6. ติดตั้ง / ส่งคืน" data-en="6. Install / Return">6. ติดตั้ง / ส่งคืน</option>
+        <option value="ปิดงาน" data-th="7. เสร็จสิ้น / ปิดงาน" data-en="7. Completed / Closed">7. เสร็จสิ้น / ปิดงาน</option>
       </select>
     </div>
-    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="cs-note" placeholder="รายละเอียด เช่น ส่งร้าน ABC, ส่งเรื่องให้จัดซื้อคุณ... แล้ว"></textarea></div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="cs-note" data-th-ph="รายละเอียด เช่น ส่งร้าน ABC, ส่งเรื่องให้จัดซื้อคุณ... แล้ว" data-en-ph="Details e.g. Sent to ABC shop, forwarded to procurement..." placeholder="รายละเอียด เช่น ส่งร้าน ABC, ส่งเรื่องให้จัดซื้อคุณ... แล้ว"></textarea></div>
     <div class="modal-field">
-      <label class="modal-lbl">📷 แนบรูปยืนยัน (เช่น หลักฐานส่งจัดซื้อ)</label>
-      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('cs-photos').click()">+ เลือกรูป (สูงสุด 3)</button>
+      <label class="modal-lbl" data-th="📷 แนบรูปยืนยัน (เช่น หลักฐานส่งจัดซื้อ)" data-en="📷 Attach confirmation photo">📷 แนบรูปยืนยัน (เช่น หลักฐานส่งจัดซื้อ)</label>
+      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('cs-photos').click()" data-th="+ เลือกรูป (สูงสุด 3)" data-en="+ Select photos (max 3)">+ เลือกรูป (สูงสุด 3)</button>
       <input type="file" id="cs-photos" accept="image/*" multiple style="display:none" onchange="csPickPhotos(this)">
       <div id="cs-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-claimstage')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" id="btn-cs-ok" onclick="doClaimStage()">📦 บันทึกสถานะ</button></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-claimstage')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" id="btn-cs-ok" onclick="doClaimStage()" data-th="📦 บันทึกสถานะ" data-en="📦 Save Status">📦 บันทึกสถานะ</button></div>
   </div>
 </div>
 
@@ -993,23 +993,23 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-ttl">🩺 Error Log & Health Check<button class="modal-x" onclick="closeM('m-errorlog')">×</button></div>
     <div id="health-summary" style="margin-bottom:12px"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <span style="font-size:12px;color:var(--text3)">รายการ error ล่าสุดจากระบบ (ไม่ใช่ของผู้ใช้ทั่วไป — สำหรับ admin สืบหาปัญหา)</span>
-      <button class="btn-secondary2" onclick="loadErrorLogs()">↻ รีเฟรช</button>
+      <span style="font-size:12px;color:var(--text3)" data-th="รายการ error ล่าสุดจากระบบ (ไม่ใช่ของผู้ใช้ทั่วไป — สำหรับ admin สืบหาปัญหา)" data-en="Recent system errors (admin diagnostics only)">รายการ error ล่าสุดจากระบบ (ไม่ใช่ของผู้ใช้ทั่วไป — สำหรับ admin สืบหาปัญหา)</span>
+      <button class="btn-secondary2" onclick="loadErrorLogs()" data-th="↻ รีเฟรช" data-en="↻ Refresh">↻ รีเฟรช</button>
     </div>
     <div id="error-log-list" style="max-height:50vh;overflow-y:auto"><div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลด...</div></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-errorlog')">ปิด</button></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-errorlog')" data-th="ปิด" data-en="Close">ปิด</button></div>
   </div>
 </div>
 
 <div class="overlay" id="m-pmplans">
   <div class="modal" style="max-width:680px">
-    <div class="modal-ttl">🗓️ จัดการแผนบำรุงรักษา (PM Plans)<button class="modal-x" onclick="closeM('m-pmplans')">×</button></div>
+    <div class="modal-ttl"><span data-th="🗓️ จัดการแผนบำรุงรักษา (PM Plans)" data-en="🗓️ Manage PM Plans">🗓️ จัดการแผนบำรุงรักษา (PM Plans)</span><button class="modal-x" onclick="closeM('m-pmplans')">×</button></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span style="font-size:12px;color:var(--text3)">ตั้งกำหนดการบำรุงรักษาตามรอบ ระบบจะสร้างงานให้อัตโนมัติเมื่อครบกำหนด</span>
-      <button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="openPmForm()">+ เพิ่มแผนใหม่</button>
+      <span style="font-size:12px;color:var(--text3)"><span data-th="ตั้งกำหนดการบำรุงรักษาตามรอบ ระบบจะสร้างงานให้อัตโนมัติเมื่อครบกำหนด" data-en="Set recurring maintenance schedules — jobs are auto-created when due">ตั้งกำหนดการบำรุงรักษาตามรอบ ระบบจะสร้างงานให้อัตโนมัติเมื่อครบกำหนด</span>
+      <button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="openPmForm()" data-th="+ เพิ่มแผนใหม่" data-en="+ Add New Plan">+ เพิ่มแผนใหม่</button>
     </div>
     <div id="pm-plans-list" style="max-height:60vh;overflow-y:auto"><div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลดแผน...</div></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-pmplans')">ปิด</button></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-pmplans')" data-th="ปิด" data-en="Close">ปิด</button></div>
   </div>
 </div>
 
@@ -1017,108 +1017,108 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   <div class="modal">
     <div class="modal-ttl" id="pmform-title">+ เพิ่มแผน PM<button class="modal-x" onclick="closeM('m-pmform')">×</button></div>
     <input type="hidden" id="pf-id">
-    <div class="modal-field"><label class="modal-lbl">ชื่องานบำรุงรักษา <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-name" placeholder="เช่น ล้างแอร์ทุกห้องพัก, ตรวจเครื่องสำรองไฟ"></div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="ชื่องานบำรุงรักษา" data-en="Maintenance Name">ชื่องานบำรุงรักษา</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-name" data-th-ph="เช่น ล้างแอร์ทุกห้องพัก, ตรวจเครื่องสำรองไฟ" data-en-ph="e.g. Clean all room A/C, check UPS" placeholder="เช่น ล้างแอร์ทุกห้องพัก, ตรวจเครื่องสำรองไฟ"></div>
     <div style="display:flex;gap:8px">
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">ทีม</label>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ทีม" data-en="Team">ทีม</label>
         <select class="modal-sel" id="pf-team"><option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option></select>
       </div>
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขา</label>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="สาขา" data-en="Branch">สาขา</label>
         <select class="modal-sel" id="pf-branch"><option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
       </div>
     </div>
-    <div class="modal-field"><label class="modal-lbl">สถานที่/อุปกรณ์</label><input class="modal-sel" id="pf-building" placeholder="เช่น ห้องเครื่อง, อาคารหลัก"></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="สถานที่/อุปกรณ์" data-en="Location/Equipment">สถานที่/อุปกรณ์</label><input class="modal-sel" id="pf-building" data-th-ph="เช่น ห้องเครื่อง, อาคารหลัก" data-en-ph="e.g. Machine room, Main building" placeholder="เช่น ห้องเครื่อง, อาคารหลัก"></div>
     <div style="display:flex;gap:8px">
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">ทุก ๆ</label><input class="modal-sel" id="pf-interval" type="number" min="1" value="1"></div>
-      <div class="modal-field" style="flex:1.4"><label class="modal-lbl">รอบ</label>
-        <select class="modal-sel" id="pf-frequency"><option value="day">วัน</option><option value="week">สัปดาห์</option><option value="month" selected>เดือน</option><option value="quarter">ไตรมาส</option><option value="year">ปี</option></select>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ทุก ๆ" data-en="Every">ทุก ๆ</label><input class="modal-sel" id="pf-interval" type="number" min="1" value="1"></div>
+      <div class="modal-field" style="flex:1.4"><label class="modal-lbl" data-th="รอบ" data-en="Cycle">รอบ</label>
+        <select class="modal-sel" id="pf-frequency"><option value="day" data-th="วัน" data-en="Day(s)">วัน</option><option value="week" data-th="สัปดาห์" data-en="Week(s)">สัปดาห์</option><option value="month" selected data-th="เดือน" data-en="Month(s)">เดือน</option><option value="quarter" data-th="ไตรมาส" data-en="Quarter(s)">ไตรมาส</option><option value="year" data-th="ปี" data-en="Year(s)">ปี</option></select>
       </div>
     </div>
     <div style="display:flex;gap:8px">
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">ครบกำหนดครั้งแรก <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-due" type="date"></div>
-      <div class="modal-field" style="flex:1"><label class="modal-lbl">ความสำคัญ</label>
-        <select class="modal-sel" id="pf-priority"><option value="low">ปกติ</option><option value="med">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl"><span data-th="ครบกำหนดครั้งแรก" data-en="First Due Date">ครบกำหนดครั้งแรก</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-due" type="date"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ความสำคัญ" data-en="Priority">ความสำคัญ</label>
+        <select class="modal-sel" id="pf-priority"><option value="low" data-th="ปกติ" data-en="Normal">ปกติ</option><option value="med" data-th="สำคัญ" data-en="High">สำคัญ</option><option value="high" data-th="เร่งด่วน" data-en="Urgent">เร่งด่วน</option></select>
       </div>
     </div>
-    <div class="modal-field"><label class="modal-lbl">รายละเอียดงาน</label><textarea class="modal-ta" id="pf-detail" placeholder="ขั้นตอน/สิ่งที่ต้องทำ..."></textarea></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-pmform')">ยกเลิก</button><button class="btn-ok green" id="btn-pmform-ok" onclick="savePmForm()">💾 บันทึกแผน</button></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="รายละเอียดงาน" data-en="Task Details">รายละเอียดงาน</label><textarea class="modal-ta" id="pf-detail" data-th-ph="ขั้นตอน/สิ่งที่ต้องทำ..." data-en-ph="Steps / what to do..." placeholder="ขั้นตอน/สิ่งที่ต้องทำ..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-pmform')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok green" id="btn-pmform-ok" onclick="savePmForm()" data-th="💾 บันทึกแผน" data-en="💾 Save Plan">💾 บันทึกแผน</button></div>
   </div>
 </div>
 
 <div class="overlay" id="m-addproj">
   <div class="modal">
-    <div class="modal-ttl">📁 เพิ่มงานโครงการ<button class="modal-x" onclick="closeM('m-addproj')">×</button></div>
-    <div class="modal-field"><label class="modal-lbl">หัวข้องาน <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ap-title" placeholder="เช่น ติดตั้งระบบกล้อง CCTV โซนล็อบบี้"></div>
-    <div class="modal-field"><label class="modal-lbl">ทีมรับผิดชอบ <span style="color:var(--red)">*</span></label>
+    <div class="modal-ttl"><span data-th="📁 เพิ่มงานโครงการ" data-en="📁 Add Project">📁 เพิ่มงานโครงการ</span><button class="modal-x" onclick="closeM('m-addproj')">×</button></div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="หัวข้องาน" data-en="Project Title">หัวข้องาน</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ap-title" data-th-ph="เช่น ติดตั้งระบบกล้อง CCTV โซนล็อบบี้" data-en-ph="e.g. Install CCTV in lobby zone" placeholder="เช่น ติดตั้งระบบกล้อง CCTV โซนล็อบบี้"></div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="ทีมรับผิดชอบ" data-en="Responsible Team">ทีมรับผิดชอบ</span> <span style="color:var(--red)">*</span></label>
       <select class="modal-sel" id="ap-team">
         <option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option>
       </select>
     </div>
-    <div class="modal-field"><label class="modal-lbl">สาขา <span style="color:var(--red)">*</span></label>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="สาขา" data-en="Branch">สาขา</span> <span style="color:var(--red)">*</span></label>
       <select class="modal-sel" id="ap-branch"><option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
     </div>
-    <div class="modal-field"><label class="modal-lbl">สถานที่ / อาคาร</label><input class="modal-sel" id="ap-building" placeholder="เช่น อาคารหลัก, ล็อบบี้"></div>
-    <div class="modal-field"><label class="modal-lbl">รายละเอียดงาน</label><textarea class="modal-ta" id="ap-desc" placeholder="ขอบเขตงาน สิ่งที่ต้องทำ อุปกรณ์ที่ต้องใช้..."></textarea></div>
-    <div class="modal-field"><label class="modal-lbl">ความสำคัญ</label>
-      <select class="modal-sel" id="ap-priority"><option value="low">ปกติ</option><option value="med">สำคัญ</option><option value="high">เร่งด่วน</option></select>
+    <div class="modal-field"><label class="modal-lbl" data-th="สถานที่ / อาคาร" data-en="Location / Building">สถานที่ / อาคาร</label><input class="modal-sel" id="ap-building" data-th-ph="เช่น อาคารหลัก, ล็อบบี้" data-en-ph="e.g. Main building, Lobby" placeholder="เช่น อาคารหลัก, ล็อบบี้"></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="รายละเอียดงาน" data-en="Task Details">รายละเอียดงาน</label><textarea class="modal-ta" id="ap-desc" data-th-ph="ขอบเขตงาน สิ่งที่ต้องทำ อุปกรณ์ที่ต้องใช้..." data-en-ph="Scope, tasks, equipment needed..." placeholder="ขอบเขตงาน สิ่งที่ต้องทำ อุปกรณ์ที่ต้องใช้..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="ความสำคัญ" data-en="Priority">ความสำคัญ</label>
+      <select class="modal-sel" id="ap-priority"><option value="low" data-th="ปกติ" data-en="Normal">ปกติ</option><option value="med" data-th="สำคัญ" data-en="High">สำคัญ</option><option value="high" data-th="เร่งด่วน" data-en="Urgent">เร่งด่วน</option></select>
     </div>
-    <div class="modal-field"><label class="modal-lbl">กำหนดเสร็จ <span style="color:var(--text3);font-weight:400">(ไม่บังคับ)</span></label><input class="modal-sel" id="ap-due" type="date"></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addproj')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" id="btn-addproj-ok" onclick="doAddProject()">📁 สร้างงานโครงการ</button></div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="กำหนดเสร็จ" data-en="Due Date">กำหนดเสร็จ</span> <span style="color:var(--text3);font-weight:400" data-th="(ไม่บังคับ)" data-en="(optional)">(ไม่บังคับ)</span></label><input class="modal-sel" id="ap-due" type="date"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addproj')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" id="btn-addproj-ok" onclick="doAddProject()" data-th="📁 สร้างงานโครงการ" data-en="📁 Create Project">📁 สร้างงานโครงการ</button></div>
   </div>
 </div>
 
 <div class="overlay" id="m-transfer">
   <div class="modal">
-    <div class="modal-ttl">🔀 โอนงานข้ามแผนก/สาขา<button class="modal-x" onclick="closeM('m-transfer')">×</button></div>
+    <div class="modal-ttl"><span data-th="🔀 โอนงานข้ามแผนก/สาขา" data-en="🔀 Transfer Across Team/Branch">🔀 โอนงานข้ามแผนก/สาขา</span><button class="modal-x" onclick="closeM('m-transfer')">×</button></div>
     <div class="info-box" id="m-transfer-info"></div>
-    <div class="modal-field"><label class="modal-lbl">โอนไปทีม/แผนก <span style="color:var(--red)">*</span></label>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="โอนไปทีม/แผนก" data-en="Transfer to Team">โอนไปทีม/แผนก</span> <span style="color:var(--red)">*</span></label>
       <select class="modal-sel" id="m-transfer-team">
-        <option value="">— เลือกทีม —</option>
+        <option value="" data-th="— เลือกทีม —" data-en="— Select team —">— เลือกทีม —</option>
         <option value="IT Support">IT Support</option>
-        <option value="Engineering">Engineering (ช่างเทคนิค)</option>
-        <option value="Landscape & Garden">Landscape & Garden (สวน)</option>
-        <option value="Environment">Environment (สิ่งแวดล้อม)</option>
+        <option value="Engineering" data-th="Engineering (ช่างเทคนิค)" data-en="Engineering">Engineering (ช่างเทคนิค)</option>
+        <option value="Landscape & Garden" data-th="Landscape & Garden (สวน)" data-en="Landscape & Garden">Landscape & Garden (สวน)</option>
+        <option value="Environment" data-th="Environment (สิ่งแวดล้อม)" data-en="Environment">Environment (สิ่งแวดล้อม)</option>
       </select>
     </div>
-    <div class="modal-field"><label class="modal-lbl">โอนไปสาขา <span style="color:var(--text3);font-weight:400">(เว้นไว้ = สาขาเดิม)</span></label>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="โอนไปสาขา" data-en="Transfer to Branch">โอนไปสาขา</span> <span style="color:var(--text3);font-weight:400" data-th="(เว้นไว้ = สาขาเดิม)" data-en="(blank = same branch)">(เว้นไว้ = สาขาเดิม)</span></label>
       <select class="modal-sel" id="m-transfer-branch">
-        <option value="">— สาขาเดิม —</option>
+        <option value="" data-th="— สาขาเดิม —" data-en="— Same branch —">— สาขาเดิม —</option>
         <option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option>
       </select>
     </div>
-    <div class="modal-field"><label class="modal-lbl">เหตุผลการโอน</label><textarea class="modal-ta" id="m-transfer-reason" placeholder="เช่น เป็นงานระบบไฟฟ้า ควรเป็นทีมช่างเทคนิคดูแล..."></textarea></div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-transfer')">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" id="btn-transfer-ok" onclick="doTransfer()">🔀 ยืนยันโอนงาน</button></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="เหตุผลการโอน" data-en="Transfer Reason">เหตุผลการโอน</label><textarea class="modal-ta" id="m-transfer-reason" data-th-ph="เช่น เป็นงานระบบไฟฟ้า ควรเป็นทีมช่างเทคนิคดูแล..." data-en-ph="e.g. Electrical issue, should be handled by Engineering..." placeholder="เช่น เป็นงานระบบไฟฟ้า ควรเป็นทีมช่างเทคนิคดูแล..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-transfer')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" id="btn-transfer-ok" onclick="doTransfer()" data-th="🔀 ยืนยันโอนงาน" data-en="🔀 Confirm Transfer">🔀 ยืนยันโอนงาน</button></div>
   </div>
 </div>
 
 <div class="overlay" id="m-progress">
   <div class="modal">
-    <div class="modal-ttl">📊 อัปเดตความคืบหน้า<button class="modal-x" onclick="closeM('m-progress')">×</button></div>
+    <div class="modal-ttl"><span data-th="📊 อัปเดตความคืบหน้า" data-en="📊 Update Progress">📊 อัปเดตความคืบหน้า</span><button class="modal-x" onclick="closeM('m-progress')">×</button></div>
     <div class="info-box" id="m-progress-info"></div>
-    <div class="modal-field"><label class="modal-lbl">ความคืบหน้า: <strong id="m-pct-label" style="color:var(--green)">0%</strong></label>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="ความคืบหน้า:" data-en="Progress:">ความคืบหน้า:</span> <strong id="m-pct-label" style="color:var(--green)">0%</strong></label>
       <div id="m-pct-buttons" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
       <input type="hidden" id="m-progress-pct" value="0">
     </div>
-    <div class="modal-field"><label class="modal-lbl">ติดขัดอะไร / ทำอะไรไปแล้วบ้าง</label><textarea class="modal-ta" id="m-progress-note" placeholder="เช่น รออะไหล่ คาดว่าได้พรุ่งนี้..."></textarea></div>
-    <div class="modal-field"><label class="modal-lbl">📷 รูปความคืบหน้า (ไม่บังคับ, สูงสุด 3 รูป)</label>
+    <div class="modal-field"><label class="modal-lbl" data-th="ติดขัดอะไร / ทำอะไรไปแล้วบ้าง" data-en="Blockers / what's been done">ติดขัดอะไร / ทำอะไรไปแล้วบ้าง</label><textarea class="modal-ta" id="m-progress-note" data-th-ph="เช่น รออะไหล่ คาดว่าได้พรุ่งนี้..." data-en-ph="e.g. Waiting for parts, expected tomorrow..." placeholder="เช่น รออะไหล่ คาดว่าได้พรุ่งนี้..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="📷 รูปความคืบหน้า (ไม่บังคับ, สูงสุด 3 รูป)" data-en="📷 Progress photos (optional, max 3)">📷 รูปความคืบหน้า (ไม่บังคับ, สูงสุด 3 รูป)</label>
       <input type="file" id="m-progress-photos" accept="image/*" multiple style="display:none" onchange="progPickPhotos(this)">
-      <button type="button" style="width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;font-size:13px" onclick="document.getElementById('m-progress-photos').click()">+ แตะเพื่อแนบรูปความคืบหน้า</button>
+      <button type="button" style="width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;font-size:13px" onclick="document.getElementById('m-progress-photos').click()" data-th="+ แตะเพื่อแนบรูปความคืบหน้า" data-en="+ Tap to attach progress photos">+ แตะเพื่อแนบรูปความคืบหน้า</button>
       <div id="m-progress-previews" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-progress')">ยกเลิก</button><button class="btn-ok green" id="btn-progress-ok" onclick="doProgress()">📊 บันทึกความคืบหน้า</button></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-progress')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok green" id="btn-progress-ok" onclick="doProgress()" data-th="📊 บันทึกความคืบหน้า" data-en="📊 Save Progress">📊 บันทึกความคืบหน้า</button></div>
   </div>
 </div>
 
 <div class="overlay" id="m-done">
   <div class="modal">
-    <div class="modal-ttl">🏁 ปิดงาน<button class="modal-x" onclick="closeM('m-done')">×</button></div>
+    <div class="modal-ttl"><span data-th="🏁 ปิดงาน" data-en="🏁 Close Job">🏁 ปิดงาน</span><button class="modal-x" onclick="closeM('m-done')">×</button></div>
     <div class="info-box" id="m-done-info"></div>
-    <div class="modal-field"><label class="modal-lbl">หมายเหตุการซ่อม</label><textarea class="modal-ta" id="m-done-note" placeholder="เช่น เปลี่ยน AP ใหม่ ทดสอบแล้วปกติ..."></textarea></div>
-    <div class="modal-field"><label class="modal-lbl">📷 รูปหลังปิดงาน (ไม่บังคับ, สูงสุด 3 รูป)</label>
+    <div class="modal-field"><label class="modal-lbl" data-th="หมายเหตุการซ่อม" data-en="Repair Notes">หมายเหตุการซ่อม</label><textarea class="modal-ta" id="m-done-note" data-th-ph="เช่น เปลี่ยน AP ใหม่ ทดสอบแล้วปกติ..." data-en-ph="e.g. Replaced AP, tested OK..." placeholder="เช่น เปลี่ยน AP ใหม่ ทดสอบแล้วปกติ..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="📷 รูปหลังปิดงาน (ไม่บังคับ, สูงสุด 3 รูป)" data-en="📷 Completion photos (optional, max 3)">📷 รูปหลังปิดงาน (ไม่บังคับ, สูงสุด 3 รูป)</label>
       <input type="file" id="m-done-photos" accept="image/*" multiple style="display:none" onchange="donePickPhotos(this)">
-      <button type="button" style="width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;font-size:13px" onclick="document.getElementById('m-done-photos').click()">+ แตะเพื่อแนบรูปหลังงาน</button>
+      <button type="button" style="width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;font-size:13px" onclick="document.getElementById('m-done-photos').click()" data-th="+ แตะเพื่อแนบรูปหลังงาน" data-en="+ Tap to attach completion photos">+ แตะเพื่อแนบรูปหลังงาน</button>
       <div id="m-done-previews" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
-    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-done')">ยกเลิก</button><button class="btn-ok green" id="btn-done-ok" onclick="doDone()">✅ ยืนยันปิดงาน</button></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-done')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok green" id="btn-done-ok" onclick="doDone()" data-th="✅ ยืนยันปิดงาน" data-en="✅ Confirm Close">✅ ยืนยันปิดงาน</button></div>
   </div>
 </div>
 
@@ -2731,7 +2731,7 @@ function buildAssignOptions(branch, team, current){
   if(!sel) return;
   window._assignBranch=branch;
   if(!allMembers.length){
-    sel.innerHTML='<option value="">— เลือกสมาชิก —</option>'+(current?`<option value="${current}" selected>${current}</option>`:'');
+    sel.innerHTML='<option value="" data-th="— เลือกสมาชิก —" data-en="— Select member —">— เลือกสมาชิก —</option>'+(current?`<option value="${current}" selected>${current}</option>`:'');
     rebuildSecondary(); return;
   }
   const B=String(branch||'').toUpperCase();
@@ -2741,7 +2741,7 @@ function buildAssignOptions(branch, team, current){
     (covers?inBranch:crossBranch).push(m);
   });
   const idTag=m=>m.emp_id?' ['+m.emp_id+']':'';
-  let html='<option value="">— เลือกสมาชิก —</option>';
+  let html='<option value="" data-th="— เลือกสมาชิก —" data-en="— Select member —">— เลือกสมาชิก —</option>';
   if(inBranch.length){
     html+=`<optgroup label="ช่างในสาขา ${B||'(ไม่ระบุ)'}">`;
     inBranch.forEach(m=>{ html+=`<option value="${m.name}"${m.name===current?' selected':''}>${m.name}${idTag(m)}${m.role==='admin'?' (แอดมิน)':''}</option>`; });
