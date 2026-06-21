@@ -140,6 +140,10 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .img-viewer.show{display:flex;}
 .img-viewer img{max-width:95vw;max-height:90vh;border-radius:8px;}
 .img-viewer-close{position:absolute;top:16px;right:16px;background:none;border:none;color:#FFF;font-size:30px;cursor:pointer;}
+.iv-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:38px;width:50px;height:50px;border-radius:50%;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;z-index:2;}
+.iv-nav:hover{background:rgba(255,255,255,0.3);}
+.iv-prev{left:14px;} .iv-next{right:14px;}
+.iv-counter{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#fff;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;}
 
 /* BOTTOM CTA */
 .bottom-cta{background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;}
@@ -270,7 +274,10 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 <!-- IMAGE VIEWER -->
 <div class="img-viewer" id="img-viewer" onclick="closeImgViewer()">
   <button class="img-viewer-close" onclick="closeImgViewer()">×</button>
-  <img id="img-viewer-src" src="" alt="">
+  <button class="iv-nav iv-prev" id="iv-prev" onclick="event.stopPropagation();ivStep(-1)">‹</button>
+  <img id="img-viewer-src" src="" alt="" onclick="event.stopPropagation()">
+  <button class="iv-nav iv-next" id="iv-next" onclick="event.stopPropagation();ivStep(1)">›</button>
+  <div class="iv-counter" id="iv-counter" style="display:none"></div>
 </div>
 
 <script>
@@ -605,7 +612,7 @@ function mkProgress(t) {
         html += `<div style="margin-bottom:8px">
           <div style="font-size:12px;color:var(--text)">${noteTxt||'-'}</div>
           <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">${e.t||''}${e.by?' · '+escapeHtml(e.by):''}</div>
-          ${e.img?`<div class="img-grid" style="margin-top:6px">${String(e.img).split(',').map(u=>u.trim()).filter(Boolean).map(u=>`<img class="img-thumb" style="width:64px;height:64px" src="${u}" onclick="event.stopPropagation();openImgUrl('${u}')" alt="รูป">`).join('')}</div>`:''}
+          ${e.img?`<div class="img-grid" style="margin-top:6px">${String(e.img).split(',').map(u=>u.trim()).filter(Boolean).map((u,gi)=>`<img class="img-thumb" style="width:64px;height:64px" src="${u}" onclick="event.stopPropagation();openImgList('${e.img}',${gi})" alt="รูป">`).join('')}</div>`:''}
         </div>`;
       });
       html += '</div>';
@@ -640,7 +647,7 @@ function mkProgress(t) {
         <div style="padding-bottom:${last?'0':'12px'};flex:1">
           <div style="font-size:13px;color:var(--text);font-weight:600">${Math.max(0,Math.min(100,e.p))}% ${e.n?'· '+escapeHtml(e.n):''}</div>
           <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">${e.t||''}${e.by?' · '+escapeHtml(e.by):''}</div>
-          ${e.img?`<div class="img-grid" style="margin-top:6px">${String(e.img).split(',').map(u=>u.trim()).filter(Boolean).map(u=>`<img class="img-thumb" style="width:64px;height:64px" src="${u}" onclick="event.stopPropagation();openImgUrl('${u}')" alt="รูปความคืบหน้า">`).join('')}</div>`:''}
+          ${e.img?`<div class="img-grid" style="margin-top:6px">${String(e.img).split(',').map(u=>u.trim()).filter(Boolean).map((u,gi)=>`<img class="img-thumb" style="width:64px;height:64px" src="${u}" onclick="event.stopPropagation();openImgList('${e.img}',${gi})" alt="รูปความคืบหน้า">`).join('')}</div>`:''}
         </div>
       </div>`;
     });
@@ -777,17 +784,39 @@ function closeModal() {
 }
 
 // ===== IMAGE VIEWER =====
+let _ivList=[], _ivIdx=0;
 function openImgViewer(i) {
-  const url = imgStoreT[i];
-  if (!url) return;
-  document.getElementById('img-viewer-src').src = url;
+  if(!imgStoreT || !imgStoreT.length) return;
+  _ivList = imgStoreT.slice(); _ivIdx = i||0;
+  ivRender();
   document.getElementById('img-viewer').classList.add('show');
 }
 function openImgUrl(url) {
   if (!url) return;
-  document.getElementById('img-viewer-src').src = url;
+  _ivList = [url]; _ivIdx = 0;
+  ivRender();
   document.getElementById('img-viewer').classList.add('show');
 }
+function openImgList(csv, idx) {
+  const list = String(csv||'').split(',').map(function(u){return u.trim();}).filter(Boolean);
+  if(!list.length) return;
+  _ivList = list; _ivIdx = idx||0;
+  ivRender();
+  document.getElementById('img-viewer').classList.add('show');
+}
+function ivRender(){
+  const total=_ivList.length;
+  if(_ivIdx<0) _ivIdx=total-1;
+  if(_ivIdx>=total) _ivIdx=0;
+  document.getElementById('img-viewer-src').src=_ivList[_ivIdx];
+  const multi=total>1;
+  document.getElementById('iv-prev').style.display=multi?'flex':'none';
+  document.getElementById('iv-next').style.display=multi?'flex':'none';
+  const c=document.getElementById('iv-counter');
+  c.style.display=multi?'block':'none';
+  if(multi) c.textContent=(_ivIdx+1)+' / '+total;
+}
+function ivStep(dir){ _ivIdx+=dir; ivRender(); }
 function closeImgViewer() {
   document.getElementById('img-viewer').classList.remove('show');
   document.getElementById('img-viewer-src').src = '';
