@@ -524,6 +524,30 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #FFF !important; font-family: 'Prompt', 'Sarabun', sans-serif !important; }
+  /* ===== โหมดพิมพ์หน้ารายงานสด (การ์ด+กราฟเหมือนบนจอ) ===== */
+  body.print-live-report .sidebar, body.print-live-report .topbar, body.print-live-report .toast, body.print-live-report .overlay, body.print-live-report .new-alert { display:none !important; }
+  body.print-live-report .main { margin-left:0 !important; }
+  body.print-live-report .content { padding:12px !important; }
+  body.print-live-report #print-report { display:none !important; }
+  body.print-live-report .page { display:none !important; }
+  body.print-live-report #page-report { display:block !important; }
+  body.print-live-report #page-report .tickets-toolbar { display:none !important; }
+  /* บังคับสีสว่างในงานพิมพ์ (กันโหมดมืดพิมพ์พื้นดำ) */
+  body.print-live-report #page-report .exec-card,
+  body.print-live-report #page-report .chart-card,
+  body.print-live-report #page-report .report-card,
+  body.print-live-report #page-report .stat-row { background:#FFF !important; border-color:#E2E8F0 !important; box-shadow:none !important; }
+  body.print-live-report #page-report .exec-num,
+  body.print-live-report #page-report .report-ttl,
+  body.print-live-report #page-report .stat-val,
+  body.print-live-report #page-report .chart-ttl { color:#1E293B !important; }
+  body.print-live-report #page-report .exec-lbl,
+  body.print-live-report #page-report .stat-lbl,
+  body.print-live-report #page-report .trend-summary,
+  body.print-live-report #page-report #trend-summary { color:#475569 !important; }
+  body.print-live-report #page-report .exec-grid { grid-template-columns:repeat(4,1fr) !important; break-inside:avoid; }
+  body.print-live-report #page-report .report-grid { break-inside:avoid; }
+  body.print-live-report #page-report .chart-card { break-inside:avoid; page-break-inside:avoid; }
   .sidebar, .topbar, .new-alert, .toast, .overlay,
   .btn-primary, .btn-secondary2, .btn-tb, .hamburger,
   .kb-actions, .btn-assign, .btn-accept, .btn-done2, .btn-view2,
@@ -623,10 +647,10 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span data-th="งานโครงการ" data-en="Projects">งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
-    <div class="nav-item" onclick="window.open('https://it-syy.github.io/syy-service-hub/tracker.html','_blank')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
+    <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-sec" data-th="การจัดการ" data-en="Management">Management</div>
-    <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="window.open('https://it-syy.github.io/Generator-System/','_blank')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
-    <div class="nav-item" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.3)" onclick="window.open('http://118.174.142.153:8080/login','_blank')"><span class="nav-icon">🗃️</span><span style="color:#2563EB;font-weight:700">IT Asset Management</span></div>
+    <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="openExternal('https://it-syy.github.io/Generator-System/')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
+    <div class="nav-item" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.3)" onclick="openExternal('http://118.174.142.153:8080/login')"><span class="nav-icon">🗃️</span><span style="color:#2563EB;font-weight:700">IT Asset Management</span></div>
     <div class="nav-item" onclick="showPage('technicians',this)"><span class="nav-icon">👥</span><span data-th="ทีมช่าง" data-en="Technicians">ทีมช่าง</span></div>
     <div class="nav-item" onclick="showPage('history',this)"><span class="nav-icon">📋</span><span data-th="ประวัติงาน" data-en="History">ประวัติงาน</span></div>
     <div class="nav-item" onclick="showPage('archive',this)"><span class="nav-icon">🗄️</span><span data-th="ค้นประวัติ (Archive)" data-en="Archive Search">ค้นประวัติ (Archive)</span></div>
@@ -1202,6 +1226,14 @@ function applyLang(lang){
 function toggleLang(){ applyLang(curLang==='th'?'en':'th'); }
 // คืนข้อความตามภาษาปัจจุบัน (ใช้ในข้อความ JS แบบ dynamic เช่น toast/alert)
 function L(th,en){ return curLang==='en' ? en : th; }
+// เปิดลิงก์ภายนอก — ใน LINE (LIFF) window.open มักถูกบล็อก จึงใช้ liff.openWindow ก่อน
+function openExternal(url){
+  try{
+    if(typeof liff!=='undefined' && liff.openWindow){ liff.openWindow({ url:url, external:true }); return; }
+  }catch(e){}
+  const w=window.open(url,'_blank');
+  if(!w){ location.href=url; }  // ถ้าถูกบล็อก เปิดในหน้าเดิมแทน
+}
 // ป้ายสถานะงาน 2 ภาษา (ใช้ร่วมทุกที่: การ์ด/ตาราง/รายละเอียด)
 function statusLabel(st){
   if(st==='pending')     return L('⏳ รอ','⏳ Pending');
@@ -3603,11 +3635,20 @@ function exportExcel(){
 }
 
 function exportPDF(){
+  // หน้ารายงาน: พิมพ์หน้าจริงสด (การ์ด+กราฟเหมือนที่เห็นบน Dashboard)
+  if(currentPage==='report'){
+    document.body.classList.add('print-live-report');
+    toast(L('กำลังพิมพ์รายงาน...','Printing report...'),'📄','info');
+    setTimeout(()=>{
+      window.print();
+      setTimeout(()=>document.body.classList.remove('print-live-report'),300);
+    },250);
+    return;
+  }
   let pr=document.getElementById('print-report');
   if(!pr){ pr=document.createElement('div'); pr.id='print-report'; pr.className='print-report'; document.body.appendChild(pr); }
   // เลือกเนื้อหา PDF ตามหน้าที่เปิดอยู่ (เดิมพิมพ์รายการ ticket เสมอ ไม่ว่าอยู่หน้าไหน)
-  if(currentPage==='report'){ pr.innerHTML=buildReportPDF(); }
-  else if(currentPage==='technicians'){ pr.innerHTML=buildTechPDF(); }
+  if(currentPage==='technicians'){ pr.innerHTML=buildTechPDF(); }
   else if(currentPage==='projects'){ pr.innerHTML=buildProjectsPDF(); }
   else if(currentPage==='pm'){ pr.innerHTML=buildPmPDF(); }
   else if(currentPage==='claim'){ pr.innerHTML=buildClaimPDF(); }
