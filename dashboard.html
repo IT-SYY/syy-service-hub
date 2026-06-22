@@ -1344,32 +1344,72 @@ function getVisibleMembers(){
 function setStatus(m){const e=document.getElementById('auth-status');if(e)e.textContent=m;}
 function authToken(){ try{ return (typeof liff!=='undefined'&&liff.getAccessToken)?(liff.getAccessToken()||''):''; }catch(e){ return ''; } }
 
+let liffReady=false;   // LIFF init เสร็จหรือยัง (กันกดปุ่มก่อนพร้อม)
+function setLoginBtn(enabled, text){
+  const b=document.getElementById('auth-btn');
+  if(!b) return;
+  b.disabled=!enabled;
+  b.style.opacity=enabled?'1':'0.6';
+  if(text) b.textContent=text;
+}
 async function initAuth(){
+  setLoginBtn(false);  // ปิดปุ่มไว้ก่อน จนกว่า LIFF จะพร้อม (กันกดซ้ำตอนยังไม่พร้อม)
   try{
-    setStatus('กำลังเชื่อมต่อ LINE...');
-    await liff.init({liffId:LIFF_ID_DASH});
+    setStatus(L('กำลังเชื่อมต่อ LINE...','Connecting to LINE...'));
+    // กัน liff.init ค้างถาวร: ตั้ง timeout 12 วินาที ถ้าเกินถือว่าล้ม
+    await Promise.race([
+      liff.init({liffId:LIFF_ID_DASH, withLoginOnExternalBrowser:true}),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('liff_init_timeout')),12000))
+    ]);
+    liffReady=true;
     if(!liff.isLoggedIn()){
-      document.getElementById('auth-msg').innerHTML='เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม<br>ใช้บัญชี LINE ของทีมงาน';
+      document.getElementById('auth-msg').innerHTML=L('เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม<br>ใช้บัญชี LINE ของทีมงาน','Sign in to manage maintenance jobs<br>Use your team LINE account');
       setStatus('');
+      setLoginBtn(true, L('เข้าสู่ระบบด้วย LINE','Sign in with LINE'));
       return; // รอผู้ใช้กดปุ่ม
     }
     await finishAuth();
   }catch(e){
-    // LIFF ใช้ไม่ได้ (เช่นเปิดไฟล์ตรงๆ) → เข้าโหมดดูอย่างเดียวแบบ degrade
     console.log('LIFF init error:',e);
-    enterAs({name:'ผู้เยี่ยมชม',role:'viewer'}, true);
+    if(e && e.message==='liff_init_timeout'){
+      // init ค้าง → ให้ผู้ใช้ลองใหม่ แทนที่จะค้างหน้าจอตลอด
+      setStatus(L('เชื่อมต่อ LINE ช้า กรุณาลองใหม่','LINE connection slow, please retry'));
+      setLoginBtn(true, L('↻ ลองเชื่อมต่อใหม่','↻ Retry connection'));
+      document.getElementById('auth-btn').setAttribute('onclick','location.reload()');
+      return;
+    }
+    // LIFF ใช้ไม่ได้จริง (เช่นเปิดไฟล์ตรงๆ) → เข้าโหมดดูอย่างเดียวแบบ degrade
+    enterAs({name:L('ผู้เยี่ยมชม','Visitor'),role:'viewer'}, true);
   }
 }
 function doLogin(){
-  try{ setStatus('กำลังเปิดหน้าเข้าสู่ระบบ...'); liff.login(); }
-  catch(e){ setStatus('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+  if(!liffReady){ setStatus(L('กำลังเตรียมระบบ รอสักครู่...','Preparing, please wait...')); return; }
+  try{
+    setStatus(L('กำลังเปิดหน้าเข้าสู่ระบบ...','Opening sign-in...'));
+    setLoginBtn(false);
+    // ระบุ redirectUri ชัดเจน ให้กลับมาหน้าเดิมหลัง login (กัน redirect หลุด)
+    liff.login({ redirectUri: location.href });
+  }
+  catch(e){
+    setStatus(L('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง','Sign-in failed, please retry'));
+    setLoginBtn(true);
+  }
 }
 async function finishAuth(){
-  setStatus('กำลังตรวจสอบสิทธิ์...');
-  const p=await liff.getProfile();
-  const res=await lookupRole(p.userId);
-  if(!res.found){ showUserIdPanel(p); return; }   // คนใหม่ที่ยังไม่มีในรายชื่อ
-  enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[]}, false);
+  try{
+    setStatus(L('กำลังตรวจสอบสิทธิ์...','Verifying access...'));
+    const p=await liff.getProfile();
+    const res=await lookupRole(p.userId);
+    if(res.netError) throw new Error('role_lookup_failed');  // โหลดรายชื่อไม่ได้ → ไปที่ retry
+    if(!res.found){ showUserIdPanel(p); return; }   // คนใหม่ที่ยังไม่มีในรายชื่อ
+    enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[]}, false);
+  }catch(e){
+    // ตรวจสิทธิ์ล้ม (เช่นเน็ตสะดุด) → ไม่ค้างหน้าจอ ให้ลองใหม่ได้
+    console.log('finishAuth error:',e);
+    setStatus(L('ตรวจสอบสิทธิ์ไม่สำเร็จ กรุณาลองใหม่','Verification failed, please retry'));
+    setLoginBtn(true, L('↻ ลองใหม่','↻ Retry'));
+    document.getElementById('auth-btn').setAttribute('onclick','location.reload()');
+  }
 }
 // แสดง userId ให้ผู้ใช้ใหม่คัดลอกส่งแอดมิน (เพื่อเพิ่มเข้าแท็บ USERS)
 function showUserIdPanel(p){
@@ -1409,8 +1449,11 @@ async function lookupRole(userId){
         return {role:['admin','tech','viewer'].includes(role)?role:'viewer', found:true, branches:branches};
       }
     }
-  }catch(e){ console.log('lookupRole error:',e); }
-  return {role:'viewer', found:false, branches:[]}; // ไม่อยู่ในรายชื่อ
+    return {role:'viewer', found:false, branches:[]}; // โหลดรายชื่อได้ แต่ไม่พบ userId นี้จริง
+  }catch(e){
+    console.log('lookupRole error:',e);
+    return {netError:true, found:false}; // โหลดรายชื่อไม่ได้ (เน็ตสะดุด) — ให้ผู้เรียกลองใหม่ ไม่ใช่ตัดสินว่าไม่มีสิทธิ์
+  }
 }
 function enterAs(user, degraded){
   currentUser=user; userRole=user.role; userBranches=user.branches||[];
