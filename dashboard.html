@@ -1202,6 +1202,21 @@ function applyLang(lang){
 function toggleLang(){ applyLang(curLang==='th'?'en':'th'); }
 // คืนข้อความตามภาษาปัจจุบัน (ใช้ในข้อความ JS แบบ dynamic เช่น toast/alert)
 function L(th,en){ return curLang==='en' ? en : th; }
+// ป้ายสถานะงาน 2 ภาษา (ใช้ร่วมทุกที่: การ์ด/ตาราง/รายละเอียด)
+function statusLabel(st){
+  if(st==='pending')     return L('⏳ รอ','⏳ Pending');
+  if(st==='assigned')    return L('📋 มอบหมาย','📋 Assigned');
+  if(st==='in_progress') return L('🔄 กำลังซ่อม','🔄 In Progress');
+  if(st==='done')        return L('✅ เสร็จ','✅ Done');
+  return L('❌ ปฏิเสธ','❌ Rejected');
+}
+// ป้ายความสำคัญ 2 ภาษา
+function priLabel(p){
+  if(p==='high') return L('🔴 ฉุกเฉิน','🔴 Urgent');
+  if(p==='med')  return L('🟡 เร่งด่วน','🟡 High');
+  return L('🟢 ปกติ','🟢 Normal');
+}
+function priClass(p){ return p==='high'?'pri-high':p==='med'?'pri-med':'pri-low'; }
 // รีเฟรชส่วนที่สร้างด้วย JS (หัวข้อหน้า + การ์ด/ตาราง) ให้เปลี่ยนภาษาทันทีที่สลับ
 function refreshDynamicLang(){
   // หัวข้อหน้าปัจจุบัน
@@ -1470,8 +1485,8 @@ function compressToDataURL(file){
 async function donePickPhotos(input){
   const files=Array.from(input.files||[]);
   for(const f of files){
-    if(donePhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
-    try{ donePhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+    if(donePhotos.length>=3){toast(L('แนบได้สูงสุด 3 รูป','Max 3 photos'),'⚠️','info');break;}
+    try{ donePhotos.push(await compressToDataURL(f)); }catch(e){ toast(L('อ่านรูปไม่สำเร็จ','Failed to read image'),'❌','error'); }
   }
   input.value='';
   renderDonePreviews();
@@ -1492,8 +1507,8 @@ let progressPhotos = [];
 async function progPickPhotos(input){
   const files=Array.from(input.files||[]);
   for(const f of files){
-    if(progressPhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
-    try{ progressPhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+    if(progressPhotos.length>=3){toast(L('แนบได้สูงสุด 3 รูป','Max 3 photos'),'⚠️','info');break;}
+    try{ progressPhotos.push(await compressToDataURL(f)); }catch(e){ toast(L('อ่านรูปไม่สำเร็จ','Failed to read image'),'❌','error'); }
   }
   input.value=''; renderProgPreviews();
 }
@@ -1537,9 +1552,9 @@ function mkDetailImages(t){
     const imgs=urls.map(function(u,i){
       return '<img class="img-thumb" src="'+u+'" data-grp="'+grpJson+'" data-idx="'+i+'" onclick="openImgGroup(this)">';
     }).join('');
-    return '<div style="grid-column:1/-1"><div class="detail-lbl">'+label+(urls.length>1?' ('+urls.length+' รูป)':'')+'</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
+    return '<div style="grid-column:1/-1"><div class="detail-lbl">'+label+(urls.length>1?' ('+urls.length+' '+L('รูป','imgs')+')':'')+'</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
   };
-  return mk(t.image_url,'📷 รูปตอนแจ้งงาน') + mk(t.done_image_url,'🏁 รูปหลังปิดงาน');
+  return mk(t.image_url,L('📷 รูปตอนแจ้งงาน','📷 Report photos')) + mk(t.done_image_url,L('🏁 รูปหลังปิดงาน','🏁 Completion photos'));
 }
 // เปิด gallery จากกลุ่มรูป (อ่านรายการจาก data-attribute ที่ปลอดภัยกว่าการ inline ใน onclick)
 function openImgGroup(el){
@@ -1666,7 +1681,7 @@ async function loadData(silent=false){
     if(!silent) toast(`โหลดสำเร็จ ${tickets.length} Ticket`,'✅','success');
   }catch(e){
     document.getElementById('live-txt').textContent='Error';
-    if(!silent) toast('โหลดล้มเหลว','❌','error');
+    if(!silent) toast(L('โหลดล้มเหลว','Load failed'),'❌','error');
   }
 }
 
@@ -1982,18 +1997,18 @@ function renderKanban(){
 
   const mkEmpty=(icon,txt)=>`<div class="kb-empty"><div class="kb-empty-icon">${icon}</div><div class="kb-empty-txt">${txt}</div></div>`;
 
-  document.getElementById('kb-pending').innerHTML=pend.length?pend.map(t=>mkCard(t)).join(''):mkEmpty('🎉','ไม่มีงานค้าง');
-  document.getElementById('kb-inprog').innerHTML=inprog.length?inprog.map(t=>mkCard(t)).join(''):mkEmpty('💤','ยังไม่มีงานกำลังซ่อม');
+  document.getElementById('kb-pending').innerHTML=pend.length?pend.map(t=>mkCard(t)).join(''):mkEmpty('🎉',L('ไม่มีงานค้าง','No pending jobs'));
+  document.getElementById('kb-inprog').innerHTML=inprog.length?inprog.map(t=>mkCard(t)).join(''):mkEmpty('💤',L('ยังไม่มีงานกำลังซ่อม','No jobs in progress'));
   const doneAll=b.filter(t=>t.status==='done').length;
-  document.getElementById('kb-done').innerHTML=(done.length?done.map(t=>mkCard(t)).join(''):mkEmpty('📋','ยังไม่มีงานเสร็จ'))+(doneAll>done.length?`<div style="text-align:center;font-size:11px;color:var(--text3);padding:8px">แสดง ${done.length} ล่าสุดจาก ${doneAll} งาน · ดูทั้งหมดที่หน้าตาราง</div>`:'');
+  document.getElementById('kb-done').innerHTML=(done.length?done.map(t=>mkCard(t)).join(''):mkEmpty('📋',L('ยังไม่มีงานเสร็จ','No completed jobs')))+(doneAll>done.length?`<div style="text-align:center;font-size:11px;color:var(--text3);padding:8px">${L('แสดง','Showing')} ${done.length} ${L('ล่าสุดจาก','of')} ${doneAll} · ${L('ดูทั้งหมดที่หน้าตาราง','see all in table')}</div>`:'');
 }
 
 function mkCard(t){
-  const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+  const loc=[t.building||t.location,t.room?L('ห้อง ','Room ')+t.room:''].filter(Boolean).join(' ');
   const desc=t.description.length>55?t.description.substring(0,55)+'…':t.description;
   const tid=t.ticket_id.length>22?t.ticket_id.substring(0,22)+'…':t.ticket_id;
   const newB=t._new?'<span class="kb-new">NEW</span>':'';
-  const pri=t.priority==='high'?{l:'🔴 ฉุกเฉิน',c:'#EF4444'}:t.priority==='med'?{l:'🟡 เร่งด่วน',c:'#F59E0B'}:{l:'🟢 ปกติ',c:'#10B981'};
+  const pri=t.priority==='high'?{l:L('🔴 ฉุกเฉิน','🔴 Urgent'),c:'#EF4444'}:t.priority==='med'?{l:L('🟡 เร่งด่วน','🟡 High'),c:'#F59E0B'}:{l:L('🟢 ปกติ','🟢 Normal'),c:'#10B981'};
   const ts=t.created_at?t.created_at.substring(0,16):'';
   
   // ===== ASSIGNEE BADGE (ปรับปรุง) =====
@@ -2001,7 +2016,7 @@ function mkCard(t){
   if(t.assigned_to){
     assigneeBadge=assigneeBadges(t);
   }else{
-    assigneeBadge='<span class="assigned-badge assigned-pending"><span class="assigned-badge-icon">⏳</span>ยังไม่มอบหมาย</span>';
+    assigneeBadge='<span class="assigned-badge assigned-pending"><span class="assigned-badge-icon">⏳</span>'+L('ยังไม่มอบหมาย','Unassigned')+'</span>';
   }
   
   const ratingHtml=t.rating&&parseInt(t.rating)>0?'<span style="font-size:11px;color:#F59E0B;">'+('★'.repeat(parseInt(t.rating)))+'</span>':'';
@@ -2013,33 +2028,33 @@ function mkCard(t){
     const cls=lt.level==='danger'?'kb-timer-danger':lt.level==='warn'?'kb-timer-warn':'kb-timer-ok';
     const icon=lt.level==='danger'?'🔴':lt.level==='warn'?'🟠':'⏱️';
     const lbl=lt.label?(' · '+lt.label):'';
-    timerHtml=`<div class="kb-timer ${cls}">${icon} กำลังทำมา ${fmtDuration(mins)}${lbl}</div>`;
+    timerHtml=`<div class="kb-timer ${cls}">${icon} ${L('กำลังทำมา','Working for')} ${fmtDuration(mins)}${lbl}</div>`;
   }else if((t.status==='pending'||t.status==='assigned') && t.created_at){
     const mins=elapsedSince(t.assigned_at||t.created_at);
     const lt=lateLevel(mins, t.priority);
     if(lt.level==='danger'){
-      timerHtml=`<div class="kb-timer kb-timer-danger">🔴 ค้างรับ ${fmtDuration(mins)} · ล่าช้า</div>`;
+      timerHtml=`<div class="kb-timer kb-timer-danger">🔴 ${L('ค้างรับ','Awaiting')} ${fmtDuration(mins)} · ${L('ล่าช้า','Late')}</div>`;
     }else if(lt.level==='warn'){
-      timerHtml=`<div class="kb-timer kb-timer-warn">🟠 ค้างรับ ${fmtDuration(mins)}</div>`;
+      timerHtml=`<div class="kb-timer kb-timer-warn">🟠 ${L('ค้างรับ','Awaiting')} ${fmtDuration(mins)}</div>`;
     }else{
-      timerHtml=`<div class="kb-timer kb-timer-ok">⏱️ ค้างมา ${fmtDuration(mins)}</div>`;
+      timerHtml=`<div class="kb-timer kb-timer-ok">⏱️ ${L('ค้างมา','Pending')} ${fmtDuration(mins)}</div>`;
     }
   }else if(t.status==='done' && t.completion_min){
-    timerHtml=`<div class="kb-timer kb-timer-done">✅ ใช้เวลา ${fmtDuration(parseInt(t.completion_min))}</div>`;
+    timerHtml=`<div class="kb-timer kb-timer-done">✅ ${L('ใช้เวลา','Took')} ${fmtDuration(parseInt(t.completion_min))}</div>`;
   }
 
   let btns='';
   if(t.status==='pending'){
-    btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
+    btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button>`;
   }else if(t.status==='assigned'){
-    btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
+    btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button>`;
   }else if(t.status==='in_progress'){
     if(String(t.work_type).toLowerCase()==='claim')
-      btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">📦 สถานะ</button>`;
+      btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
     else
-      btns+=`<button class="btn-done2" style="background:#F59E0B" onclick="event.stopPropagation();openProgress('${t.ticket_id}')">📊 %</button><button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+      btns+=`<button class="btn-done2" style="background:#F59E0B" onclick="event.stopPropagation();openProgress('${t.ticket_id}')">📊 %</button><button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">${L('🏁 ปิดงาน','🏁 Close')}</button>`;
   }
-  btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
+  btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">${L('ดู','View')}</button>`;
 
   const sc=t.status==='pending'?'pending':t.status==='assigned'?'assigned':t.status==='in_progress'?'inprog':'done';
   return `<div class="kb-card ${sc} ${t._new?'new-card':''}" style="border-left-color:${ticketColor(t)}" onclick="openDetail('${t.ticket_id}')">
@@ -2048,11 +2063,11 @@ function mkCard(t){
       <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
       ${ratingHtml}
     </div>
-    <div class="kb-desc">${desc||'ไม่มีรายละเอียด'}</div>
+    <div class="kb-desc">${desc||L('ไม่มีรายละเอียด','No details')}</div>
     ${mkCardImage(t)}
     ${timerHtml}
     <div class="kb-meta">
-      <span><span style="display:inline-block;padding:1px 7px;border-radius:4px;background:${ticketColor(t)};color:#fff;font-size:10px;font-weight:700;margin-right:4px">${t.team||t.department||'—'}</span> 📍 ${loc||'ไม่ระบุ'} &nbsp;·&nbsp; 🏷️ ${t.category||'ไม่ระบุ'}</span>
+      <span><span style="display:inline-block;padding:1px 7px;border-radius:4px;background:${ticketColor(t)};color:#fff;font-size:10px;font-weight:700;margin-right:4px">${t.team||t.department||'—'}</span> 📍 ${loc||L('ไม่ระบุ','N/A')} &nbsp;·&nbsp; 🏷️ ${t.category||L('ไม่ระบุ','N/A')}</span>
       <span>${assigneeBadge} &nbsp;·&nbsp; 🕐 ${ts}</span>
     </div>
     <div class="kb-actions">${btns}</div>
@@ -2144,7 +2159,7 @@ function goToMemberTasks(name){
   if(si){ si.value=''; }
   memberFilter=name;
   renderTicketsPage();
-  toast('แสดงงานของ '+name,'👤','info');
+  toast(L('แสดงงานของ ','Showing jobs of ')+name,'👤','info');
 }
 
 // ===== TIMELINE =====
@@ -2186,7 +2201,7 @@ function renderTicketsPage(_keepPage){
   }
   
   const tb=document.getElementById('tickets-tbody');
-  if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">ไม่พบงานตามเงื่อนไข</div><div style="font-size:12px;color:var(--text3);margin-top:4px">ลองล้างตัวกรองหรือเปลี่ยนคำค้นหา</div></div></td></tr>`;
+  if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">${L('ไม่พบงานตามเงื่อนไข','No matching jobs')}</div><div style="font-size:12px;color:var(--text3);margin-top:4px">${L('ลองล้างตัวกรองหรือเปลี่ยนคำค้นหา','Try clearing filters or changing search')}</div></div></td></tr>`;
     const pgEl=document.getElementById('tickets-pager'); if(pgEl) pgEl.innerHTML=''; return;}
 
   const totalPages=Math.ceil(data.length/TICKETS_PER_PAGE);
@@ -2196,24 +2211,24 @@ function renderTicketsPage(_keepPage){
   const pageData=data.slice(start, start+TICKETS_PER_PAGE);
 
   tb.innerHTML=pageData.map(t=>{
-    const loc=[t.building||t.location,t.room?'ห้อง '+t.room:''].filter(Boolean).join(' ');
+    const loc=[t.building||t.location,t.room?L('ห้อง ','Room ')+t.room:''].filter(Boolean).join(' ');
     const sc=t.status==='pending'?'s-pending':t.status==='assigned'?'s-assigned':t.status==='in_progress'?'s-inprog':t.status==='done'?'s-done':'s-rejected';
-    const sl=t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมาย':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='done'?'✅ เสร็จ':'❌ ปฏิเสธ';
-    const pl=t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ';
-    const pc=t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low';
+    const sl=statusLabel(t.status);
+    const pl=priLabel(t.priority);
+    const pc=priClass(t.priority);
     
     // ===== ASSIGNEE & TEAM DISPLAY (ปรับปรุง) =====
     const assigneeDisplay=t.assigned_to?assigneeBadges(t):'<span style="color:var(--text3);">—</span>';
     const teamDisplay=t.team||t.department||'—';
     
     let btns='';
-    if(t.status==='pending') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">🔧 มอบหมาย</button>`;
-    if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button>`;
+    if(t.status==='pending') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button>`;
+    if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button>`;
     if(t.status==='in_progress'){
-      if(String(t.work_type).toLowerCase()==='claim') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">📦 สถานะ</button>`;
-      else btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+      if(String(t.work_type).toLowerCase()==='claim') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
+      else btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">${L('🏁 ปิดงาน','🏁 Close')}</button>`;
     }
-    btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">ดู</button>`;
+    btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">${L('ดู','View')}</button>`;
     
     return `<tr onclick="openDetail('${t.ticket_id}')">
       <td><span class="tid">${t.ticket_id.substring(0,20)}</span></td>
@@ -2237,13 +2252,13 @@ function renderTicketsPage(_keepPage){
   const pgEl=document.getElementById('tickets-pager');
   if(pgEl){
     if(totalPages<=1){
-      pgEl.innerHTML=`<span class="pager-info">ทั้งหมด ${data.length} รายการ</span>`;
+      pgEl.innerHTML=`<span class="pager-info">${L('ทั้งหมด','Total')} ${data.length} ${L('รายการ','items')}</span>`;
     }else{
       const from=start+1, to=Math.min(start+TICKETS_PER_PAGE,data.length);
       pgEl.innerHTML=`
-        <button class="pager-btn" ${ticketPage<=1?'disabled':''} onclick="gotoTicketPage(${ticketPage-1})">← ก่อนหน้า</button>
-        <span class="pager-info">${from}–${to} จาก ${data.length} · หน้า ${ticketPage}/${totalPages}</span>
-        <button class="pager-btn" ${ticketPage>=totalPages?'disabled':''} onclick="gotoTicketPage(${ticketPage+1})">ถัดไป →</button>`;
+        <button class="pager-btn" ${ticketPage<=1?'disabled':''} onclick="gotoTicketPage(${ticketPage-1})">${L('← ก่อนหน้า','← Prev')}</button>
+        <span class="pager-info">${from}–${to} ${L('จาก','of')} ${data.length} · ${L('หน้า','Page')} ${ticketPage}/${totalPages}</span>
+        <button class="pager-btn" ${ticketPage>=totalPages?'disabled':''} onclick="gotoTicketPage(${ticketPage+1})">${L('ถัดไป →','Next →')}</button>`;
     }
   }
 }
@@ -2260,8 +2275,8 @@ function renderTechGrid(){
   const members=getVisibleMembers();
   const grid=document.getElementById('tech-grid');
   const ttl=document.getElementById('tech-title');
-  if(ttl) ttl.textContent='👥 ทีมช่าง'+(currentBranch!=='all'?' · สาขา '+currentBranch:'')+(currentTeam!=='all'?' · '+currentTeam:'');
-  if(!members.length){ grid.innerHTML='<div class="loading" style="grid-column:1/-1;text-align:center;color:var(--text3)">ไม่มีช่างในสาขานี้</div>'; return; }
+  if(ttl) ttl.textContent=L('👥 ทีมช่าง','👥 Technicians')+(currentBranch!=='all'?' · '+L('สาขา ','Branch ')+currentBranch:'')+(currentTeam!=='all'?' · '+currentTeam:'');
+  if(!members.length){ grid.innerHTML='<div class="loading" style="grid-column:1/-1;text-align:center;color:var(--text3)">'+L('ไม่มีช่างในสาขานี้','No technicians in this branch')+'</div>'; return; }
   grid.innerHTML=members.map(m=>{
     const inprog = b.filter(t=>t.assigned_to===m.name&&t.status==='in_progress');
     const waiting= b.filter(t=>t.assigned_to===m.name&&t.status==='assigned');
@@ -2715,7 +2730,7 @@ function renderRatingBar(){
 
 // ===== MODALS =====
 function openAssign(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   const br=t.branch||'';
@@ -2774,7 +2789,7 @@ function rebuildSecondary(preChecked){
   }).join('');
 }
 function openAccept(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-accept-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">มอบหมายให้: ${t.assigned_to||'—'} เมื่อ ${t.assigned_at||'—'}</span>`;
@@ -2846,8 +2861,8 @@ function acPickPhotos(input){
   const files=Array.from(input.files||[]);
   (async()=>{
     for(const f of files){
-      if(acPhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
-      try{ acPhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+      if(acPhotos.length>=3){toast(L('แนบได้สูงสุด 3 รูป','Max 3 photos'),'⚠️','info');break;}
+      try{ acPhotos.push(await compressToDataURL(f)); }catch(e){ toast(L('อ่านรูปไม่สำเร็จ','Failed to read image'),'❌','error'); }
     }
     input.value=''; renderAcPreviews();
   })();
@@ -2859,7 +2874,7 @@ function renderAcPreviews(){
 }
 function acPickDoc(input){
   const f=input.files&&input.files[0]; if(!f)return;
-  if(f.size>10*1024*1024){toast('ไฟล์ใหญ่เกิน 10MB','⚠️','info');input.value='';return;}
+  if(f.size>10*1024*1024){toast(L('ไฟล์ใหญ่เกิน 10MB','File exceeds 10MB'),'⚠️','info');input.value='';return;}
   const reader=new FileReader();
   reader.onload=()=>{
     acDocFile={name:f.name,mime:f.type||'application/pdf',base64:String(reader.result).split(',')[1]};
@@ -2870,7 +2885,7 @@ function acPickDoc(input){
 }
 function acClearDoc(){ acDocFile=null; document.getElementById('ac-doc-preview').innerHTML=''; document.getElementById('ac-doc').value=''; }
 function openAddClaim(){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   ['ac-device','ac-model','ac-serial','ac-usage','ac-desc','ac-dept'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ac-priority').value='low';
   acPhotos=[]; acDocFile=null; renderAcPreviews(); acClearDoc();
@@ -2880,8 +2895,8 @@ function openAddClaim(){
 async function doAddClaim(){
   const device=document.getElementById('ac-device').value.trim();
   const usage=document.getElementById('ac-usage').value.trim();
-  if(!device){toast('กรุณากรอกชื่ออุปกรณ์','⚠️','info');return;}
-  if(!usage){toast('กรุณากรอกสถานที่ใช้งาน','⚠️','info');return;}
+  if(!device){toast(L('กรุณากรอกชื่ออุปกรณ์','Please enter device name'),'⚠️','info');return;}
+  if(!usage){toast(L('กรุณากรอกสถานที่ใช้งาน','Please enter usage location'),'⚠️','info');return;}
   const model=document.getElementById('ac-model').value.trim();
   const serial=document.getElementById('ac-serial').value.trim();
   const desc=document.getElementById('ac-desc').value.trim();
@@ -2918,10 +2933,10 @@ async function doAddClaim(){
   };
   try{
     const r=await gasPost({liff_data:liff_data,access_token:authToken()});
-    if(r.ok){closeM('m-addclaim');toast('สร้างงานเคลมแล้ว','📦','success');setTimeout(loadData,r.soft?1200:400);}
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('สร้างไม่สำเร็จ: '+(r.error||''),'❌','info');
-  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+    if(r.ok){closeM('m-addclaim');toast(L('สร้างงานเคลมแล้ว','Claim created'),'📦','success');setTimeout(loadData,r.soft?1200:400);}
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('สร้างไม่สำเร็จ: ','Create failed: ')+(r.error||''),'❌','info');
+  }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info');}
   btn.disabled=false;btn.textContent='📦 สร้างงานเคลม';
 }
 // ===== อัปเดตสถานะส่งซ่อม/เคลม =====
@@ -2930,8 +2945,8 @@ function csPickPhotos(input){
   const files=Array.from(input.files||[]);
   (async()=>{
     for(const f of files){
-      if(claimPhotos.length>=3){toast('แนบได้สูงสุด 3 รูป','⚠️','info');break;}
-      try{ claimPhotos.push(await compressToDataURL(f)); }catch(e){ toast('อ่านรูปไม่สำเร็จ','❌','error'); }
+      if(claimPhotos.length>=3){toast(L('แนบได้สูงสุด 3 รูป','Max 3 photos'),'⚠️','info');break;}
+      try{ claimPhotos.push(await compressToDataURL(f)); }catch(e){ toast(L('อ่านรูปไม่สำเร็จ','Failed to read image'),'❌','error'); }
     }
     input.value=''; renderCsPreviews();
   })();
@@ -2942,7 +2957,7 @@ function renderCsPreviews(){
   box.innerHTML=claimPhotos.map((d,i)=>'<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)"><button type="button" onclick="csRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>').join('');
 }
 function openClaimStage(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);
   document.getElementById('cs-stage').value=(t&&t.claim_stage)||'ส่งซ่อม';
@@ -2954,7 +2969,7 @@ async function doClaimStage(){
   const stage=document.getElementById('cs-stage').value;
   const note=document.getElementById('cs-note').value.trim();
   const t=tickets.find(x=>x.ticket_id===currentId); if(!t)return;
-  const btn=document.getElementById('btn-cs-ok');if(btn.disabled)return;btn.disabled=true;const _o=btn.textContent;btn.textContent='กำลังบันทึก...';
+  const btn=document.getElementById('btn-cs-ok');if(btn.disabled)return;btn.disabled=true;const _o=btn.textContent;btn.textContent=L('กำลังบันทึก...','Saving...');
   // อัปโหลดรูปยืนยัน (ถ้ามี)
   const imgUrls=[];
   if(claimPhotos.length){
@@ -2968,7 +2983,7 @@ async function doClaimStage(){
     ));
     ups.forEach(u=>{ if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl); });
   }
-  btn.textContent='กำลังบันทึก...';
+  btn.textContent=L('กำลังบันทึก...','Saving...');
   // ถ้าเลือก "ปิดงาน" ให้ปิดงานจริง มิฉะนั้นอัปเดตสถานะย่อย
   const isClose = (stage==='ปิดงาน');
   const body = isClose
@@ -2980,15 +2995,15 @@ async function doClaimStage(){
       if(isClose){ t.status='done'; t.claim_stage='ปิดงาน'; }
       else { t.claim_stage=stage; if(t.status==='pending'||t.status==='assigned') t.status='in_progress'; }
       closeM('m-claimstage');renderAll();
-      toast('อัปเดตสถานะเคลมแล้ว: '+stage,'📦','success');
+      toast(L('อัปเดตสถานะเคลมแล้ว: ','Claim status updated: ')+stage,'📦','success');
       if(r.soft) setTimeout(()=>loadData(true),2500);
-    }else if(r.networkError){ toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error'); btn.disabled=false; btn.textContent=_o; }
-    else{ toast('ไม่สำเร็จ: '+(r.error||''),'❌','info'); btn.disabled=false; btn.textContent=_o; }
-  }catch(e){ toast('เกิดข้อผิดพลาด','❌','info'); btn.disabled=false; btn.textContent=_o; }
+    }else if(r.networkError){ toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error'); btn.disabled=false; btn.textContent=_o; }
+    else{ toast(L('ไม่สำเร็จ: ','Failed: ')+(r.error||''),'❌','info'); btn.disabled=false; btn.textContent=_o; }
+  }catch(e){ toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info'); btn.disabled=false; btn.textContent=_o; }
 }
 // ===== Error Log / Health Check (admin) =====
 function openErrorLogs(){
-  if(userRole!=='admin'){toast('เฉพาะผู้ดูแลระบบ','🔒','info');return;}
+  if(userRole!=='admin'){toast(L('เฉพาะผู้ดูแลระบบ','Admins only'),'🔒','info');return;}
   document.getElementById('m-errorlog').classList.add('show');
   loadHealthCheck();
   loadErrorLogs();
@@ -3039,7 +3054,7 @@ async function loadErrorLogs(){
 let pmPlansCache=[];
 const PM_FREQ_LABEL={day:'วัน',week:'สัปดาห์',month:'เดือน',quarter:'ไตรมาส',year:'ปี'};
 async function openPmPlans(){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   document.getElementById('m-pmplans').classList.add('show');
   await loadPmPlans();
 }
@@ -3105,9 +3120,9 @@ function editPmPlan(id){
 async function savePmForm(){
   const name=document.getElementById('pf-name').value.trim();
   const due=document.getElementById('pf-due').value;
-  if(!name){toast('กรุณากรอกชื่องาน','⚠️','info');return;}
-  if(!due){toast('กรุณาเลือกวันครบกำหนดครั้งแรก','⚠️','info');return;}
-  const btn=document.getElementById('btn-pmform-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  if(!name){toast(L('กรุณากรอกชื่องาน','Please enter job name'),'⚠️','info');return;}
+  if(!due){toast(L('กรุณาเลือกวันครบกำหนดครั้งแรก','Please select first due date'),'⚠️','info');return;}
+  const btn=document.getElementById('btn-pmform-ok');btn.disabled=true;btn.textContent=L('กำลังบันทึก...','Saving...');
   const plan={
     plan_id:document.getElementById('pf-id').value||'',
     name:name, team:document.getElementById('pf-team').value, branch:document.getElementById('pf-branch').value,
@@ -3117,22 +3132,22 @@ async function savePmForm(){
   };
   try{
     const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'save_pm_plan',plan:plan,access_token:authToken()})})).json();
-    if(r.success){closeM('m-pmform');toast('บันทึกแผนแล้ว','💾','success');loadPmPlans();}
-    else toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','info');
-  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+    if(r.success){closeM('m-pmform');toast(L('บันทึกแผนแล้ว','Plan saved'),'💾','success');loadPmPlans();}
+    else toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||''),'❌','info');
+  }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info');}
   btn.disabled=false;btn.textContent='💾 บันทึกแผน';
 }
 function removePmPlan(id,name){
   if(!confirm('ลบแผน "'+name+'" ?\nงานที่สร้างไปแล้วจะไม่หาย แต่จะไม่สร้างงานใหม่ตามรอบนี้อีก')) return;
   gasPost({action:'delete_pm_plan',plan_id:id,access_token:authToken()}).then(r=>{
-    if(r.ok){toast('ลบแผนแล้ว','✓','success');loadPmPlans();}
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('ลบไม่สำเร็จ: '+(r.error||''),'❌','info');
+    if(r.ok){toast(L('ลบแผนแล้ว','Plan deleted'),'✓','success');loadPmPlans();}
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('ลบไม่สำเร็จ: ','Delete failed: ')+(r.error||''),'❌','info');
   });
 }
 // ===== เพิ่มงานโครงการ (admin สร้างเอง) =====
 function openAddProject(){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   document.getElementById('ap-title').value='';
   document.getElementById('ap-building').value='';
   document.getElementById('ap-desc').value='';
@@ -3143,7 +3158,7 @@ function openAddProject(){
 }
 async function doAddProject(){
   const title=document.getElementById('ap-title').value.trim();
-  if(!title){toast('กรุณากรอกหัวข้องาน','⚠️','info');return;}
+  if(!title){toast(L('กรุณากรอกหัวข้องาน','Please enter project title'),'⚠️','info');return;}
   const team=document.getElementById('ap-team').value;
   const branch=document.getElementById('ap-branch').value;
   const building=document.getElementById('ap-building').value.trim();
@@ -3159,26 +3174,26 @@ async function doAddProject(){
   };
   try{
     const r=await gasPost({liff_data:liff_data,access_token:authToken()});
-    if(r.ok){closeM('m-addproj');toast('สร้างงานโครงการแล้ว','📁','success');setTimeout(loadData,r.soft?1200:400);}
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('สร้างไม่สำเร็จ: '+(r.error||''),'❌','info');
-  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+    if(r.ok){closeM('m-addproj');toast(L('สร้างงานโครงการแล้ว','Project created'),'📁','success');setTimeout(loadData,r.soft?1200:400);}
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('สร้างไม่สำเร็จ: ','Create failed: ')+(r.error||''),'❌','info');
+  }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info');}
   btn.disabled=false;btn.textContent='📁 สร้างงานโครงการ';
 }
 // ===== ย้ายงานซ่อม → งานโครงการ (งานบานปลาย) =====
 function moveToProject(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   if(!confirm('ย้ายงานนี้ไปเป็น "งานโครงการ"?\n\nงานจะออกจากหน้างานซ่อมบำรุง ไปอยู่ในเมนูงานโครงการ (สถานะและประวัติคงเดิม) เหมาะกับงานที่บานปลายเกินซ่อมเล็ก')) return;
   const t=tickets.find(x=>x.ticket_id===id);
   gasPost({action:'convert_project',ticket_id:id,access_token:authToken()}).then(r=>{
-    if(r.ok){ if(t)t.work_type='project'; closeM('m-detail'); renderAll(); toast('ย้ายเป็นงานโครงการแล้ว','📁','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+    if(r.ok){ if(t)t.work_type='project'; closeM('m-detail'); renderAll(); toast(L('ย้ายเป็นงานโครงการแล้ว','Moved to project'),'📁','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('ไม่สำเร็จ: ','Failed: ')+(r.error||''),'❌','info');
   });
 }
 // ===== โอนงานข้ามแผนก/สาขา =====
 function openTransfer(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   const br=t.branch?'<span style="color:var(--green);font-weight:600"> ['+t.branch+']</span>':'';
@@ -3192,7 +3207,7 @@ async function doTransfer(){
   const newTeam=document.getElementById('m-transfer-team').value;
   const newBranch=document.getElementById('m-transfer-branch').value;
   const reason=document.getElementById('m-transfer-reason').value;
-  if(!newTeam){toast('กรุณาเลือกทีมปลายทาง','⚠️','info');return;}
+  if(!newTeam){toast(L('กรุณาเลือกทีมปลายทาง','Please select target team'),'⚠️','info');return;}
   const btn=document.getElementById('btn-transfer-ok');btn.disabled=true;btn.textContent='กำลังโอน...';
   const t=tickets.find(x=>x.ticket_id===currentId);
   try{
@@ -3203,27 +3218,27 @@ async function doTransfer(){
       closeM('m-transfer');renderAll();
       toast(`โอนงานไป ${newTeam}${newBranch?' สาขา '+newBranch:''} แล้ว`,'🔀','success');
       if(r.soft) setTimeout(()=>loadData(true),2500);
-    } else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('โอนไม่สำเร็จ: '+(r.error||''),'❌','info');
-  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+    } else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('โอนไม่สำเร็จ: ','Transfer failed: ')+(r.error||''),'❌','info');
+  }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info');}
   btn.disabled=false;btn.textContent='🔀 ยืนยันโอนงาน';
 }
 // ปฏิเสธงานใหม่ (pending)
 function rejectPending(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   const reason=prompt('เหตุผลที่ปฏิเสธงานนี้ (เช่น งานซ้ำ / ไม่ใช่งานซ่อม / ข้อมูลไม่ครบ):');
   if(reason===null) return;
   const t=tickets.find(x=>x.ticket_id===id);
   gasPost({action:'decline',ticket_id:id,rejected_by:(currentUser&&currentUser.name)||'admin',reject_reason:reason||'ไม่ระบุ',access_token:authToken()}).then(r=>{
-    if(r.ok){ if(t){t.status='rejected';t.reject_reason=reason;t.assigned_to='';} closeM('m-detail'); renderAll(); toast('ปฏิเสธงานแล้ว (ปิดงาน)','✓','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+    if(r.ok){ if(t){t.status='rejected';t.reject_reason=reason;t.assigned_to='';} closeM('m-detail'); renderAll(); toast(L('ปฏิเสธงานแล้ว (ปิดงาน)','Job rejected (closed)'),'✓','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('ไม่สำเร็จ: ','Failed: ')+(r.error||''),'❌','info');
   });
 }
 // ===== อัปเดตความคืบหน้า (สำหรับงานที่กำลังทำแต่ยังไม่เสร็จ) =====
 var M_PCT_OPTIONS=[10,25,50,75,90];
 function openProgress(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   const br=t.branch?'<span style="color:var(--green);font-weight:600"> ['+t.branch+']</span>':'';
@@ -3246,9 +3261,9 @@ function setMPct(v){
 }
 async function doProgress(){
   const pct=parseInt(document.getElementById('m-progress-pct').value,10)||0;
-  if(pct<=0){toast('กรุณาเลือกเปอร์เซ็นต์ก่อน','⚠️','info');return;}
+  if(pct<=0){toast(L('กรุณาเลือกเปอร์เซ็นต์ก่อน','Please select a percentage first'),'⚠️','info');return;}
   const note=document.getElementById('m-progress-note').value;
-  const btn=document.getElementById('btn-progress-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  const btn=document.getElementById('btn-progress-ok');btn.disabled=true;btn.textContent=L('กำลังบันทึก...','Saving...');
   const t=tickets.find(x=>x.ticket_id===currentId);
   // อัปโหลดรูปความคืบหน้า (ถ้ามี) — เก็บใน Drive ไม่เขียนทับ TICKETS (skip_sheet)
   const imgUrls=[];
@@ -3264,7 +3279,7 @@ async function doProgress(){
     ));
     ups.forEach(u=>{ if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl); });
   }
-  btn.textContent='กำลังบันทึก...';
+  btn.textContent=L('กำลังบันทึก...','Saving...');
   try{
     const r=await gasPost({action:'update_progress',ticket_id:currentId,percent:pct,note:note||'',image_url:imgUrls.join(','),access_token:authToken()});
     if(r.ok){
@@ -3273,24 +3288,24 @@ async function doProgress(){
       toast(`บันทึกความคืบหน้า ${pct}% แล้ว`,'📊','success');
       if(r.soft) setTimeout(()=>loadData(true),2500);
     }
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','info');
-  }catch(e){toast('เกิดข้อผิดพลาด','❌','info');}
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||''),'❌','info');
+  }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info');}
   btn.disabled=false;btn.textContent='📊 บันทึกความคืบหน้า';
 }
 // เปิดงานที่ถูกปฏิเสธกลับมาใหม่ (กู้คืน)
 function reopenTicket(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   if(!confirm('เปิดงานนี้กลับมาเป็น "รอดำเนินการ" ใหม่?')) return;
   const t=tickets.find(x=>x.ticket_id===id);
   gasPost({action:'reopen',ticket_id:id,access_token:authToken()}).then(r=>{
-    if(r.ok){ if(t){t.status='pending';t.reject_reason='';} closeM('m-detail'); renderAll(); toast('เปิดงานใหม่แล้ว','↩️','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('ไม่สำเร็จ: '+(r.error||''),'❌','info');
+    if(r.ok){ if(t){t.status='pending';t.reject_reason='';} closeM('m-detail'); renderAll(); toast(L('เปิดงานใหม่แล้ว','Reopened'),'↩️','success'); if(r.soft) setTimeout(()=>loadData(true),2500); }
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('ไม่สำเร็จ: ','Failed: ')+(r.error||''),'❌','info');
   });
 }
 function openDone(id){
-  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-done-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
@@ -3302,63 +3317,63 @@ function mkProgressBar(t){
   const pv=parseInt(t.progress)||0;
   if(t.status==='done'||pv<=0) return '';
   const bc=pv>=100?'var(--green)':pv>=50?'var(--blue)':'var(--orange)';
-  return `<div style="grid-column:1/-1"><div class="detail-lbl">📊 ความคืบหน้า</div>
+  return `<div style="grid-column:1/-1"><div class="detail-lbl">${L('📊 ความคืบหน้า','📊 Progress')}</div>
     <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
       <div style="flex:1;height:12px;background:var(--bg3);border-radius:6px;overflow:hidden;border:1px solid var(--border)">
         <div style="height:100%;width:${pv}%;background:${bc};border-radius:6px"></div>
       </div>
       <span style="font-weight:700;color:${bc}">${pv}%</span>
     </div>
-    <div style="font-size:11px;color:var(--text3);margin-top:3px">ดูไทม์ไลน์ทั้งหมดได้ในหน้าติดตามงาน</div></div>`;
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">${L('ดูไทม์ไลน์ทั้งหมดได้ในหน้าติดตามงาน','See full timeline in tracker page')}</div></div>`;
 }
 function openDetail(id){
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   const sc=t.status==='pending'?'s-pending':t.status==='assigned'?'s-assigned':t.status==='in_progress'?'s-inprog':t.status==='done'?'s-done':'s-rejected';
-  const sl=t.status==='pending'?'⏳ รอ':t.status==='assigned'?'📋 มอบหมาย':t.status==='in_progress'?'🔄 กำลังซ่อม':t.status==='done'?'✅ เสร็จ':'❌ ปฏิเสธ';
+  const sl=statusLabel(t.status);
   document.getElementById('m-detail-content').innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <span class="tid" style="font-size:12px">${t.ticket_id}</span>
       <span class="sbadge ${sc}">${sl}</span>
-      <span class="pri-badge ${t.priority==='high'?'pri-high':t.priority==='med'?'pri-med':'pri-low'}">${t.priority==='high'?'🔴 ฉุกเฉิน':t.priority==='med'?'🟡 เร่งด่วน':'🟢 ปกติ'}</span>
+      <span class="pri-badge ${priClass(t.priority)}">${priLabel(t.priority)}</span>
     </div>
     <div class="detail-grid">
-      <div><div class="detail-lbl">ทีม</div><div class="detail-val">${t.team||t.department||'—'}</div></div>
-      <div><div class="detail-lbl">ประเภท</div><div class="detail-val">${t.category||'—'}</div></div>
-      <div><div class="detail-lbl">สถานที่</div><div class="detail-val">${t.building||t.location||'—'} ${t.room?'ห้อง '+t.room:''}</div></div>
-      <div><div class="detail-lbl">ผู้แจ้ง</div><div class="detail-val">${t.displayName||t.reported_by||t.userId||'—'}</div></div>
-      <div><div class="detail-lbl">แผนกผู้แจ้ง</div><div class="detail-val">${t.reporter_dept||'—'}</div></div>
-      ${String(t.work_type).toLowerCase()==='claim'?`<div><div class="detail-lbl">สถานะเคลม</div><div class="detail-val" style="color:#EA580C;font-weight:700">📦 ${t.claim_stage||'ส่งซ่อม'}</div></div>`:''}
-      ${t.doc_url?`<div style="grid-column:1/-1"><div class="detail-lbl">เอกสารส่งซ่อม/เคลม</div><div class="detail-val">${String(t.doc_url).split(',').filter(Boolean).map((u,i)=>`<a href="${u}" target="_blank" style="color:#0EA5E9;text-decoration:underline">📄 เปิดเอกสาร${i+1}</a>`).join(' · ')}</div></div>`:''}
-      <div><div class="detail-lbl">วันที่แจ้ง</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
-      <div><div class="detail-lbl">ผู้รับงาน</div><div class="detail-val">${t.assigned_to||'ยังไม่มอบหมาย'}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ รอง: '+t.assigned_secondary+'</span>':''}</div></div>
-      <div><div class="detail-lbl">มอบหมายเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
-      <div><div class="detail-lbl">รับงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at||'—'}</div></div>
-      <div><div class="detail-lbl">เสร็จงานเมื่อ</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
-      ${t.response_min?`<div><div class="detail-lbl">⏱ เวลารับงาน</div><div class="detail-val" style="color:var(--blue)">${fmtMins(t.response_min)}</div></div>`:''}
-      <div><div class="detail-lbl">⭐ คะแนน</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':'ยังไม่ได้รับการประเมิน'}</div></div>
-      ${t.completion_min?`<div><div class="detail-lbl">⏱ เวลาปิดงาน</div><div class="detail-val" style="color:var(--green)">${fmtMins(t.completion_min)}</div></div>`:''}
-      ${t.duration_min?`<div><div class="detail-lbl">⏱ เวลารวมทั้งหมด</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} (แจ้ง→เสร็จ)</div></div>`:''}
-      ${slaOf(t)?`<div><div class="detail-lbl">🎯 SLA</div><div class="detail-val" style="color:${slaOf(t)==='on_time'?'var(--green)':'var(--red)'};font-weight:700">${slaOf(t)==='on_time'?'✓ ตรงเวลา':'✗ เกินกำหนด'} <span style="font-weight:400;color:var(--text3);font-size:11px">(เป้า ${fmtMins(SLA_TARGETS[t.priority]||SLA_TARGETS.low)})</span></div></div>`:''}
-      <div style="grid-column:1/-1"><div class="detail-lbl">รายละเอียด</div><div class="detail-val">${t.description||'—'}</div></div>
+      <div><div class="detail-lbl">${L('ทีม','Team')}</div><div class="detail-val">${t.team||t.department||'—'}</div></div>
+      <div><div class="detail-lbl">${L('ประเภท','Category')}</div><div class="detail-val">${t.category||'—'}</div></div>
+      <div><div class="detail-lbl">${L('สถานที่','Location')}</div><div class="detail-val">${t.building||t.location||'—'} ${t.room?L('ห้อง ','Room ')+t.room:''}</div></div>
+      <div><div class="detail-lbl">${L('ผู้แจ้ง','Reporter')}</div><div class="detail-val">${t.displayName||t.reported_by||t.userId||'—'}</div></div>
+      <div><div class="detail-lbl">${L('แผนกผู้แจ้ง','Reporter Dept.')}</div><div class="detail-val">${t.reporter_dept||'—'}</div></div>
+      ${String(t.work_type).toLowerCase()==='claim'?`<div><div class="detail-lbl">${L('สถานะเคลม','Claim Status')}</div><div class="detail-val" style="color:#EA580C;font-weight:700">📦 ${t.claim_stage||L('ส่งซ่อม','Sent')}</div></div>`:''}
+      ${t.doc_url?`<div style="grid-column:1/-1"><div class="detail-lbl">${L('เอกสารส่งซ่อม/เคลม','Claim Document')}</div><div class="detail-val">${String(t.doc_url).split(',').filter(Boolean).map((u,i)=>`<a href="${u}" target="_blank" style="color:#0EA5E9;text-decoration:underline">📄 ${L('เปิดเอกสาร','Open doc')}${i+1}</a>`).join(' · ')}</div></div>`:''}
+      <div><div class="detail-lbl">${L('วันที่แจ้ง','Reported')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
+      <div><div class="detail-lbl">${L('ผู้รับงาน','Assignee')}</div><div class="detail-val">${t.assigned_to||L('ยังไม่มอบหมาย','Unassigned')}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ '+L('รอง','Secondary')+': '+t.assigned_secondary+'</span>':''}</div></div>
+      <div><div class="detail-lbl">${L('มอบหมายเมื่อ','Assigned at')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
+      <div><div class="detail-lbl">${L('รับงานเมื่อ','Accepted at')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at||'—'}</div></div>
+      <div><div class="detail-lbl">${L('เสร็จงานเมื่อ','Resolved at')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
+      ${t.response_min?`<div><div class="detail-lbl">${L('⏱ เวลารับงาน','⏱ Response time')}</div><div class="detail-val" style="color:var(--blue)">${fmtMins(t.response_min)}</div></div>`:''}
+      <div><div class="detail-lbl">${L('⭐ คะแนน','⭐ Rating')}</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':L('ยังไม่ได้รับการประเมิน','Not rated yet')}</div></div>
+      ${t.completion_min?`<div><div class="detail-lbl">${L('⏱ เวลาปิดงาน','⏱ Resolution time')}</div><div class="detail-val" style="color:var(--green)">${fmtMins(t.completion_min)}</div></div>`:''}
+      ${t.duration_min?`<div><div class="detail-lbl">${L('⏱ เวลารวมทั้งหมด','⏱ Total time')}</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} ${L('(แจ้ง→เสร็จ)','(report→done)')}</div></div>`:''}
+      ${slaOf(t)?`<div><div class="detail-lbl">🎯 SLA</div><div class="detail-val" style="color:${slaOf(t)==='on_time'?'var(--green)':'var(--red)'};font-weight:700">${slaOf(t)==='on_time'?L('✓ ตรงเวลา','✓ On time'):L('✗ เกินกำหนด','✗ Overdue')} <span style="font-weight:400;color:var(--text3);font-size:11px">(${L('เป้า','target')} ${fmtMins(SLA_TARGETS[t.priority]||SLA_TARGETS.low)})</span></div></div>`:''}
+      <div style="grid-column:1/-1"><div class="detail-lbl">${L('รายละเอียด','Details')}</div><div class="detail-val">${t.description||'—'}</div></div>
       ${mkProgressBar(t)}
       ${mkDetailImages(t)}
-      ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">หมายเหตุ</div><div class="detail-val">${t.notes}</div></div>`:''}
-      ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">❌ ถูกปฏิเสธเมื่อ ${t.rejected_at} โดย ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
+      ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">${L('หมายเหตุ','Notes')}</div><div class="detail-val">${t.notes}</div></div>`:''}
+      ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">${L('❌ ถูกปฏิเสธเมื่อ','❌ Rejected at')} ${t.rejected_at} ${L('โดย','by')} ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
     </div>`;
   const ac=document.getElementById('m-detail-actions');
   const isClaim = String(t.work_type).toLowerCase()==='claim';
-  let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">ปิด</button>`;
-  if(t.status==='pending') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">🔧 มอบหมาย</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">❌ ปฏิเสธ</button>`;
-  else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">↩️ เปิดงานใหม่</button>`;
-  else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">⚡ รับ/ปฏิเสธ</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">🔀 โอนงาน</button>`;
-  else if(t.status==='in_progress' && !isClaim) ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">📊 อัปเดต %</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">🏁 ปิดงาน</button>`;
+  let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">${L('ปิด','Close')}</button>`;
+  if(t.status==='pending') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">${L('❌ ปฏิเสธ','❌ Reject')}</button>`;
+  else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">${L('↩️ เปิดงานใหม่','↩️ Reopen')}</button>`;
+  else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button>`;
+  else if(t.status==='in_progress' && !isClaim) ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">${L('📊 อัปเดต %','📊 Update %')}</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">${L('🏁 ปิดงาน','🏁 Close')}</button>`;
   // งานเคลม: ใช้ปุ่มอัปเดตสถานะอย่างเดียว (รวมการปิดงานในตัว) — แสดงเมื่อมีผู้รับผิดชอบแล้ว
   if(isClaim && (t.status==='assigned'||t.status==='in_progress'))
-    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="closeM('m-detail');openClaimStage('${t.ticket_id}')">📦 อัปเดตสถานะ</button>`;
+    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="closeM('m-detail');openClaimStage('${t.ticket_id}')">${L('📦 อัปเดตสถานะ','📦 Update Status')}</button>`;
   // ย้ายงานซ่อม → โครงการ (เฉพาะงาน repair ที่ยังไม่ปิด/ยังไม่ถูกปฏิเสธ — งานบานปลาย)
   if(viewWorkType==='repair' && (t.status==='pending'||t.status==='assigned'||t.status==='in_progress'))
-    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="closeM('m-detail');moveToProject('${t.ticket_id}')">📁 ย้ายเป็นงานโครงการ</button>`;
+    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="closeM('m-detail');moveToProject('${t.ticket_id}')">${L('📁 ย้ายเป็นงานโครงการ','📁 Move to Project')}</button>`;
   ac.innerHTML=ab;
   document.getElementById('m-detail').classList.add('show');
 }
@@ -3386,22 +3401,22 @@ async function gasPost(body){
 async function doAssign(){
   const member=document.getElementById('m-assign-member').value;
   const note=document.getElementById('m-assign-note').value;
-  if(!member){toast('กรุณาเลือกผู้รับหลัก','⚠️','info');return;}
+  if(!member){toast(L('กรุณาเลือกผู้รับหลัก','Please select primary assignee'),'⚠️','info');return;}
   const secondary=Array.from(document.querySelectorAll('.assign-sec:checked')).map(c=>c.value).join(', ');
-  const btn=document.getElementById('btn-assign-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  const btn=document.getElementById('btn-assign-ok');btn.disabled=true;btn.textContent=L('กำลังบันทึก...','Saving...');
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
   try{
     const r=await gasPost({action:'assign',ticket_id:currentId,assigned_to:member,assigned_secondary:secondary,assigned_at:ts,notes:note||'',access_token:authToken()});
-    if(r.ok){t.status='assigned';t.assigned_to=member;t.assigned_secondary=secondary;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(`มอบหมายให้ ${member}${secondary?' + '+secondary:''} เรียบร้อย — รอช่างรับงาน`,'🎉','success');if(r.soft)setTimeout(()=>loadData(true),2500);}
-    else if(r.networkError) toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
-    else toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
+    if(r.ok){t.status='assigned';t.assigned_to=member;t.assigned_secondary=secondary;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(L('มอบหมายให้ ','Assigned to ')+member+(secondary?' + '+secondary:'')+L(' เรียบร้อย — รอช่างรับงาน',' — awaiting acceptance'),'🎉','success');if(r.soft)setTimeout(()=>loadData(true),2500);}
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||'unknown'),'❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
-  btn.disabled=false;btn.textContent='✅ ยืนยันมอบหมาย';
+  btn.disabled=false;btn.textContent=L('✅ ยืนยันมอบหมาย','✅ Confirm Assign');
 }
 async function doAccept(){
   const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
-  const btn=document.getElementById('btn-accept-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent='กำลังบันทึก...';
+  const btn=document.getElementById('btn-accept-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent=L('กำลังบันทึก...','Saving...');
   const ts=thaiTime();
   try{
     const r=await gasPost({action:'accept',ticket_id:currentId,accepted_at:ts,timestamp:ts,access_token:authToken()});
@@ -3411,17 +3426,17 @@ async function doAccept(){
       t.response_min=t.assigned_at?String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.assigned_at)))/60000))):'';
       closeM('m-accept');
       renderAll();
-      toast('รับงาน '+currentId+' เรียบร้อย','✅','success');
+      toast(L('รับงาน ','Accepted ')+currentId+' เรียบร้อย','✅','success');
       if(r.soft) setTimeout(()=>loadData(true),2500);
-    }else if(r.networkError){ toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error'); btn.disabled=false; btn.textContent=_o; }
-    else{ toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','error'); btn.disabled=false; btn.textContent=_o; }
+    }else if(r.networkError){ toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error'); btn.disabled=false; btn.textContent=_o; }
+    else{ toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||''),'❌','error'); btn.disabled=false; btn.textContent=_o; }
   }catch(e){toast('Error: '+e.message,'❌','error'); btn.disabled=false; btn.textContent=_o;}
 }
 async function doReject(){
   const reason=document.getElementById('reject-reason').value.trim();
-  if(!reason){toast('กรุณาระบุเหตุผล','⚠️','info');return;}
+  if(!reason){toast(L('กรุณาระบุเหตุผล','Please specify a reason'),'⚠️','info');return;}
   const t=tickets.find(x=>x.ticket_id===currentId);if(!t)return;
-  const btn=document.getElementById('btn-reject-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent='กำลังบันทึก...';
+  const btn=document.getElementById('btn-reject-ok'); if(btn.disabled)return; btn.disabled=true; const _o=btn.textContent; btn.textContent=L('กำลังบันทึก...','Saving...');
   const ts=thaiTime();
   try{
     const r=await gasPost({action:'reject',ticket_id:currentId,rejected_at:ts,rejected_by:t.assigned_to,reject_reason:reason,access_token:authToken()});
@@ -3433,15 +3448,15 @@ async function doReject(){
       t.reject_reason=reason;
       closeM('m-accept');
       renderAll();
-      toast('ปฏิเสธงาน '+currentId+' — กรุณามอบหมายใหม่','⚠️','info');
+      toast(L('ปฏิเสธงาน ','Rejected ')+currentId+' — กรุณามอบหมายใหม่','⚠️','info');
       if(r.soft) setTimeout(()=>loadData(true),2500);
-    }else if(r.networkError){ toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error'); btn.disabled=false; btn.textContent=_o; }
-    else{ toast('บันทึกไม่สำเร็จ: '+(r.error||''),'❌','error'); btn.disabled=false; btn.textContent=_o; }
+    }else if(r.networkError){ toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error'); btn.disabled=false; btn.textContent=_o; }
+    else{ toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||''),'❌','error'); btn.disabled=false; btn.textContent=_o; }
   }catch(e){toast('Error: '+e.message,'❌','error'); btn.disabled=false; btn.textContent=_o;}
 }
 async function doDone(){
   const note=document.getElementById('m-done-note').value;
-  const btn=document.getElementById('btn-done-ok');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  const btn=document.getElementById('btn-done-ok');btn.disabled=true;btn.textContent=L('กำลังบันทึก...','Saving...');
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
   // อัปโหลดรูปหลังงานทุกใบพร้อมกัน (parallel, ไม่เขียนชีตทีละใบ) แล้วเก็บ url ส่งไปเขียนทีเดียวกับ done — เร็ว + กัน race
@@ -3460,7 +3475,7 @@ async function doDone(){
     results.forEach(r=>{ if(r.ok && r.data && r.data.imageUrl) uploadedUrls.push(r.data.imageUrl); else failed++; });
     if(failed) toast(failed+' รูปอัปโหลดไม่สำเร็จ','⚠️','info');
   }
-  btn.textContent='กำลังบันทึก...';
+  btn.textContent=L('กำลังบันทึก...','Saving...');
   try{
     const r=await gasPost({action:'done',ticket_id:currentId,resolved_at:ts,timestamp:ts,notes:note||'',done_image_url:uploadedUrls.join(','),access_token:authToken()});
     if(r.ok){
@@ -3476,12 +3491,12 @@ async function doDone(){
       if(idx>0){ tickets.splice(idx,1); tickets.unshift(t); }
       closeM('m-done');
       renderAll();
-      if(r.soft){ toast('ปิดงาน '+currentId+' แล้ว','🎉','success'); setTimeout(()=>loadData(true),2500); }
-      else toast('ปิดงาน '+currentId+' เรียบร้อย','🎉','success');
+      if(r.soft){ toast(L('ปิดงาน ','Closed ')+currentId+' แล้ว','🎉','success'); setTimeout(()=>loadData(true),2500); }
+      else toast(L('ปิดงาน ','Closed ')+currentId+' เรียบร้อย','🎉','success');
     }else if(r.networkError){
-      toast('เครือข่ายมีปัญหา กรุณาลองใหม่','❌','error');
+      toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
     }else{
-      toast('บันทึกไม่สำเร็จ: '+(r.error||'unknown'),'❌','error');
+      toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||'unknown'),'❌','error');
     }
   }catch(e){toast('Error: '+e.message,'❌','error');}
   btn.disabled=false;btn.textContent='✅ ยืนยันปิดงาน';
@@ -3489,9 +3504,9 @@ async function doDone(){
 
 // ===== PRINT REPORT =====
 function exportExcel(){
-  if(typeof XLSX==='undefined'){ toast('ไลบรารียังโหลดไม่เสร็จ ลองอีกครั้ง','⏳','info'); return; }
+  if(typeof XLSX==='undefined'){ toast(L('ไลบรารียังโหลดไม่เสร็จ ลองอีกครั้ง','Library still loading, try again'),'⏳','info'); return; }
   const b=getBase().slice().sort((a,c)=>dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)));
-  if(!b.length){ toast('ไม่มีข้อมูลสำหรับ export','📊','info'); return; }
+  if(!b.length){ toast(L('ไม่มีข้อมูลสำหรับ export','No data to export'),'📊','info'); return; }
   const stTh={pending:'รอดำเนินการ',assigned:'มอบหมายแล้ว',in_progress:'กำลังซ่อม',done:'เสร็จสิ้น',rejected:'ปฏิเสธ'};
   const prTh={high:'ฉุกเฉิน',med:'เร่งด่วน',low:'ปกติ'};
   const slaTh={on_time:'ตรงเวลา',late:'เกินกำหนด'};
@@ -3541,7 +3556,7 @@ function exportExcel(){
   const now=new Date(),p=x=>String(x).padStart(2,'0');
   const fname=`SYY_Tickets_${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}.xlsx`;
   XLSX.writeFile(wb,fname);
-  toast('Export Excel สำเร็จ ('+b.length+' รายการ)','📊','info');
+  toast(L('Export Excel สำเร็จ (','Excel exported (')+b.length+L(' รายการ)',' items)'),'📊','info');
 }
 
 function exportPDF(){
@@ -3577,7 +3592,7 @@ function exportPDF(){
         '</tr>';
       }).join('')}</tbody>
     </table>`;
-  toast('กำลังพิมพ์รายงาน...','📄','info');
+  toast(L('กำลังพิมพ์รายงาน...','Printing report...'),'📄','info');
   setTimeout(()=>window.print(),250);
 }
 
