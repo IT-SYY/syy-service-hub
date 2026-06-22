@@ -1230,13 +1230,19 @@ function applyLang(lang){
 function toggleLang(){ applyLang(curLang==='th'?'en':'th'); }
 // คืนข้อความตามภาษาปัจจุบัน (ใช้ในข้อความ JS แบบ dynamic เช่น toast/alert)
 function L(th,en){ return curLang==='en' ? en : th; }
-// เปิดลิงก์ภายนอก — ใน LINE (LIFF) window.open มักถูกบล็อก จึงใช้ liff.openWindow ก่อน
+// เปิดลิงก์ภายนอก — ใช้ anchor link จริง (ไม่ใช้ liff/window.open ที่ถูกบล็อกหรือกระตุ้น login ใน LINE)
 function openExternal(url){
+  // สร้างลิงก์จริงแล้วคลิก — เบราว์เซอร์ LINE จัดการเองได้ ไม่กระตุ้น LIFF login (เดิม liff.openWindow ทำให้เด้งเช็ค login กลับ dashboard)
   try{
-    if(typeof liff!=='undefined' && liff.openWindow){ liff.openWindow({ url:url, external:true }); return; }
-  }catch(e){}
-  const w=window.open(url,'_blank');
-  if(!w){ location.href=url; }  // ถ้าถูกบล็อก เปิดในหน้าเดิมแทน
+    const a=document.createElement('a');
+    a.href=url; a.target='_blank'; a.rel='noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }catch(e){
+    // สำรองสุดท้าย: เปิดในหน้าเดิม
+    location.href=url;
+  }
 }
 // ป้ายสถานะงาน 2 ภาษา (ใช้ร่วมทุกที่: การ์ด/ตาราง/รายละเอียด)
 function statusLabel(st){
