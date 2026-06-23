@@ -1859,6 +1859,9 @@ function assigneeBadges(t, emptyHTML){
   }).join(' ');
 }
 function getBase(){ return inboxMode ? filterInbox() : filterByWorkType(viewWorkType); }
+// ภาพรวม Dashboard (KPI/Kanban/Charts/Timeline) — ใช้งานซ่อมเสมอ ไม่ขึ้นกับหน้าที่เปิดอยู่ (inbox/โครงการ/PM)
+// กันบัก: กดรับ/ปิดงานจากหน้า inbox แล้ว renderAll ทำให้ Kanban dashboard โชว์ผิด (เฉพาะงานรอ คอลัมน์อื่นหาย)
+function getDashboardBase(){ return filterByWorkType('repair'); }
 
 // สีประจำแผนกช่าง (ตรงกับ Code.gs + ฟอร์ม) — ใช้กับงานซ่อมเท่านั้น
 const TEAM_COLORS={'IT Support':'#CA8A04','Engineering':'#DC2626','Landscape & Garden':'#16A34A','Environment':'#1D4ED8','Asset':'#C026D3'};
@@ -1945,7 +1948,7 @@ function animateNum(id, to){
   requestAnimationFrame(step);
 }
 function renderKPI(){
-  const b=getBase();
+  const b=getDashboardBase();
   const now=Date.now(), wk=7*86400000;
   const ms=v=>{const k=dmyKey(v);return k?new Date(k.slice(0,4)+'-'+k.slice(4,6)+'-'+k.slice(6,8)+'T'+k.slice(8,10)+':'+k.slice(10,12)+':'+k.slice(12,14)+'+07:00').getTime():NaN;};
 
@@ -1999,7 +2002,7 @@ function setNavBadge(id,n){
 
 // ===== CHARTS =====
 function renderCharts(){
-  const b=getBase();
+  const b=getDashboardBase();
   if(charts.s) charts.s.destroy();
   charts.s=new Chart(document.getElementById('chart-status').getContext('2d'),{
     type:'doughnut',
@@ -2090,7 +2093,7 @@ function renderMonthlyTrend(b){
 
 // ===== KANBAN =====
 function renderKanban(){
-  const b=getBase();
+  const b=getDashboardBase();
   // เรียง: งานที่เพิ่งเข้า (NEW) ลอยบนสุดก่อน แล้วตามด้วยวันที่แจ้งล่าสุด
   const byNewest=(a,c)=>{
     if(!!c._new!==!!a._new) return (c._new?1:0)-(a._new?1:0);
@@ -2273,7 +2276,7 @@ function goToMemberTasks(name){
 
 // ===== TIMELINE =====
 function renderTimeline(){
-  const r=[...getBase()].reverse().slice(0,8);
+  const r=[...getDashboardBase()].reverse().slice(0,8);
   const tl=document.getElementById('timeline');
   if(!r.length){tl.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-txt">ยังไม่มีกิจกรรม</div></div>';return;}
   tl.innerHTML=r.map(t=>`<div class="tl-item">
@@ -2291,7 +2294,7 @@ function renderTicketsPage(_keepPage){
   const cf=document.getElementById('f-category')?.value||'all';
   const s=(document.getElementById('search-input')?.value||'').toLowerCase().trim();
   const tokens=s?s.split(/\s+/):[];   // ค้นหาหลายคำ: ต้องเจอทุกคำ (AND)
-  const data=getBase().filter(t=>{
+  const data=getDashboardBase().filter(t=>{
     const sm=sf==='all'||(sf==='pending'&&(t.status==='pending'||t.status==='assigned'))||(sf==='in_progress'&&t.status==='in_progress')||t.status===sf;
     const mm=!memberFilter||t.assigned_to===memberFilter;
     const dm=!dateFilter||(t.created_at||'').startsWith(dateFilter);
@@ -2804,7 +2807,7 @@ function renderStars(score, size){
 
 function renderRatingBar(){
   try{
-    const b=getBase().filter(t=>t.rating&&parseInt(t.rating)>0);
+    const b=getDashboardBase().filter(t=>t.rating&&parseInt(t.rating)>0);
     const avgEl=document.getElementById('rating-avg-num');
     const starsEl=document.getElementById('rating-avg-stars');
     const countEl=document.getElementById('rating-avg-count');
@@ -3960,6 +3963,7 @@ function showPage(p,el,fromPop){
   if(sb) sb.classList.remove('open');
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
+  if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTimeline();renderRatingBar();renderRecurringOverview(); }
   if(p==='tickets'||p==='projects'||p==='pm'||p==='claim'||p==='inbox') renderTicketsPage();
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
