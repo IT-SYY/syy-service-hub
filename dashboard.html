@@ -647,6 +647,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   <div class="sidebar-nav">
     <div class="nav-sec" data-th="ภาพรวม" data-en="Overview">Overview</div>
     <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span data-th="แดชบอร์ด" data-en="Dashboard">Dashboard</span></div>
+    <div class="nav-item" onclick="showPage('inbox',this)"><span class="nav-icon">📥</span><span data-th="งานรอมอบหมายทั้งหมด" data-en="Assignment Inbox">งานรอมอบหมายทั้งหมด</span><span class="nav-badge" id="inbox-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="showPage('tickets',this)"><span class="nav-icon">🎫</span><span data-th="Tickets ซ่อมบำรุง" data-en="Maintenance Tickets">Tickets ซ่อมบำรุง</span><span class="nav-badge" id="pending-badge">0</span></div>
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span data-th="งานโครงการ" data-en="Projects">งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
@@ -1259,15 +1260,28 @@ function priLabel(p){
   return L('🟢 ปกติ','🟢 Normal');
 }
 function priClass(p){ return p==='high'?'pri-high':p==='med'?'pri-med':'pri-low'; }
+// ป้ายประเภทงาน (ใช้ในหน้า inbox ที่รวมทุกประเภท)
+function wtypeBadge(t){
+  const raw=String(t.work_type||'').toLowerCase();
+  const wt=(raw==='project'||raw==='pm'||raw==='claim')?raw:'repair';
+  const map={
+    repair:{l:L('ซ่อม','Repair'),c:'#0EA5E9'},
+    project:{l:L('โครงการ','Project'),c:'#7C3AED'},
+    pm:{l:'PM',c:'#0EA5E9'},
+    claim:{l:L('เคลม','Claim'),c:'#EA580C'}
+  };
+  const m=map[wt];
+  return `<span style="display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;background:${m.c}22;color:${m.c};white-space:nowrap">${m.l}</span>`;
+}
 // รีเฟรชส่วนที่สร้างด้วย JS (หัวข้อหน้า + การ์ด/ตาราง) ให้เปลี่ยนภาษาทันทีที่สลับ
 function refreshDynamicLang(){
   // หัวข้อหน้าปัจจุบัน
   try{
-    const tt={dashboard:L('📊 ภาพรวมแดชบอร์ด','📊 Dashboard Overview'),tickets:L('🎫 จัดการ Ticket','🎫 Ticket Management'),projects:L('📁 งานโครงการ','📁 Projects'),pm:L('🔧 บำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance'),claim:L('📦 ส่งซ่อม/เคลมนอก','📦 Claim / External Repair'),technicians:L('👥 ทีมช่าง','👥 Technicians'),history:L('📋 ประวัติงาน','📋 History'),archive:L('🗄️ ค้นประวัติ (Archive)','🗄️ Archive Search'),report:L('📈 รายงาน','📈 Reports')};
+    const tt={dashboard:L('📊 ภาพรวมแดชบอร์ด','📊 Dashboard Overview'),inbox:L('📥 งานรอมอบหมายทั้งหมด','📥 Assignment Inbox'),tickets:L('🎫 จัดการ Ticket','🎫 Ticket Management'),projects:L('📁 งานโครงการ','📁 Projects'),pm:L('🔧 บำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance'),claim:L('📦 ส่งซ่อม/เคลมนอก','📦 Claim / External Repair'),technicians:L('👥 ทีมช่าง','👥 Technicians'),history:L('📋 ประวัติงาน','📋 History'),archive:L('🗄️ ค้นประวัติ (Archive)','🗄️ Archive Search'),report:L('📈 รายงาน','📈 Reports')};
     const pt=document.getElementById('page-title'); if(pt && tt[currentPage]) pt.textContent=tt[currentPage];
-    // หัวข้อ toolbar ของหน้า tickets/projects/pm/claim
+    // หัวข้อ toolbar ของหน้า tickets/projects/pm/claim/inbox
     const ttl=document.getElementById('tickets-title');
-    if(ttl){ ttl.textContent=(currentPage==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management'):(currentPage==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)'):(currentPage==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)'):L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
+    if(ttl){ ttl.textContent=(currentPage==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)'):(currentPage==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management'):(currentPage==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)'):(currentPage==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)'):L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
   }catch(e){}
   // re-render เนื้อหาที่มีข้อความ JS (ถ้าโหลดข้อมูลแล้ว)
   try{ if(typeof tickets!=='undefined' && tickets.length){ if(typeof renderAll==='function') renderAll(); } }catch(e){}
@@ -1351,6 +1365,7 @@ let userRole='viewer';
 let userBranches=[];   // สาขาที่ผู้ใช้ดูแล (ว่าง=admin เห็นทุกสาขา / tech ที่ไม่ระบุ=เห็นทุกสาขา)
 let currentBranch='all';
 let viewWorkType='repair';   // มุมมองปัจจุบัน: repair=งานซ่อมบำรุง / project=งานโครงการ
+let inboxMode=false;          // โหมดงานรอมอบหมายทั้งหมด (รวมทุกประเภท เฉพาะ pending/assigned)
 let allMembers=[];     // สมาชิกทั้งหมดจาก USERS: {name, role, branches:[]} — สำหรับ dropdown มอบหมาย
 async function loadMembers(){
   try{
@@ -1843,7 +1858,7 @@ function assigneeBadges(t, emptyHTML){
     return '<span class="'+cls+'"><span class="assigned-badge-icon">'+icon+'</span>'+n+tag+(me?' ✓':'')+'</span>';
   }).join(' ');
 }
-function getBase(){ return filterByWorkType(viewWorkType); }
+function getBase(){ return inboxMode ? filterInbox() : filterByWorkType(viewWorkType); }
 
 // สีประจำแผนกช่าง (ตรงกับ Code.gs + ฟอร์ม) — ใช้กับงานซ่อมเท่านั้น
 const TEAM_COLORS={'IT Support':'#CA8A04','Engineering':'#DC2626','Landscape & Garden':'#16A34A','Environment':'#1D4ED8','Asset':'#C026D3'};
@@ -1863,16 +1878,24 @@ function filterByWorkType(wtype){
     const raw=String(t.work_type||'').toLowerCase();
     const wt = (raw==='project'||raw==='pm'||raw==='claim') ? raw : 'repair';
     if(wt!==wtype) return false;
-    // ช่างเห็นงานที่ถูกมอบหมายให้ตัวเองเสมอ (หลักหรือรอง) แม้เป็นงานข้ามสาขา
-    const sec=String(t.assigned_secondary||'');
-    const assignedToMe = userBranches.length>0 && myName && (t.assigned_to===myName || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0);
-    // จำกัดเฉพาะสาขาที่ผู้ใช้ดูแล (ถ้า userBranches ว่าง = เห็นทุกสาขา เช่น admin)
-    if(!assignedToMe && userBranches.length>0 && t.branch && userBranches.indexOf(String(t.branch).toUpperCase())<0) return false;
-    // ตัวกรองสาขาที่เลือกบนหน้าจอ
-    if(currentBranch!=='all' && String(t.branch||'').toUpperCase()!==currentBranch) return false;
-    // ตัวกรองทีม
-    if(!(currentTeam==='all'||t.team===currentTeam||t.department===currentTeam)) return false;
-    return true;
+    return passesScope_(t, myName);
+  });
+}
+// ตรวจสิทธิ์/สาขา/ทีม ที่ใช้ร่วมกัน (แยกออกมาเพื่อใช้กับโหมด inbox ด้วย)
+function passesScope_(t, myName){
+  myName = myName!==undefined ? myName : ((currentUser&&currentUser.name)||'');
+  const sec=String(t.assigned_secondary||'');
+  const assignedToMe = userBranches.length>0 && myName && (t.assigned_to===myName || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0);
+  if(!assignedToMe && userBranches.length>0 && t.branch && userBranches.indexOf(String(t.branch).toUpperCase())<0) return false;
+  if(currentBranch!=='all' && String(t.branch||'').toUpperCase()!==currentBranch) return false;
+  if(!(currentTeam==='all'||t.team===currentTeam||t.department===currentTeam)) return false;
+  return true;
+}
+// โหมดงานรอมอบหมายทั้งหมด: รวมทุกประเภทงาน แต่เฉพาะที่ยังรอ (pending = ยังไม่มอบหมาย, assigned = มอบแล้วรอช่างรับ)
+function filterInbox(){
+  return tickets.filter(t=>{
+    if(!(t.status==='pending'||t.status==='assigned')) return false;
+    return passesScope_(t);
   });
 }
 // สร้างตัวเลือกสาขาในตัวกรอง — ถ้าผู้ใช้ดูแลบางสาขา แสดงเฉพาะสาขานั้น
@@ -1963,6 +1986,7 @@ function renderKPI(){
 }
 function renderPendingBadge(){
   const waiting=(wtype)=> filterByWorkType(wtype).filter(t=>t.status==='pending'||t.status==='assigned').length;
+  setNavBadge('inbox-badge', filterInbox().length);
   setNavBadge('pending-badge', waiting('repair'));
   setNavBadge('project-badge', waiting('project'));
   setNavBadge('pm-badge', waiting('pm'));
@@ -2319,7 +2343,7 @@ function renderTicketsPage(_keepPage){
       <td><span class="tid">${t.ticket_id.substring(0,20)}</span></td>
       <td style="font-size:10px;white-space:nowrap">${t.created_at.substring(0,16)}</td>
       <td><span class="team-badge">${teamDisplay}</span></td>
-      <td style="font-size:10px">${t.category||'—'}</td>
+      <td style="font-size:10px">${inboxMode?wtypeBadge(t)+' ':''}${t.category||'—'}</td>
       <td style="font-size:10px">${loc||'—'}</td>
       <td style="font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.description||'—'}</td>
       <td style="font-size:10px">${t.displayName||t.reported_by||t.userId||'—'}</td>
@@ -3675,7 +3699,7 @@ function buildTicketsPDF(){
   const nP=b.filter(t=>t.status==='pending'||t.status==='assigned').length;
   const nI=b.filter(t=>t.status==='in_progress').length;
   const nD=b.filter(t=>t.status==='done').length;
-  const titleMap={tickets:L('รายงานงานแจ้งซ่อม','Maintenance Tickets Report'),projects:L('รายงานงานโครงการ','Projects Report'),pm:L('รายงานงานบำรุงรักษา (PM)','Preventive Maintenance Report'),claim:L('รายงานงานส่งซ่อม/เคลม','Claim Report'),history:L('รายงานประวัติงาน','Job History Report'),dashboard:L('รายงานสรุปงานแจ้งซ่อม','Maintenance Summary Report')};
+  const titleMap={inbox:L('รายงานงานรอมอบหมายทั้งหมด','Assignment Inbox Report'),tickets:L('รายงานงานแจ้งซ่อม','Maintenance Tickets Report'),projects:L('รายงานงานโครงการ','Projects Report'),pm:L('รายงานงานบำรุงรักษา (PM)','Preventive Maintenance Report'),claim:L('รายงานงานส่งซ่อม/เคลม','Claim Report'),history:L('รายงานประวัติงาน','Job History Report'),dashboard:L('รายงานสรุปงานแจ้งซ่อม','Maintenance Summary Report')};
   const title=titleMap[currentPage]||titleMap.dashboard;
   return `
     <h1>🔧 SYY Service Hub — ${title}</h1>
@@ -3861,7 +3885,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,tickets:1,projects:2,pm:3,claim:4,technicians:8,history:9,archive:10,report:12};
+const PAGE_NAV={dashboard:0,inbox:1,tickets:2,projects:3,pm:4,claim:5,technicians:9,history:10,archive:11,report:13};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
@@ -3902,8 +3926,9 @@ function archiveSearchKey(ev){ if(ev && ev.key==='Enter') doArchiveSearch(); }
 
 function showPage(p,el,fromPop){
   window._navByMember=false;
-  // งานโครงการ/PM ใช้หน้าเดียวกับ tickets แต่กรองตามประเภท
-  const domPage = (p==='projects'||p==='pm'||p==='claim') ? 'tickets' : p;
+  inboxMode = (p==='inbox');   // โหมดงานรอมอบหมายทั้งหมด
+  // งานโครงการ/PM/เคลม/inbox ใช้หน้าเดียวกับ tickets แต่กรองต่างกัน
+  const domPage = (p==='projects'||p==='pm'||p==='claim'||p==='inbox') ? 'tickets' : p;
   viewWorkType = (p==='projects') ? 'project' : (p==='pm' ? 'pm' : (p==='claim' ? 'claim' : 'repair'));
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
@@ -3912,6 +3937,7 @@ function showPage(p,el,fromPop){
   el.classList.add('active');
   const titles={
     dashboard:L('📊 ภาพรวมแดชบอร์ด','📊 Dashboard Overview'),
+    inbox:L('📥 งานรอมอบหมายทั้งหมด','📥 Assignment Inbox'),
     tickets:L('🎫 จัดการ Ticket','🎫 Ticket Management'),
     projects:L('📁 งานโครงการ','📁 Projects'),
     pm:L('🔧 บำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance'),
@@ -3927,14 +3953,14 @@ function showPage(p,el,fromPop){
   if(addBtn) addBtn.style.display = (p==='projects')?'inline-block':'none';
   if(pmBtn)  pmBtn.style.display  = (p==='pm')?'inline-block':'none';
   const claimBtn=document.getElementById('btn-add-claim'); if(claimBtn) claimBtn.style.display=(p==='claim')?'inline-block':'none';
-  if(tt){ tt.textContent = (p==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management') : (p==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)') : (p==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)') : L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
+  if(tt){ tt.textContent = (p==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)') : (p==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management') : (p==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)') : (p==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)') : L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
   if(!fromPop && p!==currentPage){ try{ history.pushState({page:p},'','#'+p); }catch(e){} }
   currentPage=p;
   const sb=document.getElementById('sidebar');
   if(sb) sb.classList.remove('open');
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
-  if(p==='tickets'||p==='projects'||p==='pm'||p==='claim') renderTicketsPage();
+  if(p==='tickets'||p==='projects'||p==='pm'||p==='claim'||p==='inbox') renderTicketsPage();
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
   if(p==='report') renderReport();
