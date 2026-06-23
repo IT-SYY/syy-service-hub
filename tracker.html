@@ -301,8 +301,16 @@ function toggleLang(){ applyLang(curLang==='th'?'en':'th'); }
 function L(th,en){ return curLang==='en'?en:th; }
 // แปลชื่อขั้นเคลมเป็นอังกฤษ (ค่าไทยใช้ match กับข้อมูล claim_stage)
 function claimStepLabel(th){
-  const M={'ส่งซ่อม':'Sent for repair','ส่งเรื่องให้จัดซื้อ':'Sent to Procurement','รออะไหล่':'Waiting for parts','ระหว่างซ่อม':'Under repair','รับสินค้ากลับ':'Item received','ติดตั้ง/ส่งคืน':'Install/Return','ปิดงาน':'Completed'};
-  return curLang==='en' ? (M[th]||th) : th;
+  const M={'รับเรื่อง':'Received (approved)','ประสานร้าน':'Coordinating / Procurement','ส่งของซ่อม':'Sent to shop','ระหว่างซ่อม':'Under repair / claim','รับของกลับ':'Item received back','ส่งคืน':'Returned / installed','ปิดงาน':'Completed'};
+  const TH={'รับเรื่อง':'รับเรื่อง (เอกสารอนุมัติแล้ว)','ประสานร้าน':'ประสานร้าน / ส่งจัดซื้อ','ส่งของซ่อม':'ส่งของไปซ่อม / เคลม','ระหว่างซ่อม':'ระหว่างซ่อม / เคลม','รับของกลับ':'รับของกลับ','ส่งคืน':'ส่งคืน / ติดตั้ง','ปิดงาน':'เสร็จสิ้น / ปิดงาน'};
+  const k=normClaimStage(th);
+  return curLang==='en' ? (M[k]||k) : (TH[k]||k);
+}
+// แปลงค่าขั้นตอนเก่าให้เข้ากับขั้นใหม่ (กันงานเดิมแสดงผิด)
+function normClaimStage(v){
+  v=String(v||'').trim(); if(!v) return 'รับเรื่อง';
+  const LG={'ส่งซ่อม':'รับเรื่อง','ส่งเรื่องให้จัดซื้อ':'ประสานร้าน','รออะไหล่':'ส่งของซ่อม','รับสินค้ากลับ':'รับของกลับ','ติดตั้ง/ส่งคืน':'ส่งคืน'};
+  return LG[v]||v;
 }
 
 // ===== CONFIG =====
@@ -579,7 +587,7 @@ function mkTicketCard(t) {
         </div>
         <div class="ticket-badges">
           <span class="status-badge ${sc}">${sl}</span>
-          ${String(t.work_type).toLowerCase()==='claim'?`<span class="status-badge" style="background:#FFF7ED;color:#EA580C;border:1px solid #FED7AA">📦 ${t.claim_stage||L('ส่งซ่อม','Sent')}</span>`:''}
+          ${String(t.work_type).toLowerCase()==='claim'?`<span class="status-badge" style="background:#FFF7ED;color:#EA580C;border:1px solid #FED7AA">📦 ${claimStepLabel(t.claim_stage)}</span>`:''}
         </div>
       </div>
       <div class="ticket-meta">
@@ -609,8 +617,8 @@ function mkProgress(t) {
 
   // งานเคลม: ไทม์ไลน์แบบ "สถานะ" (ไม่โชว์ %)
   if (isClaim) {
-    const CLAIM_STEPS = ['ส่งซ่อม','ส่งเรื่องให้จัดซื้อ','รออะไหล่','ระหว่างซ่อม','รับสินค้ากลับ','ติดตั้ง/ส่งคืน','ปิดงาน'];
-    const cur = t.claim_stage || (t.status==='done'?'ปิดงาน':'ส่งซ่อม');
+    const CLAIM_STEPS = ['รับเรื่อง','ประสานร้าน','ส่งของซ่อม','ระหว่างซ่อม','รับของกลับ','ส่งคืน','ปิดงาน'];
+    const cur = normClaimStage(t.claim_stage || (t.status==='done'?'ปิดงาน':'รับเรื่อง'));
     const curIdx = CLAIM_STEPS.indexOf(cur);
     let html = '<div style="margin-top:16px"><div class="timeline-title">'+L('📦 สถานะส่งซ่อม / เคลม','📦 Claim Status')+'</div>';
     // แถบขั้นสถานะ
