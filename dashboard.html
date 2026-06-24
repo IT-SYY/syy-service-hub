@@ -225,7 +225,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .followup-alert{grid-column:1/-1;display:flex;align-items:center;gap:11px;background:rgba(239,68,68,0.06);color:var(--red);padding:9px 16px;border:2px solid var(--red);border-radius:10px;margin-top:1px;cursor:pointer;transition:all 0.15s;animation:alertBlink 1.6s ease-in-out infinite;}
 .followup-alert:hover{background:rgba(239,68,68,0.13);}
 .followup-alert:active{transform:scale(0.995);}
-.followup-alert-icon{font-size:19px;animation:bellShake 1.6s ease-in-out infinite;}
+.followup-alert-icon{font-size:19px;cursor:pointer;animation:bellShake 1.6s ease-in-out infinite;}
 .followup-alert-txt{flex:1;font-size:13.5px;font-weight:600;color:var(--text);}
 .followup-alert-txt b{font-size:17px;font-weight:800;color:var(--red);}
 .followup-alert-go{font-size:12.5px;font-weight:700;color:#fff;background:var(--red);padding:5px 12px;border-radius:7px;white-space:nowrap;}
@@ -752,7 +752,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         </div>
         <!-- แถบเตือนงานที่ผู้แจ้งทวงถาม (ต่อท้ายแถว KPI) -->
         <div id="followup-alert" class="followup-alert" style="display:none" onclick="gotoFollowup()">
-          <span class="followup-alert-icon">🔔</span>
+          <span class="followup-alert-icon" onclick="event.stopPropagation();playBellSound()" title="ทดสอบเสียง / Test sound">🔔</span>
           <span class="followup-alert-txt"><b id="followup-alert-count">0</b> <span data-th="งานที่ผู้แจ้งทวงถาม รอการตอบสนอง" data-en="job(s) awaiting your response">งานที่ผู้แจ้งทวงถาม รอการตอบสนอง</span></span>
           <span class="followup-alert-go" data-th="กดดูรายการ →" data-en="View list →">กดดูรายการ →</span>
         </div>
@@ -1844,6 +1844,19 @@ async function loadData(silent=false){
 // ===== ALERT =====
 // เสียงแจ้งเตือนงานใหม่ — จังหวะ "ติ๊ง-ติ๊ง" ซ้ำต่อเนื่องประมาณ 5 วินาที
 let _alertAudioCtx=null;
+// ปลดล็อกเสียงเมื่อผู้ใช้คลิก/แตะ/กดปุ่มครั้งแรก (เบราว์เซอร์ต้องการ user gesture ก่อนเล่นเสียง)
+function _unlockAudio(){
+  try{
+    const c=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
+    if(c.state==='suspended') c.resume();
+    const o=c.createOscillator(), g=c.createGain();
+    g.gain.value=0.0001; o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime+0.02);
+  }catch(e){}
+}
+['pointerdown','keydown','touchstart'].forEach(function(ev){
+  window.addEventListener(ev, _unlockAudio, {once:true});
+});
 function playAlertSound(){
   try{
     const ctx=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
@@ -1884,33 +1897,35 @@ function closeAlert(){document.getElementById('new-alert').classList.remove('sho
 function playBellSound(){
   try{
     const ctx=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
-    if(ctx.state==='suspended') ctx.resume();
-    const t0=ctx.currentTime;
-    const base=1046;                 // C6 ใสๆ แบบกระดิ่ง
-    const strikes=[0,0.2,0.4];       // ตี 3 ครั้ง (กระดิ่งสั่น)
-    // ฮาร์โมนิกแบบระฆัง (inharmonic partials) ให้ได้ทิมเบอร์กังวาน
-    const partials=[
-      {ratio:1.0,  gain:0.26, dur:1.7},
-      {ratio:2.0,  gain:0.16, dur:1.3},
-      {ratio:2.96, gain:0.10, dur:1.0},
-      {ratio:4.21, gain:0.06, dur:0.8},
-      {ratio:5.43, gain:0.035,dur:0.6}
-    ];
-    strikes.forEach((st,si)=>{
-      const startBase=t0+st;
-      const vol=si===0?1:0.72;       // ครั้งถัดไปเบาลงเล็กน้อย
-      partials.forEach(p=>{
-        const o=ctx.createOscillator(), g=ctx.createGain();
-        o.type='sine';
-        o.frequency.value=base*p.ratio*(1+si*0.004);   // ขยับเล็กน้อยให้สมจริง
-        o.connect(g); g.connect(ctx.destination);
-        const a=startBase;
-        g.gain.setValueAtTime(0.0001,a);
-        g.gain.exponentialRampToValueAtTime(p.gain*vol,a+0.004);  // attack คมเหมือนตีกระดิ่ง
-        g.gain.exponentialRampToValueAtTime(0.0001,a+p.dur);      // decay ยาวกังวาน
-        o.start(a); o.stop(a+p.dur+0.05);
+    const fire=function(){
+      const t0=ctx.currentTime+0.02;
+      const base=1046;                 // C6 ใสๆ แบบกระดิ่ง
+      const strikes=[0,0.2,0.4];       // ตี 3 ครั้ง (กระดิ่งสั่น)
+      const partials=[
+        {ratio:1.0,  gain:0.40, dur:1.7},
+        {ratio:2.0,  gain:0.24, dur:1.3},
+        {ratio:2.96, gain:0.15, dur:1.0},
+        {ratio:4.21, gain:0.09, dur:0.8},
+        {ratio:5.43, gain:0.05, dur:0.6}
+      ];
+      strikes.forEach(function(st,si){
+        const startBase=t0+st;
+        const vol=si===0?1:0.72;
+        partials.forEach(function(p){
+          const o=ctx.createOscillator(), g=ctx.createGain();
+          o.type='sine';
+          o.frequency.value=base*p.ratio*(1+si*0.004);
+          o.connect(g); g.connect(ctx.destination);
+          const a=startBase;
+          g.gain.setValueAtTime(0.0001,a);
+          g.gain.exponentialRampToValueAtTime(p.gain*vol,a+0.004);
+          g.gain.exponentialRampToValueAtTime(0.0001,a+p.dur);
+          o.start(a); o.stop(a+p.dur+0.05);
+        });
       });
-    });
+    };
+    if(ctx.state==='suspended'){ ctx.resume().then(fire).catch(function(){fire();}); }
+    else { fire(); }
   }catch(e){}
 }
 function notifyFollowup(arr){
