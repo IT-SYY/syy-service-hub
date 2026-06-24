@@ -222,14 +222,14 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-pri{font-size:10px;font-weight:700;margin-left:auto;}
 .kb-desc{font-size:12px;color:var(--text);font-weight:500;line-height:1.45;margin-bottom:6px;}
 .followup-flag{background:rgba(245,158,11,0.13);border:1.5px solid rgba(245,158,11,0.5);color:#D97706;font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;margin-bottom:6px;animation:fuBlink 1.1s ease-in-out infinite;}
-.followup-alert{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#DC2626,#B91C1C);color:#fff;padding:13px 18px;border-radius:12px;margin-bottom:14px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,0.35);animation:alertBlink 1.3s ease-in-out infinite;transition:transform 0.15s;}
-.followup-alert:hover{transform:translateY(-1px);}
+.followup-alert{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;padding:12px 18px;border-radius:12px;margin-bottom:14px;cursor:pointer;box-shadow:0 3px 12px rgba(239,68,68,0.22);animation:alertBlink 1.5s ease-in-out infinite;transition:transform 0.15s;opacity:0.92;}
+.followup-alert:hover{transform:translateY(-1px);opacity:1;}
 .followup-alert:active{transform:scale(0.99);}
-.followup-alert-icon{font-size:22px;animation:bellShake 1.3s ease-in-out infinite;}
+.followup-alert-icon{font-size:22px;animation:bellShake 1.5s ease-in-out infinite;}
 .followup-alert-txt{flex:1;font-size:14px;font-weight:600;}
 .followup-alert-txt b{font-size:18px;font-weight:800;}
-.followup-alert-go{font-size:13px;font-weight:700;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:8px;white-space:nowrap;}
-@keyframes alertBlink{0%,100%{box-shadow:0 4px 14px rgba(220,38,38,0.35);}50%{box-shadow:0 4px 22px rgba(220,38,38,0.7);}}
+.followup-alert-go{font-size:13px;font-weight:700;background:rgba(255,255,255,0.2);padding:5px 12px;border-radius:8px;white-space:nowrap;}
+@keyframes alertBlink{0%,100%{box-shadow:0 3px 12px rgba(239,68,68,0.22);}50%{box-shadow:0 3px 18px rgba(239,68,68,0.45);}}
 @keyframes bellShake{0%,100%{transform:rotate(0);}10%,30%{transform:rotate(-12deg);}20%,40%{transform:rotate(12deg);}50%{transform:rotate(0);}}
 @keyframes fuBlink{0%,100%{background:rgba(245,158,11,0.13);border-color:rgba(245,158,11,0.5);box-shadow:0 0 0 0 rgba(245,158,11,0.4);}50%{background:rgba(245,158,11,0.4);border-color:#F59E0B;box-shadow:0 0 8px 2px rgba(245,158,11,0.5);}}
 .followup-flag-msg{font-weight:500;color:var(--text2);margin-top:3px;font-size:11px;}
@@ -723,12 +723,6 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
-      <!-- แถบเตือนงานที่ผู้แจ้งทวงถาม -->
-      <div id="followup-alert" class="followup-alert" style="display:none" onclick="gotoFollowup()">
-        <span class="followup-alert-icon">🔔</span>
-        <span class="followup-alert-txt"><b id="followup-alert-count">0</b> <span data-th="งานที่ผู้แจ้งทวงถาม รอการตอบสนอง" data-en="job(s) with reporter follow-ups awaiting response">งานที่ผู้แจ้งทวงถาม รอการตอบสนอง</span></span>
-        <span class="followup-alert-go" data-th="กดดูรายการ →" data-en="View list →">กดดูรายการ →</span>
-      </div>
       <!-- KPI -->
       <div class="kpi-grid">
         <div class="kpi-card all" onclick="gotoTickets({status:'all'})">
@@ -766,6 +760,13 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl" data-th="สถานะงาน" data-en="Job Status">สถานะงาน</div></div><canvas id="chart-status" height="55"></canvas></div>
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl" data-th="ประเภทงาน" data-en="Job Category">ประเภทงาน</div></div><canvas id="chart-cat" height="55"></canvas></div>
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl" data-th="งานรายวัน 7 วัน" data-en="Daily (7 days)">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="55"></canvas></div>
+      </div>
+
+      <!-- แถบเตือนงานที่ผู้แจ้งทวงถาม (ใต้กราฟ) -->
+      <div id="followup-alert" class="followup-alert" style="display:none" onclick="gotoFollowup()">
+        <span class="followup-alert-icon">🔔</span>
+        <span class="followup-alert-txt"><b id="followup-alert-count">0</b> <span data-th="งานที่ผู้แจ้งทวงถาม รอการตอบสนอง" data-en="job(s) with reporter follow-ups awaiting response">งานที่ผู้แจ้งทวงถาม รอการตอบสนอง</span></span>
+        <span class="followup-alert-go" data-th="กดดูรายการ →" data-en="View list →">กดดูรายการ →</span>
       </div>
 
       <!-- KANBAN -->
@@ -2351,21 +2352,26 @@ function gotoTickets(opts){
 function clearDateFilter(){dateFilter='';renderTicketsPage();}
 // เปิดหน้ารายการงานที่ผู้แจ้งทวงถาม (จากแถบเตือนแดง)
 function gotoFollowup(){
+  inboxMode=false;
   followupMode=true;
-  showPage('_followup', null, true);
-  // แสดง DOM หน้า tickets
+  currentPage='_followup';
+  // ซ่อนทุกหน้า แล้วแสดงหน้า tickets (ไม่เรียก showPage เพราะไม่มี DOM page-_followup)
   document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
   const dp=document.getElementById('page-tickets'); if(dp) dp.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  currentPage='_followup';
   const tt=document.getElementById('tickets-title'); if(tt) tt.textContent=L('🔔 งานที่ผู้แจ้งทวงถาม','🔔 Tickets with Follow-ups');
   const pt=document.getElementById('page-title'); if(pt) pt.textContent=L('🔔 งานที่ผู้แจ้งทวงถาม','🔔 Tickets with Follow-ups');
   const bb=document.getElementById('back-btn'); if(bb) bb.style.display='inline-block';
+  const sb=document.getElementById('sidebar'); if(sb) sb.classList.remove('open');
+  // ซ่อนปุ่มเฉพาะหน้า (โครงการ/PM/เคลม)
+  ['btn-add-project','btn-pm-plans','btn-add-claim'].forEach(id=>{const b=document.getElementById(id);if(b)b.style.display='none';});
   // ล้างตัวกรอง
   ['f-status','f-priority','f-category'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='all';});
   const si=document.getElementById('search-input'); if(si) si.value='';
   memberFilter='';dateFilter='';
+  try{ history.pushState({page:'_followup'},'','#followup'); }catch(e){}
   renderTicketsPage();
+  if(getBase().length===0) toast(L('ไม่มีงานที่ถูกทวงถามค้างอยู่','No pending follow-ups'),'✓','info');
 }
 // อัปเดตแถบเตือนงานถูกทวงบน dashboard
 function renderFollowupAlert(){
