@@ -1203,7 +1203,7 @@ const MEMBERS = [{name:'Chana',role:'IT Manager'},{name:'Farid',role:'IT Project
 
 // ===== STATE =====
 let tickets=[], currentTeam='all', currentId=null, charts={}, firstLoad=true, lastIds=new Set(), timer=null, memberFilter='';
-let lastFollowupIds=new Set();   // ติดตามงานที่ถูกทวง (กันแจ้งซ้ำ)
+let lastFollowupCount={};   // ticketId → followup_count ล่าสุด (ตรวจการทวงใหม่ทุกครั้ง)
 
 // ===== INIT =====
 // ===== THEME TOGGLE =====
@@ -1821,13 +1821,17 @@ async function loadData(silent=false){
     if(!firstLoad){
       const newT=tickets.filter(t=>!prev.has(t.ticket_id));
       if(newT.length){newT.forEach(t=>t._new=true);showAlert(newT);showKPINew();}
-      // ตรวจงานที่ "เพิ่งถูกทวง" (มี pending followup ที่รอบก่อนยังไม่มี) → แจ้งเตือน
-      const nudgedNow=tickets.filter(t=>hasPendingFollowup(t)&&passesScope_(t));
-      const newNudged=nudgedNow.filter(t=>!lastFollowupIds.has(t.ticket_id));
+      // ตรวจงานที่ "เพิ่งถูกทวง" — followup_count เพิ่มขึ้นจากรอบก่อน → แจ้งเตือน (จับได้ทุกครั้งแม้ทวงซ้ำ)
+      const newNudged=[];
+      tickets.forEach(t=>{
+        const cnt=parseInt(t.followup_count||'0',10)||0;
+        const prevCnt=lastFollowupCount[t.ticket_id]||0;
+        if(cnt>prevCnt && hasPendingFollowup(t) && passesScope_(t)) newNudged.push(t);
+        lastFollowupCount[t.ticket_id]=cnt;   // อัปเดตทุก ticket (ไม่ขึ้นกับ scope) กัน false positive
+      });
       if(newNudged.length){ notifyFollowup(newNudged); }
-      lastFollowupIds=new Set(nudgedNow.map(t=>t.ticket_id));
     } else {
-      lastFollowupIds=new Set(tickets.filter(t=>hasPendingFollowup(t)&&passesScope_(t)).map(t=>t.ticket_id));
+      tickets.forEach(t=>{ lastFollowupCount[t.ticket_id]=parseInt(t.followup_count||'0',10)||0; });
     }
     firstLoad=false;
     updateCats();
