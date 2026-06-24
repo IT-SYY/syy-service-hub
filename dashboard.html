@@ -221,6 +221,9 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-new{background:var(--red);color:#FFF;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;animation:blink 1s infinite;}
 .kb-pri{font-size:10px;font-weight:700;margin-left:auto;}
 .kb-desc{font-size:12px;color:var(--text);font-weight:500;line-height:1.45;margin-bottom:6px;}
+.followup-flag{background:rgba(245,158,11,0.13);border:1px solid rgba(245,158,11,0.4);color:#D97706;font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;margin-bottom:6px;animation:fuPulse 2s ease-in-out infinite;}
+.followup-flag-msg{font-weight:500;color:var(--text2);margin-top:3px;font-size:11px;}
+@keyframes fuPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.25);}50%{box-shadow:0 0 0 4px rgba(245,158,11,0);}}
 .kb-meta{font-size:10px;color:var(--text2);margin-bottom:8px;display:flex;flex-direction:column;gap:2px;}
 .kb-actions{display:flex;gap:4px;flex-wrap:wrap;}
 .kb-empty{text-align:center;padding:30px 10px;color:var(--text3);}
@@ -1260,6 +1263,8 @@ function priLabel(p){
   return L('🟢 ปกติ','🟢 Normal');
 }
 function priClass(p){ return p==='high'?'pri-high':p==='med'?'pri-med':'pri-low'; }
+// escape HTML กัน XSS จากข้อความผู้แจ้ง
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 // ===== ขั้นตอนส่งซ่อม/เคลม (ตาม flow จริง) =====
 // ค่าใหม่ตามขั้นตอนจริง + แปลงค่าเก่าให้เข้ากับขั้นใหม่ (กันงานเดิมแสดงผิด)
 const CLAIM_STAGES = ['รับเรื่อง','ประสานร้าน','ส่งของซ่อม','ระหว่างซ่อม','รับของกลับ','ส่งคืน','ปิดงาน'];
@@ -1269,6 +1274,14 @@ const CLAIM_LABEL_TH={'รับเรื่อง':'รับเรื่อง
 const CLAIM_LABEL_EN={'รับเรื่อง':'Received (approved)','ประสานร้าน':'Coordinating / Procurement','ส่งของซ่อม':'Sent to shop','ระหว่างซ่อม':'Under repair / claim','รับของกลับ':'Received back','ส่งคืน':'Returned / installed','ปิดงาน':'Completed / Closed'};
 function claimLabel(v){ const k=normClaimStage(v); return curLang==='en'?(CLAIM_LABEL_EN[k]||k):(CLAIM_LABEL_TH[k]||k); }
 function claimStageIdx(v){ return CLAIM_STAGES.indexOf(normClaimStage(v)); }
+// งานที่ผู้แจ้งทวงถามแล้วทีมยังไม่ตอบสนอง (followup_at ใหม่กว่า followup_ack)
+function hasPendingFollowup(t){
+  if(!t.followup_at || !String(t.followup_at).trim()) return false;
+  if(t.status==='done'||t.status==='rejected') return false;
+  const ack=String(t.followup_ack||'').trim();
+  if(!ack) return true;                 // ทวงแล้ว ทีมยังไม่เคยตอบสนอง
+  return dmyKey(t.followup_at) > dmyKey(ack);  // ทวงครั้งล่าสุดใหม่กว่าที่ทีมตอบสนอง
+}
 // ป้ายประเภทงาน (ใช้ในหน้า inbox ที่รวมทุกประเภท)
 function wtypeBadge(t){
   const raw=String(t.work_type||'').toLowerCase();
@@ -1742,6 +1755,13 @@ async function loadData(silent=false){
         work_type:    g(r,'work_type'),
         claim_stage:  g(r,'claim_stage'),
         doc_url:      g(r,'doc_url'),
+        followup_at:  g(r,'followup_at'),
+        followup_count: g(r,'followup_count'),
+        followup_msg: g(r,'followup_msg'),
+        followup_ack: g(r,'followup_ack'),
+        staff_reply:  g(r,'staff_reply'),
+        staff_reply_by: g(r,'staff_reply_by'),
+        staff_reply_at: g(r,'staff_reply_at'),
         progress:     g(r,'progress'),
         assigned_secondary:g(r,'assigned_secondary'),
         department:   g(r,'department','team'),
@@ -2188,6 +2208,7 @@ function mkCard(t){
       ${ratingHtml}
     </div>
     <div class="kb-desc">${desc||L('ไม่มีรายละเอียด','No details')}</div>
+    ${hasPendingFollowup(t)?`<div class="followup-flag">🔔 ${L('ผู้แจ้งทวงถาม','Reporter followed up')}${parseInt(t.followup_count,10)>1?' ('+parseInt(t.followup_count,10)+')':''}${t.followup_msg?'<div class="followup-flag-msg">💬 '+esc(String(t.followup_msg).substring(0,80))+'</div>':''}</div>`:''}
     ${mkCardImage(t)}
     ${timerHtml}
     <div class="kb-meta">
@@ -2313,7 +2334,7 @@ function renderTicketsPage(_keepPage){
     const hay=(t.ticket_id+' '+t.description+' '+t.category+' '+(t.assigned_to||'')+' '+(t.building||t.location||'')+' '+(t.room||'')+' '+(t.displayName||t.reported_by||'')).toLowerCase();
     const searchOk=!tokens.length||tokens.every(tk=>hay.includes(tk));
     return sm&&mm&&dm&&(pf==='all'||t.priority===pf)&&(cf==='all'||t.category===cf)&&searchOk;
-  }).sort((a,c)=>{ if(!!c._new!==!!a._new) return (c._new?1:0)-(a._new?1:0); return dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)); }); // งานใหม่ + วันที่ล่าสุดขึ้นก่อน
+  }).sort((a,c)=>{ const fa=hasPendingFollowup(a),fc=hasPendingFollowup(c); if(fa!==fc) return fc-fa; if(!!c._new!==!!a._new) return (c._new?1:0)-(a._new?1:0); return dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)); }); // งานถูกทวง + งานใหม่ + วันที่ล่าสุดขึ้นก่อน
   
   const mfBar=document.getElementById('member-filter-bar');
   if(mfBar){
@@ -3089,6 +3110,25 @@ function openClaimStage(id){
   claimPhotos=[]; renderCsPreviews();
   document.getElementById('m-claimstage').classList.add('show');
 }
+async function doStaffReply(ticketId){
+  const inp=document.getElementById('staff-reply-input');
+  const reply=inp?inp.value.trim():'';
+  if(!reply){ toast(L('กรุณาพิมพ์คำตอบก่อนส่ง','Please type a reply first'),'⚠️','info'); return; }
+  toast(L('กำลังส่งคำตอบ...','Sending reply...'),'💬','info');
+  try{
+    const r=await gasPost({action:'staff_reply',ticket_id:ticketId,staff_reply:reply,access_token:authToken()});
+    if(r&&r.success!==false){
+      toast(L('ส่งคำตอบถึงผู้แจ้งแล้ว ✓','Reply sent ✓'),'✅','success');
+      const t=tickets.find(x=>x.ticket_id===ticketId);
+      if(t){ t.staff_reply=reply; t.staff_reply_by=(currentUser&&currentUser.name)||'ทีมงาน'; t.staff_reply_at=new Date().toLocaleString('th-TH'); t.followup_ack=t.staff_reply_at; }
+      if(inp) inp.value='';
+      renderAll();
+      setTimeout(()=>{ const op=document.getElementById('m-detail'); if(op&&op.classList.contains('show')) openDetail(ticketId); },300);
+    } else {
+      toast(L('ส่งไม่สำเร็จ ลองใหม่','Failed, please retry'),'❌','error');
+    }
+  }catch(e){ toast(L('ส่งไม่สำเร็จ ลองใหม่','Failed, please retry'),'❌','error'); }
+}
 async function doClaimStage(){
   const stage=document.getElementById('cs-stage').value;
   const note=document.getElementById('cs-note').value.trim();
@@ -3468,6 +3508,7 @@ function openDetail(id){
       <div><div class="detail-lbl">${L('ผู้แจ้ง','Reporter')}</div><div class="detail-val">${t.displayName||t.reported_by||t.userId||'—'}</div></div>
       <div><div class="detail-lbl">${L('แผนกผู้แจ้ง','Reporter Dept.')}</div><div class="detail-val">${t.reporter_dept||'—'}</div></div>
       ${String(t.work_type).toLowerCase()==='claim'?`<div><div class="detail-lbl">${L('สถานะเคลม','Claim Status')}</div><div class="detail-val" style="color:#EA580C;font-weight:700">📦 ${claimLabel(t.claim_stage)}</div></div>`:''}
+      ${(parseInt(t.followup_count,10)>0)?`<div style="grid-column:1/-1"><div class="detail-lbl" style="color:#D97706">🔔 ${L('การทวงถามจากผู้แจ้ง','Reporter Follow-ups')} (${parseInt(t.followup_count,10)} ${L('ครั้ง','time(s)')})</div><div class="detail-val">${t.followup_msg?'💬 '+esc(t.followup_msg):L('ขอติดตามสถานะงาน','Requested a status update')}${t.followup_at?'<br><span style="font-size:11px;color:var(--text3)">'+L('ทวงล่าสุด','Last followed up')+': '+String(t.followup_at).substring(0,16)+'</span>':''}${hasPendingFollowup(t)?'<br><span style="font-size:11px;color:#D97706;font-weight:700">⚠️ '+L('ยังไม่ได้ตอบสนอง — อัปเดตสถานะเพื่อแจ้งผู้แจ้ง','Not yet responded — update status to acknowledge')+'</span>':'<br><span style="font-size:11px;color:var(--green)">✓ '+L('ตอบสนองแล้ว','Responded')+'</span>'}</div></div>`:''}
       ${t.doc_url?`<div style="grid-column:1/-1"><div class="detail-lbl">${L('เอกสารส่งซ่อม/เคลม','Claim Document')}</div><div class="detail-val">${String(t.doc_url).split(',').filter(Boolean).map((u,i)=>`<a href="${u}" target="_blank" style="color:#0EA5E9;text-decoration:underline">📄 ${L('เปิดเอกสาร','Open doc')}${i+1}</a>`).join(' · ')}</div></div>`:''}
       <div><div class="detail-lbl">${L('วันที่แจ้ง','Reported')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
       <div><div class="detail-lbl">${L('ผู้รับงาน','Assignee')}</div><div class="detail-val">${t.assigned_to||L('ยังไม่มอบหมาย','Unassigned')}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ '+L('รอง','Secondary')+': '+t.assigned_secondary+'</span>':''}</div></div>
@@ -3484,6 +3525,15 @@ function openDetail(id){
       ${mkDetailImages(t)}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">${L('หมายเหตุ','Notes')}</div><div class="detail-val">${t.notes}</div></div>`:''}
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">${L('❌ ถูกปฏิเสธเมื่อ','❌ Rejected at')} ${t.rejected_at} ${L('โดย','by')} ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
+      ${(t.status!=='done'&&t.status!=='rejected')?`<div style="grid-column:1/-1;background:rgba(14,165,233,0.07);border:1px solid rgba(14,165,233,0.25);border-radius:8px;padding:10px">
+        <div class="detail-lbl" style="color:#0EA5E9">💬 ${L('ตอบกลับผู้แจ้ง','Reply to Reporter')}</div>
+        ${t.staff_reply?`<div class="detail-val" style="margin-bottom:6px">↩️ ${esc(t.staff_reply)}<br><span style="font-size:11px;color:var(--text3)">${L('โดย','by')} ${esc(t.staff_reply_by||'')}${t.staff_reply_at?' · '+String(t.staff_reply_at).substring(0,16):''}</span></div>`:''}
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <input type="text" id="staff-reply-input" maxlength="500" placeholder="${L('พิมพ์คำตอบถึงผู้แจ้ง...','Type a reply to the reporter...')}" style="flex:1;min-width:0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:13px">
+          <button class="btn-ok" style="background:#0EA5E9;padding:8px 14px" onclick="doStaffReply('${t.ticket_id}')">${L('ส่ง','Send')}</button>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:5px">${L('ผู้แจ้งเห็นในหน้าติดตาม หรือพิมพ์ "สถานะ" ในกลุ่ม LINE แล้วบอทตอบให้ฟรี','Reporter sees it on the tracker, or types "สถานะ" in the LINE group for a free bot reply')}</div>
+      </div>`:''}
     </div>`;
   const ac=document.getElementById('m-detail-actions');
   const isClaim = String(t.work_type).toLowerCase()==='claim';
