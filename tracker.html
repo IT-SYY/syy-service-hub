@@ -77,11 +77,12 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .ticket-timeline{padding:10px 14px 12px;}
 .followup-box{padding:10px 14px 14px;border-top:1px dashed var(--border);background:var(--bg2);}
 .followup-note{font-size:11px;color:#EA580C;font-weight:600;margin-bottom:8px;}
-.staff-reply-note{font-size:12px;color:var(--text);font-weight:500;background:rgba(14,165,233,0.1);border-left:3px solid #0EA5E9;padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5;}
+.staff-reply-note{font-size:12px;color:var(--text);font-weight:500;background:rgba(56,189,248,0.12);border-left:3px solid #38BDF8;padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5;}
+.staff-reply-note b{color:#7DD3FC;}
 .qa-reporter{color:#EA580C;}
 .qa-reporter b{color:#C2410C;}
-.qa-staff{color:#0369A1;}
-.qa-staff b{color:#075985;}
+.qa-staff{color:#38BDF8;}
+.qa-staff b{color:#7DD3FC;}
 .followup-row{display:flex;gap:6px;margin-bottom:8px;}
 .followup-input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:13px;}
 .followup-input:focus{outline:none;border-color:var(--accent,#0EA5E9);}
@@ -664,7 +665,7 @@ function mkTicketCard(t) {
     </div>
     ${(t.status!=='done'&&t.status!=='rejected')?`
     <div class="followup-box" onclick="event.stopPropagation()">
-      ${t.staff_reply?`<div class="staff-reply-note">💬 ${L('ทีมงานตอบ','Team replied')}: ${escapeHtml(t.staff_reply)}${t.staff_reply_at?'<span style="color:var(--text3);font-weight:400"> · '+String(t.staff_reply_at).substring(0,16)+'</span>':''}</div>`:''}
+      ${t.staff_reply?`<div class="staff-reply-note"><b>💬 ${L('ทีมงานตอบ','Team replied')}:</b> ${escapeHtml(t.staff_reply)}${t.staff_reply_at?'<span style="color:var(--text3);font-weight:400"> · '+String(t.staff_reply_at).substring(0,16)+'</span>':''}</div>`:''}
       ${(parseInt(t.followup_count,10)>0)?`<div class="followup-note">🔔 ${L('คุณได้ทวงถามงานนี้แล้ว','You have followed up')} ${parseInt(t.followup_count,10)} ${L('ครั้ง','time(s)')}${t.followup_at?' · '+String(t.followup_at).substring(0,16):''}</div>`:''}
       <div class="followup-row">
         <input type="text" class="followup-input" id="fu-${t.ticket_id}" placeholder="${L('ฝากข้อความ / สอบถามทีมงาน...','Leave a message / ask the team...')}" maxlength="500" onclick="event.stopPropagation()">
