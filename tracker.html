@@ -78,6 +78,10 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .followup-box{padding:10px 14px 14px;border-top:1px dashed var(--border);background:var(--bg2);}
 .followup-note{font-size:11px;color:#EA580C;font-weight:600;margin-bottom:8px;}
 .staff-reply-note{font-size:12px;color:var(--text);font-weight:500;background:rgba(14,165,233,0.1);border-left:3px solid #0EA5E9;padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5;}
+.qa-reporter{color:#EA580C;}
+.qa-reporter b{color:#C2410C;}
+.qa-staff{color:#0369A1;}
+.qa-staff b{color:#075985;}
 .followup-row{display:flex;gap:6px;margin-bottom:8px;}
 .followup-input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:13px;}
 .followup-input:focus{outline:none;border-color:var(--accent,#0EA5E9);}
@@ -672,6 +676,20 @@ function mkTicketCard(t) {
 }
 
 // ===== TIMELINE =====
+// แยกสีข้อความถาม-ตอบในไทม์ไลน์: ผู้แจ้ง (ส้ม) / ทีมงานตอบ (ฟ้า) / ปกติ
+function isQANote(n){ return /^\[(ผู้แจ้ง|ทีมงานตอบ)/.test(String(n||'')); }
+function fmtNote(raw){
+  const s=String(raw||'');
+  if(/^\[ผู้แจ้ง/.test(s)){
+    const txt=s.replace(/^\[(.*?)\]\s*/,'');
+    return `<span class="qa-reporter">🔔 <b>${L('ผู้แจ้ง','Reporter')}:</b> ${escapeHtml(txt)}</span>`;
+  }
+  if(/^\[ทีมงานตอบ\]/.test(s)){
+    const txt=s.replace(/^\[(.*?)\]\s*/,'');
+    return `<span class="qa-staff">💬 <b>${L('ทีมงานตอบ','Team')}:</b> ${escapeHtml(txt)}</span>`;
+  }
+  return escapeHtml(s).replace(/^\[(.*?)\]\s*/, (m,g)=>`<b style="color:#EA580C">[${g}]</b> `);
+}
 function mkProgress(t) {
   let log = [];
   if (t.progress_log) { try { log = JSON.parse(t.progress_log); } catch(e){ log = []; } }
@@ -703,8 +721,8 @@ function mkProgress(t) {
     if (log.length) {
       html += '<div style="margin-top:6px;border-top:1px dashed var(--border);padding-top:8px"><div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:6px">'+L('📝 บันทึกการดำเนินการ','📝 Action Log')+'</div>';
       log.forEach(e=>{
-        const noteTxt = String(e.n||'').replace(/^\[(.*?)\]\s*/, (m,g)=>`<b style="color:#EA580C">[${g}]</b> `);
-        html += `<div style="margin-bottom:8px">
+        const noteTxt = fmtNote(e.n);
+        html += `<div style="margin-bottom:8px${isQANote(e.n)?';background:var(--bg);border-radius:6px;padding:6px 8px':''}">
           <div style="font-size:12px;color:var(--text)">${noteTxt||'-'}</div>
           <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">${e.t||''}${e.by?' · '+escapeHtml(e.by):''}</div>
           ${e.img?`<div class="img-grid" style="margin-top:6px">${String(e.img).split(',').map(u=>u.trim()).filter(Boolean).map((u,gi)=>`<img class="img-thumb" style="width:64px;height:64px" src="${u}" onclick="event.stopPropagation();openImgList('${e.img}',${gi})" alt="รูป">`).join('')}</div>`:''}
@@ -733,14 +751,14 @@ function mkProgress(t) {
     html += '<div style="display:flex;flex-direction:column;gap:0">';
     log.forEach((e,i) => {
       const last = i===log.length-1;
-      const dotCol = e.p>=100?'#16A34A':'#2563EB';
+      const dotCol = /^\[ผู้แจ้ง/.test(String(e.n||''))?'#EA580C':/^\[ทีมงานตอบ\]/.test(String(e.n||''))?'#0EA5E9':e.p>=100?'#16A34A':'#2563EB';
       html += `<div style="display:flex;gap:10px">
         <div style="display:flex;flex-direction:column;align-items:center">
           <div style="width:12px;height:12px;border-radius:50%;background:${dotCol};margin-top:3px;flex-shrink:0"></div>
           ${!last?'<div style="width:2px;flex:1;background:var(--border);min-height:18px"></div>':''}
         </div>
         <div style="padding-bottom:${last?'0':'12px'};flex:1">
-          <div style="font-size:13px;color:var(--text);font-weight:600">${Math.max(0,Math.min(100,e.p))}% ${e.n?'· '+escapeHtml(e.n):''}</div>
+          <div style="font-size:13px;color:var(--text);font-weight:600">${isQANote(e.n)?fmtNote(e.n):(Math.max(0,Math.min(100,e.p))+'% '+(e.n?'· '+fmtNote(e.n):''))}</div>
           <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">${e.t||''}${e.by?' · '+escapeHtml(e.by):''}</div>
           ${e.img?`<div class="img-grid" style="margin-top:6px">${String(e.img).split(',').map(u=>u.trim()).filter(Boolean).map((u,gi)=>`<img class="img-thumb" style="width:64px;height:64px" src="${u}" onclick="event.stopPropagation();openImgList('${e.img}',${gi})" alt="รูปความคืบหน้า">`).join('')}</div>`:''}
         </div>
