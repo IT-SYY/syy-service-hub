@@ -75,6 +75,17 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 
 /* TIMELINE IN CARD */
 .ticket-timeline{padding:10px 14px 12px;}
+.followup-box{padding:10px 14px 14px;border-top:1px dashed var(--border);background:var(--bg2);}
+.followup-note{font-size:11px;color:#EA580C;font-weight:600;margin-bottom:8px;}
+.staff-reply-note{font-size:12px;color:var(--text);font-weight:500;background:rgba(14,165,233,0.1);border-left:3px solid #0EA5E9;padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5;}
+.followup-row{display:flex;gap:6px;margin-bottom:8px;}
+.followup-input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:13px;}
+.followup-input:focus{outline:none;border-color:var(--accent,#0EA5E9);}
+.followup-send{flex-shrink:0;padding:8px 14px;border:none;border-radius:8px;background:var(--accent,#0EA5E9);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.followup-send:active{transform:scale(0.97);}
+.followup-nudge{width:100%;padding:9px;border:1.5px solid #F59E0B;border-radius:8px;background:rgba(245,158,11,0.1);color:#D97706;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.followup-nudge:hover{background:#F59E0B;color:#fff;}
+.followup-nudge:active{transform:scale(0.98);}
 .timeline-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
 .tl-wrap{position:relative;padding-left:20px;}
 .tl-step{position:relative;margin-bottom:10px;}
@@ -318,6 +329,43 @@ const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
 const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
 const BASE     = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
 const LIFF_URL = 'https://liff.line.me/2010241158-ll8R9q4T';
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
+// ส่งทวงถาม/ฝากข้อความไป GAS (ผู้แจ้งไม่ต้อง login)
+async function sendFollowup(ticketId, message){
+  try{
+    const res = await fetch(GAS_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'reporter_followup', ticket_id:ticketId, message:message||'' })
+    });
+    let ok=true, j=null;
+    try{ j=await res.json(); ok=(j&&j.success!==false); }catch(e){ ok=true; } // อ่าน response ไม่ได้แต่ถึง server = ถือว่าสำเร็จ
+    return { ok:ok, data:j };
+  }catch(e){ return { ok:false, error:String(e) }; }
+}
+// กดทวงถาม หรือส่งข้อความ จากการ์ด
+let _fuBusy = {};
+async function doFollowup(ticketId, withMessage){
+  if(_fuBusy[ticketId]) return;
+  let msg = '';
+  if(withMessage){
+    const inp = document.getElementById('fu-'+ticketId);
+    msg = inp ? inp.value.trim() : '';
+    if(!msg){ alert(L('กรุณาพิมพ์ข้อความก่อนส่ง','Please type a message first')); return; }
+  }
+  _fuBusy[ticketId] = true;
+  const res = await sendFollowup(ticketId, msg);
+  _fuBusy[ticketId] = false;
+  if(res.ok){
+    alert(withMessage
+      ? L('ส่งข้อความถึงทีมงานแล้ว ✓\nทีมงานจะเห็นในระบบ','Message sent to the team ✓')
+      : L('ทวงถามงานเรียบร้อย ✓\nทีมงานจะเห็นการแจ้งเตือนในระบบ','Follow-up sent ✓\nThe team will see it in the system'));
+    const inp = document.getElementById('fu-'+ticketId); if(inp) inp.value='';
+    setTimeout(loadData, 600); // รีโหลดให้เห็นจำนวนครั้งที่ทวงอัปเดต
+  } else {
+    alert(L('ส่งไม่สำเร็จ ลองใหม่อีกครั้ง','Failed to send, please try again'));
+  }
+}
 
 // ===== STATE =====
 let allTickets = [];
@@ -361,6 +409,10 @@ async function loadData() {
       work_type:g(r,'work_type'),
       claim_stage:g(r,'claim_stage'),
       doc_url:g(r,'doc_url'),
+      followup_count: g(r,'followup_count'),
+      followup_at: g(r,'followup_at'),
+      staff_reply: g(r,'staff_reply'),
+      staff_reply_at: g(r,'staff_reply_at'),
       progress_pct: g(r,'progress'),
       progress_log: '',
       department:   g(r,'department','team'),
@@ -606,6 +658,16 @@ function mkTicketCard(t) {
       <div class="timeline-title">${L('ความคืบหน้า','Progress')}</div>
       ${tlHtml}
     </div>
+    ${(t.status!=='done'&&t.status!=='rejected')?`
+    <div class="followup-box" onclick="event.stopPropagation()">
+      ${t.staff_reply?`<div class="staff-reply-note">💬 ${L('ทีมงานตอบ','Team replied')}: ${escapeHtml(t.staff_reply)}${t.staff_reply_at?'<span style="color:var(--text3);font-weight:400"> · '+String(t.staff_reply_at).substring(0,16)+'</span>':''}</div>`:''}
+      ${(parseInt(t.followup_count,10)>0)?`<div class="followup-note">🔔 ${L('คุณได้ทวงถามงานนี้แล้ว','You have followed up')} ${parseInt(t.followup_count,10)} ${L('ครั้ง','time(s)')}${t.followup_at?' · '+String(t.followup_at).substring(0,16):''}</div>`:''}
+      <div class="followup-row">
+        <input type="text" class="followup-input" id="fu-${t.ticket_id}" placeholder="${L('ฝากข้อความ / สอบถามทีมงาน...','Leave a message / ask the team...')}" maxlength="500" onclick="event.stopPropagation()">
+        <button class="followup-send" onclick="event.stopPropagation();doFollowup('${t.ticket_id}',true)">${L('💬 ส่ง','💬 Send')}</button>
+      </div>
+      <button class="followup-nudge" onclick="event.stopPropagation();doFollowup('${t.ticket_id}',false)">⏰ ${L('ทวงถามงาน (กระตุ้นให้ทีมอัปเดต)','Nudge the team for an update')}</button>
+    </div>`:''}
   </div>`;
 }
 
