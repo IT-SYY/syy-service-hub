@@ -1568,6 +1568,7 @@ function enterAs(user, degraded){
   }
   document.getElementById('auth-gate').classList.add('hidden');
   requestNotifyPermission();
+  try{ const c=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)()); if(c.state==='suspended') c.resume(); }catch(e){}  // ปลดล็อกเสียงด้วย gesture การ login
   showSkeletons(); loadData();
   timer=setInterval(()=>{
     // ข้ามการรีเฟรชอัตโนมัติ ถ้ามีหน้าต่าง (modal) เปิดอยู่ — ผู้ใช้กำลังกรอก/กดอยู่
@@ -1879,8 +1880,41 @@ function showAlert(arr){
 function showKPINew(){const b=document.getElementById('kpi-new');b.classList.add('show');setTimeout(()=>b.classList.remove('show'),10000);}
 function closeAlert(){document.getElementById('new-alert').classList.remove('show');}
 // แจ้งเตือนเมื่อมีงานถูกทวงถามใหม่ (toast + เสียง + browser notification)
+// เสียงกระดิ่งระฆัง (สำหรับงานที่ถูกทวงถาม) — ตี 3 ครั้งเหมือนกระดิ่งสั่น เสียงกังวานยาว
+function playBellSound(){
+  try{
+    const ctx=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
+    if(ctx.state==='suspended') ctx.resume();
+    const t0=ctx.currentTime;
+    const base=1046;                 // C6 ใสๆ แบบกระดิ่ง
+    const strikes=[0,0.2,0.4];       // ตี 3 ครั้ง (กระดิ่งสั่น)
+    // ฮาร์โมนิกแบบระฆัง (inharmonic partials) ให้ได้ทิมเบอร์กังวาน
+    const partials=[
+      {ratio:1.0,  gain:0.26, dur:1.7},
+      {ratio:2.0,  gain:0.16, dur:1.3},
+      {ratio:2.96, gain:0.10, dur:1.0},
+      {ratio:4.21, gain:0.06, dur:0.8},
+      {ratio:5.43, gain:0.035,dur:0.6}
+    ];
+    strikes.forEach((st,si)=>{
+      const startBase=t0+st;
+      const vol=si===0?1:0.72;       // ครั้งถัดไปเบาลงเล็กน้อย
+      partials.forEach(p=>{
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type='sine';
+        o.frequency.value=base*p.ratio*(1+si*0.004);   // ขยับเล็กน้อยให้สมจริง
+        o.connect(g); g.connect(ctx.destination);
+        const a=startBase;
+        g.gain.setValueAtTime(0.0001,a);
+        g.gain.exponentialRampToValueAtTime(p.gain*vol,a+0.004);  // attack คมเหมือนตีกระดิ่ง
+        g.gain.exponentialRampToValueAtTime(0.0001,a+p.dur);      // decay ยาวกังวาน
+        o.start(a); o.stop(a+p.dur+0.05);
+      });
+    });
+  }catch(e){}
+}
 function notifyFollowup(arr){
-  try{ playAlertSound(); }catch(e){}
+  try{ playBellSound(); }catch(e){}
   const first=arr[0];
   const msg = arr.length>1
     ? L(`มี ${arr.length} งานถูกผู้แจ้งทวงถาม`,`${arr.length} tickets have new follow-ups`)
