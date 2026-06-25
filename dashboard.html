@@ -469,37 +469,114 @@ td{padding:8px 10px;font-size:11px;vertical-align:middle;}
 
 /* ===== PRINT STYLES ===== */
 /* ===== TV / WALLBOARD MODE (บอร์ดเดียว 16:9) ===== */
+/* ============ TV / COMMAND CENTER MODE ============ */
 body.tv .sidebar,body.tv .main{display:none!important;}
+body.tv{overflow:hidden;}
 #tv-board{display:none;}
-body.tv #tv-board{display:grid;position:fixed;inset:0;z-index:250;background:var(--bg);
-  grid-template-rows:74px 1fr;grid-template-columns:1.55fr 1fr;gap:14px;padding:16px 18px;
-  grid-template-areas:"head head" "kanban side";}
-.tvb-head{grid-area:head;display:flex;align-items:center;gap:14px;}
-.tvb-kpi{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:12px;height:100%;}
-.tvb-kpi .n{font-size:34px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;}
-.tvb-kpi .l{font-size:13px;color:var(--text2);}
-.tvb-clock{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0 22px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.tvb-clock .t{font-size:30px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.1;}
-.tvb-clock .d{font-size:11px;color:var(--text2);}
-.tvb-live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--green);}
-.tvb-live::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);animation:tvblink 1.6s infinite;}
-@keyframes tvblink{50%{opacity:0.25;}}
-.tvb-kanban{grid-area:kanban;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-height:0;}
-.tvb-col{background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-.tvb-col-h{padding:10px 14px;font-size:15px;font-weight:600;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-.tvb-col-h .c{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;}
-.tvb-col-b{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;}
-.tvb-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;}
-.tvb-card .id{font-size:13px;font-weight:700;}
-.tvb-card .m{font-size:12px;color:var(--text2);margin-top:2px;}
-.tvb-card .a{font-size:11px;color:var(--text3);margin-top:1px;}
-.tvb-more{font-size:12px;color:var(--text3);text-align:center;padding:4px;}
-.tvb-side{grid-area:side;display:grid;grid-template-rows:1fr 1fr;gap:12px;min-height:0;}
-.tvb-chart{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;min-height:0;}
-.tvb-chart .ttl{font-size:14px;font-weight:600;margin-bottom:6px;}
-.tvb-chart .cv{flex:1;min-height:0;position:relative;}
-.tvb-chart canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
-.tv-exit{display:none;position:fixed;top:14px;right:14px;z-index:300;background:var(--bg2);border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:8px 14px;cursor:pointer;font-family:'Prompt',sans-serif;font-size:13px;box-shadow:var(--shadow-md);opacity:0.85;}
+body.tv #tv-board{
+  display:grid;position:fixed;inset:0;z-index:250;overflow:hidden;color:#EAF0FB;
+  grid-template-rows:auto 1fr;grid-template-columns:1fr 360px;gap:16px;padding:18px 20px;
+  grid-template-areas:"head head" "flow side";
+  background:
+    radial-gradient(1100px 560px at 12% -12%, rgba(96,165,250,0.14), transparent 58%),
+    radial-gradient(900px 520px at 105% 115%, rgba(167,139,250,0.14), transparent 55%),
+    linear-gradient(155deg,#0C111C 0%,#141C2E 48%,#0C111C 100%);
+}
+body.tv #tv-board::before,body.tv #tv-board::after{content:'';position:absolute;border-radius:50%;filter:blur(34px);pointer-events:none;z-index:0;}
+body.tv #tv-board::before{width:55vw;height:55vw;left:-12vw;top:-18vw;background:radial-gradient(circle,rgba(52,211,153,0.10),transparent 62%);animation:tvFloatA 20s ease-in-out infinite;}
+body.tv #tv-board::after{width:48vw;height:48vw;right:-12vw;bottom:-16vw;background:radial-gradient(circle,rgba(96,165,250,0.12),transparent 62%);animation:tvFloatB 24s ease-in-out infinite;}
+@keyframes tvFloatA{0%,100%{transform:translate(0,0);}50%{transform:translate(8vw,6vh);}}
+@keyframes tvFloatB{0%,100%{transform:translate(0,0);}50%{transform:translate(-7vw,-5vh);}}
+body.tv #tv-board>*{position:relative;z-index:1;}
+/* HEADER */
+.tvb-head{grid-area:head;display:flex;align-items:stretch;gap:14px;height:88px;}
+.tvb-brand{display:flex;align-items:center;gap:13px;padding:0 22px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(8px);}
+.tvb-logo{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#06C755,#04903C);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 22px rgba(6,199,85,0.55);}
+.tvb-brand .tt{font-size:19px;font-weight:700;letter-spacing:.3px;}
+.tvb-brand .ss{font-size:11px;color:#8FA0BE;}
+.tvb-kpis{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.tvb-kpi{position:relative;border-radius:16px;padding:12px 18px;display:flex;flex-direction:column;justify-content:center;gap:3px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(8px);}
+.tvb-kpi .bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--kc,#60A5FA);box-shadow:0 0 14px var(--kc,#60A5FA);}
+.tvb-kpi .n{font-size:40px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;color:var(--kc,#EAF0FB);}
+.tvb-kpi .l{font-size:12px;color:#9AABC6;font-weight:500;}
+.tvb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(8px);}
+.tvb-clock .t{font-size:34px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;letter-spacing:1px;}
+.tvb-clock .d{font-size:11px;color:#9AABC6;margin-top:6px;display:flex;align-items:center;gap:8px;}
+.tvb-live{display:inline-flex;align-items:center;gap:5px;color:#34D399;font-weight:700;}
+.tvb-live::before{content:'';width:8px;height:8px;border-radius:50%;background:#34D399;box-shadow:0 0 8px #34D399;animation:tvPulse 1.5s infinite;}
+@keyframes tvPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.7);}}
+/* FLOW */
+.tvb-flow{grid-area:flow;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;min-height:0;}
+.tvb-col{display:flex;flex-direction:column;min-height:0;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(6px);position:relative;}
+.tvb-col-h{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(90deg,var(--cc-dim,transparent),transparent);}
+.tvb-col-h .hl{display:flex;align-items:center;gap:9px;}
+.tvb-col-h .dotled{width:9px;height:9px;border-radius:50%;background:var(--cc,#60A5FA);box-shadow:0 0 10px var(--cc,#60A5FA);}
+.tvb-col-h .c{font-family:'JetBrains Mono',monospace;font-size:25px;font-weight:800;color:var(--cc,#fff);min-width:34px;text-align:right;}
+.tvb-col-b{padding:11px;display:flex;flex-direction:column;gap:9px;overflow:hidden;flex:1;min-height:0;}
+.tvb-card{position:relative;border-radius:13px;padding:11px 13px 11px 17px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);transition:transform .18s ease,box-shadow .18s ease,border-color .18s;animation:tvCardIn .5s cubic-bezier(.2,.8,.2,1) both;}
+.tvb-card:active{transform:scale(.97);}
+.tvb-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px -12px rgba(0,0,0,0.65);border-color:rgba(255,255,255,0.18);}
+.tvb-card .edge{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--uc,#60A5FA);box-shadow:0 0 12px var(--uc,#60A5FA);}
+.tvb-card .id{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#EAF0FB;display:flex;align-items:center;gap:6px;}
+.tvb-card .cat{font-weight:400;color:#94A3B8;font-size:12px;}
+.tvb-card .m{font-size:13px;color:#C3CEE2;margin-top:3px;font-weight:500;}
+.tvb-card .a{font-size:12px;color:#8FA0BE;margin-top:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.tvb-card .pill{font-size:11px;font-weight:700;padding:1px 9px;border-radius:20px;background:var(--uc-dim,rgba(96,165,250,0.18));color:var(--uc,#60A5FA);}
+@keyframes tvCardIn{from{opacity:0;transform:translateY(14px) scale(.96);}to{opacity:1;transform:none;}}
+.tvb-card.urgent .edge{animation:tvEdgePulse 1.1s ease-in-out infinite;}
+@keyframes tvEdgePulse{0%,100%{box-shadow:0 0 10px var(--uc);}50%{box-shadow:0 0 24px var(--uc),0 0 6px var(--uc);}}
+.tvb-card.flash{animation:tvCardIn .5s both,tvFlash 1.9s ease-out;}
+@keyframes tvFlash{0%{box-shadow:0 0 0 2px var(--uc),0 0 30px 8px var(--uc);background:var(--uc-dim);}100%{box-shadow:none;}}
+.tvb-more{font-size:13px;color:#7A87A0;text-align:center;padding:7px;font-weight:600;}
+.tvb-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#5C6A85;text-align:center;padding:18px;}
+/* SIDE */
+.tvb-side{grid-area:side;display:grid;grid-template-rows:auto auto 1fr;gap:14px;min-height:0;}
+.tvb-panel{border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;min-height:0;background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(6px);}
+.tvb-panel .ttl{font-size:13px;font-weight:700;color:#C3CEE2;margin-bottom:11px;display:flex;align-items:center;gap:7px;}
+.tvb-gauge{display:flex;align-items:center;gap:18px;}
+.tvb-gauge .cv{width:112px;height:112px;position:relative;flex-shrink:0;}
+.tvb-gauge canvas{position:absolute;inset:0;}
+.tvb-leg{display:flex;flex-direction:column;gap:8px;font-size:12px;flex:1;}
+.tvb-leg .row{display:flex;align-items:center;gap:8px;color:#C3CEE2;}
+.tvb-leg .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+.tvb-leg b{font-family:'JetBrains Mono',monospace;font-size:15px;margin-left:auto;}
+.tvb-spark{height:92px;position:relative;}
+.tvb-spark canvas{position:absolute;inset:0;}
+.tvb-ticker{overflow:hidden;flex:1;min-height:0;}
+.tvb-feed{display:flex;flex-direction:column;gap:8px;}
+.tvb-feed-item{display:flex;align-items:center;gap:9px;font-size:12px;padding:8px 11px;border-radius:10px;background:rgba(255,255,255,0.03);border-left:3px solid var(--fc,#60A5FA);animation:tvCardIn .5s both;}
+.tvb-feed-item .ic{font-size:15px;}
+.tvb-feed-item .tx{flex:1;color:#C3CEE2;}
+.tvb-feed-item .tx b{color:#EAF0FB;font-family:'JetBrains Mono',monospace;}
+.tvb-feed-item .tm{font-size:10px;color:#7A87A0;font-family:'JetBrains Mono',monospace;}
+/* DETAIL OVERLAY */
+.tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
+.tvd-overlay.show{display:flex;animation:tvdFade .25s ease;}
+@keyframes tvdFade{from{opacity:0;}to{opacity:1;}}
+.tvd-card{position:relative;width:min(840px,93vw);max-height:88vh;overflow:auto;border-radius:24px;padding:28px 32px;background:linear-gradient(155deg,#1A2540,#0F1726);border:1px solid rgba(255,255,255,0.13);box-shadow:0 34px 90px -22px rgba(0,0,0,0.85);animation:tvdPop .32s cubic-bezier(.2,.9,.3,1.15);}
+@keyframes tvdPop{from{opacity:0;transform:scale(.92) translateY(22px);}to{opacity:1;transform:none;}}
+.tvd-card h2{font-family:'JetBrains Mono',monospace;font-size:27px;font-weight:800;display:flex;align-items:center;gap:13px;flex-wrap:wrap;color:#fff;}
+.tvd-badge{font-size:13px;font-weight:700;padding:4px 13px;border-radius:20px;}
+.tvd-sub{font-size:15px;color:#A9B5CC;margin-top:8px;}
+.tvd-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px 24px;margin:22px 0;}
+.tvd-grid .it .l{font-size:12px;color:#8FA0BE;margin-bottom:3px;}
+.tvd-grid .it .v{font-size:18px;font-weight:600;color:#EAF0FB;}
+.tvd-tl{border-top:1px solid rgba(255,255,255,0.1);padding-top:18px;}
+.tvd-tl .hh{font-size:13px;font-weight:700;color:#C3CEE2;margin-bottom:14px;}
+.tvd-tl .ti{display:flex;gap:13px;margin-bottom:14px;position:relative;}
+.tvd-tl .ti::before{content:'';position:absolute;left:5px;top:16px;bottom:-14px;width:2px;background:rgba(255,255,255,0.1);}
+.tvd-tl .ti:last-child::before{display:none;}
+.tvd-tl .dot{width:12px;height:12px;border-radius:50%;margin-top:3px;flex-shrink:0;box-shadow:0 0 9px currentColor;z-index:1;}
+.tvd-tl .tc{font-size:15px;color:#D5DEEE;font-weight:500;}
+.tvd-tl .tt2{font-size:11px;color:#7A87A0;font-family:'JetBrains Mono',monospace;margin-top:1px;}
+.tvd-img{margin-top:6px;border-radius:12px;max-height:200px;max-width:100%;border:1px solid rgba(255,255,255,0.12);}
+.tvd-close{position:absolute;top:18px;right:20px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-size:20px;cursor:pointer;transition:all .15s;}
+.tvd-close:hover{background:rgba(255,255,255,0.14);transform:rotate(90deg);}
+.tvd-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:300;font-size:13px;color:#9AABC6;background:rgba(255,255,255,0.07);padding:9px 20px;border-radius:30px;border:1px solid rgba(255,255,255,0.1);animation:tvHintPulse 2.6s infinite;pointer-events:none;display:none;}
+body.tv .tvd-hint{display:block;}
+@keyframes tvHintPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+.tv-exit{display:none;position:fixed;top:16px;right:18px;z-index:401;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#EAF0FB;border-radius:11px;padding:9px 16px;cursor:pointer;font-family:'Prompt',sans-serif;font-size:13px;backdrop-filter:blur(8px);transition:all .15s;}
+.tv-exit:hover{background:rgba(255,255,255,0.16);}
 body.tv .tv-exit{display:block;}
 /* ===== SKELETON ===== */
 .skel{position:relative;overflow:hidden;background:var(--bg3);border-radius:6px;display:inline-block;}
@@ -1189,6 +1266,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 </div>
 
 <div id="tv-board"></div>
+<div class="tvd-hint">👆 แตะการ์ดงานเพื่อดูรายละเอียด · Tap a card for details</div>
+<div id="tvd-overlay" class="tvd-overlay" onclick="tvCloseDetail(event)"><div class="tvd-card" id="tvd-card-body"></div></div>
 <button class="tv-exit" onclick="toggleTV()">✕ ออกจากโหมดทีวี</button>
 <div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">สำเร็จ</span></div>
 
@@ -1337,6 +1416,7 @@ function toggleTV(){
     tvClock=setInterval(updateTVClock,1000);
   }else{
     clearInterval(tvClock);tvClock=null;
+    tvLastStatus={}; tvCloseDetail();
     ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
   }
 }
@@ -1345,56 +1425,170 @@ function updateTVClock(){
   const n=new Date(),p=x=>String(x).padStart(2,'0');
   el.textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
 }
-function tvCard(t){
+let tvLastStatus={}, tvDetailTimer=null;
+const TVCOL={
+  pending:{cc:'#FBBF24',dim:'rgba(251,191,36,0.10)',ic:'⏳',th:'รอดำเนินการ'},
+  in_progress:{cc:'#A78BFA',dim:'rgba(167,139,250,0.10)',ic:'🔄',th:'กำลังดำเนินการ'},
+  done:{cc:'#34D399',dim:'rgba(52,211,153,0.10)',ic:'✅',th:'เสร็จวันนี้'}
+};
+// เสียง "งานขยับสถานะ" — อาร์เพจจิโอ 3 โน้ตไล่ขึ้น (ฟังแล้วรู้ว่ามีความคืบหน้า)
+function playTvChime(){
+  try{
+    const ctx=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
+    const fire=function(){
+      const t0=ctx.currentTime+0.02, notes=[587.33,783.99,1046.5];
+      notes.forEach(function(f,i){
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.type='triangle';o.frequency.value=f;o.connect(g);g.connect(ctx.destination);
+        const a=t0+i*0.09;
+        g.gain.setValueAtTime(0.0001,a);
+        g.gain.exponentialRampToValueAtTime(0.22,a+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001,a+0.5);
+        o.start(a);o.stop(a+0.55);
+      });
+    };
+    if(ctx.state==='suspended'){ctx.resume().then(fire).catch(fire);}else fire();
+  }catch(e){}
+}
+function tvCard(t,colColor,flash){
   const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim();
-  const m=elapsedSince(t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at);
-  const lt=lateLevel(m,t.priority);
-  const dot=lt.level==='danger'?'🔴':lt.level==='warn'?'🟠':'';
-  return `<div class="tvb-card"><div class="id">${dot} ${t.ticket_id} <span style="font-weight:400;color:var(--text3)">· ${t.category||''}</span></div>
-    <div class="m">${place||'-'}</div>
-    <div class="a">${t.assigned_to?'👤 '+allAssignees(t).join(', '):'ยังไม่มอบหมาย'}${m!==null?' · '+fmtDuration(m):''}</div></div>`;
+  const ref=t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
+  const m=elapsedSince(ref), lt=lateLevel(m,t.priority);
+  const uc=lt.level==='danger'?'#F87171':lt.level==='warn'?'#FBBF24':colColor;
+  const ucDim=lt.level==='danger'?'rgba(248,113,113,0.16)':lt.level==='warn'?'rgba(251,191,36,0.16)':'rgba(255,255,255,0.10)';
+  const dot=lt.level==='danger'?'🔴 ':lt.level==='warn'?'🟠 ':'';
+  const who=t.assigned_to?allAssignees(t).join(', '):'ยังไม่มอบหมาย';
+  const cls='tvb-card'+(lt.level==='danger'?' urgent':'')+(flash?' flash':'');
+  return '<div class="'+cls+'" style="--uc:'+uc+';--uc-dim:'+ucDim+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
+    '<div class="edge"></div>'+
+    '<div class="id">'+dot+t.ticket_id+'<span class="cat">· '+(t.category||'')+'</span></div>'+
+    '<div class="m">📍 '+(place||'-')+'</div>'+
+    '<div class="a"><span>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':'')+'</div>'+
+  '</div>';
 }
 function renderTVBoard(){
   const board=document.getElementById('tv-board'); if(!board) return;
-  const b=getBase();
+  const b=tickets.filter(t=>passesScope_(t));   // command center: งานทุกประเภทในขอบเขต (ไม่ขึ้นกับ inbox/followup mode)
   const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
   const prog=b.filter(t=>t.status==='in_progress');
   const today=(()=>{const n=new Date(),p=x=>String(x).padStart(2,'0');return p(n.getDate())+'/'+p(n.getMonth()+1)+'/'+n.getFullYear();})();
   const doneToday=b.filter(t=>t.status==='done'&&String(t.resolved_at||'').startsWith(today));
-  const lim=7, mk=(list)=>list.slice(0,lim).map(tvCard).join('')+(list.length>lim?`<div class="tvb-more">+ อีก ${list.length-lim} งาน</div>`:'');
+  // ตรวจงานที่ "เพิ่งขยับสถานะ" → flash + เสียง
+  const firstTv=Object.keys(tvLastStatus).length===0;
+  const changed=new Set();
+  b.forEach(t=>{ if(!firstTv && tvLastStatus[t.ticket_id]!==undefined && tvLastStatus[t.ticket_id]!==t.status) changed.add(t.ticket_id); });
   const n=new Date(),p=x=>String(x).padStart(2,'0');
-  board.innerHTML=`
-    <div class="tvb-head">
-      <div class="tvb-kpi"><span class="n" style="color:var(--blue)">${b.length}</span><span class="l">ทั้งหมด</span></div>
-      <div class="tvb-kpi"><span class="n" style="color:var(--orange)">${pend.length}</span><span class="l">รอดำเนินการ</span></div>
-      <div class="tvb-kpi"><span class="n" style="color:var(--purple)">${prog.length}</span><span class="l">กำลังซ่อม</span></div>
-      <div class="tvb-kpi"><span class="n" style="color:var(--green)">${doneToday.length}</span><span class="l">เสร็จวันนี้</span></div>
-      <div class="tvb-clock"><div class="t" id="tvb-time">${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}</div><div class="d">${today} · <span class="tvb-live">LIVE</span></div></div>
-    </div>
-    <div class="tvb-kanban">
-      <div class="tvb-col"><div class="tvb-col-h" style="color:var(--orange)">⏳ รอดำเนินการ <span class="c">${pend.length}</span></div><div class="tvb-col-b">${mk(pend)||'<div class="tvb-more">ไม่มีงานค้าง 🎉</div>'}</div></div>
-      <div class="tvb-col"><div class="tvb-col-h" style="color:var(--purple)">🔄 กำลังซ่อม <span class="c">${prog.length}</span></div><div class="tvb-col-b">${mk(prog)||'<div class="tvb-more">—</div>'}</div></div>
-      <div class="tvb-col"><div class="tvb-col-h" style="color:var(--green)">✅ เสร็จวันนี้ <span class="c">${doneToday.length}</span></div><div class="tvb-col-b">${mk(doneToday)||'<div class="tvb-more">ยังไม่มีงานปิดวันนี้</div>'}</div></div>
-    </div>
-    <div class="tvb-side">
-      <div class="tvb-chart"><div class="ttl">📊 สถานะงานทั้งหมด</div><div class="cv"><canvas id="tv-chart-status"></canvas></div></div>
-      <div class="tvb-chart"><div class="ttl">📈 งานแจ้งใหม่ 7 วันล่าสุด</div><div class="cv"><canvas id="tv-chart-daily"></canvas></div></div>
-    </div>`;
+  const lim=8;
+  const mk=(list,cc)=>list.length?list.slice(0,lim).map(t=>tvCard(t,cc,changed.has(t.ticket_id))).join('')+(list.length>lim?'<div class="tvb-more">+ อีก '+(list.length-lim)+' งาน</div>':''):'<div class="tvb-empty">— ไม่มีงาน —</div>';
+  // KPI
+  const kc=(v,c,l)=>'<div class="tvb-kpi" style="--kc:'+c+'"><div class="bar"></div><div class="n">'+v+'</div><div class="l">'+l+'</div></div>';
+  // ฟีดกิจกรรมล่าสุด
+  const feed=buildTvFeed(b).slice(0,7).map(f=>'<div class="tvb-feed-item" style="--fc:'+f.c+'"><span class="ic">'+f.ic+'</span><span class="tx">'+f.tx+'</span><span class="tm">'+f.tm+'</span></div>').join('')||'<div class="tvb-empty" style="padding:10px">ยังไม่มีกิจกรรม</div>';
+  board.innerHTML=
+    '<div class="tvb-head">'+
+      '<div class="tvb-brand"><div class="tvb-logo">🛠️</div><div><div class="tt">SYY Service Hub</div><div class="ss">ศูนย์ควบคุมงานซ่อมบำรุง · Operations Center</div></div></div>'+
+      '<div class="tvb-kpis">'+
+        kc(b.length,'#60A5FA','งานทั้งหมด')+
+        kc(pend.length,'#FBBF24','รอดำเนินการ')+
+        kc(prog.length,'#A78BFA','กำลังดำเนินการ')+
+        kc(doneToday.length,'#34D399','เสร็จวันนี้')+
+      '</div>'+
+      '<div class="tvb-clock"><div class="t" id="tvb-time">'+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())+'</div><div class="d">'+today+' <span class="tvb-live">LIVE</span></div></div>'+
+    '</div>'+
+    '<div class="tvb-flow">'+
+      '<div class="tvb-col" style="--cc:#FBBF24;--cc-dim:rgba(251,191,36,0.12)"><div class="tvb-col-h" style="color:#FBBF24"><span class="hl"><span class="dotled"></span>⏳ รอดำเนินการ</span><span class="c">'+pend.length+'</span></div><div class="tvb-col-b">'+mk(pend,'#FBBF24')+'</div></div>'+
+      '<div class="tvb-col" style="--cc:#A78BFA;--cc-dim:rgba(167,139,250,0.12)"><div class="tvb-col-h" style="color:#A78BFA"><span class="hl"><span class="dotled"></span>🔄 กำลังดำเนินการ</span><span class="c">'+prog.length+'</span></div><div class="tvb-col-b">'+mk(prog,'#A78BFA')+'</div></div>'+
+      '<div class="tvb-col" style="--cc:#34D399;--cc-dim:rgba(52,211,153,0.12)"><div class="tvb-col-h" style="color:#34D399"><span class="hl"><span class="dotled"></span>✅ เสร็จวันนี้</span><span class="c">'+doneToday.length+'</span></div><div class="tvb-col-b">'+mk(doneToday,'#34D399')+'</div></div>'+
+    '</div>'+
+    '<div class="tvb-side">'+
+      '<div class="tvb-panel"><div class="ttl">📊 ภาพรวมสถานะงาน</div><div class="tvb-gauge"><div class="cv"><canvas id="tv-chart-status"></canvas></div><div class="tvb-leg" id="tv-leg"></div></div></div>'+
+      '<div class="tvb-panel"><div class="ttl">📈 งานแจ้งใหม่ 7 วัน</div><div class="tvb-spark"><canvas id="tv-chart-daily"></canvas></div></div>'+
+      '<div class="tvb-panel tvb-ticker"><div class="ttl">⚡ กิจกรรมล่าสุด</div><div class="tvb-feed">'+feed+'</div></div>'+
+    '</div>';
+  // อัปเดตสถานะล่าสุด + เล่นเสียงถ้ามีการขยับ
+  b.forEach(t=>{ tvLastStatus[t.ticket_id]=t.status; });
+  if(changed.size){ playTvChime(); }
   // กราฟ
   ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
   const done=b.filter(t=>t.status==='done');
+  const leg=document.getElementById('tv-leg');
+  if(leg) leg.innerHTML=
+    '<div class="row"><span class="sw" style="background:#FBBF24"></span>รอ/มอบหมาย<b>'+pend.length+'</b></div>'+
+    '<div class="row"><span class="sw" style="background:#A78BFA"></span>กำลังทำ<b>'+prog.length+'</b></div>'+
+    '<div class="row"><span class="sw" style="background:#34D399"></span>เสร็จ<b>'+done.length+'</b></div>';
   charts.tvStatus=new Chart(document.getElementById('tv-chart-status').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['รอ/มอบหมาย','กำลังซ่อม','เสร็จ'],datasets:[{data:[pend.length,prog.length,done.length],backgroundColor:['#FBBF24','#A78BFA','#34D399'],borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{color:'#9AA8C0',font:{family:'Prompt',size:13},padding:10}}}}
+    data:{labels:['รอ','กำลังทำ','เสร็จ'],datasets:[{data:[pend.length,prog.length,done.length],backgroundColor:['#FBBF24','#A78BFA','#34D399'],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'66%',animation:{animateRotate:true,duration:900},plugins:{legend:{display:false}}}
   });
   const days=[],cnts=[];
-  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;days.push(ds.slice(0,5));cnts.push(b.filter(t=>String(t.created_at||'').startsWith(ds)).length);}
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();days.push(ds.slice(0,5));cnts.push(b.filter(t=>String(t.created_at||'').startsWith(ds)).length);}
   charts.tvDaily=new Chart(document.getElementById('tv-chart-daily').getContext('2d'),{
     type:'line',
-    data:{labels:days,datasets:[{data:cnts,borderColor:'#60A5FA',backgroundColor:'rgba(96,165,250,0.12)',fill:true,tension:0.4,pointBackgroundColor:'#60A5FA',pointRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7A87A0',font:{family:'Prompt',size:12}},grid:{color:'rgba(122,135,160,0.12)'}},y:{ticks:{color:'#7A87A0',stepSize:1},grid:{color:'rgba(122,135,160,0.12)'}}}}
+    data:{labels:days,datasets:[{data:cnts,borderColor:'#60A5FA',backgroundColor:'rgba(96,165,250,0.14)',fill:true,tension:0.42,pointBackgroundColor:'#60A5FA',pointRadius:3,borderWidth:2.5}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900},plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7A87A0',font:{family:'Prompt',size:11}},grid:{display:false}},y:{ticks:{color:'#7A87A0',stepSize:1},grid:{color:'rgba(122,135,160,0.10)'}}}}
   });
+}
+// สร้างฟีดกิจกรรมล่าสุดจาก timestamp งาน
+function buildTvFeed(list){
+  const ev=[];
+  list.forEach(t=>{
+    const id=t.ticket_id;
+    if(t.resolved_at) ev.push({k:dmyKey(t.resolved_at),ic:'✅',c:'#34D399',tx:'<b>'+id+'</b> ปิดงานแล้ว',raw:t.resolved_at});
+    else if(t.accepted_at) ev.push({k:dmyKey(t.accepted_at),ic:'🔧',c:'#A78BFA',tx:'<b>'+id+'</b> ช่างรับงาน',raw:t.accepted_at});
+    else if(t.assigned_at) ev.push({k:dmyKey(t.assigned_at),ic:'📋',c:'#FBBF24',tx:'<b>'+id+'</b> มอบหมายแล้ว',raw:t.assigned_at});
+    else if(t.created_at) ev.push({k:dmyKey(t.created_at),ic:'📨',c:'#60A5FA',tx:'<b>'+id+'</b> แจ้งงานใหม่',raw:t.created_at});
+    if(hasPendingFollowup(t)) ev.push({k:dmyKey(t.followup_at),ic:'🔔',c:'#F87171',tx:'<b>'+id+'</b> ผู้แจ้งทวงถาม',raw:t.followup_at});
+  });
+  ev.sort((a,c)=>String(c.k).localeCompare(String(a.k)));
+  return ev.map(e=>({ic:e.ic,c:e.c,tx:e.tx,tm:String(e.raw||'').replace(/^\d{1,2}\/\d{1,2}\/\d{4}\s*/,'').slice(0,5)}));
+}
+// แตะการ์ด → แสดงรายละเอียดงาน
+function tvShowDetail(id){
+  const t=tickets.find(x=>x.ticket_id===id); if(!t) return;
+  const ov=document.getElementById('tvd-overlay'); if(!ov) return;
+  const stMap={pending:['⏳ รอดำเนินการ','#FBBF24'],assigned:['📋 มอบหมายแล้ว','#FBBF24'],in_progress:['🔄 กำลังดำเนินการ','#A78BFA'],done:['✅ เสร็จสิ้น','#34D399'],rejected:['❌ ยกเลิก','#F87171']};
+  const st=stMap[t.status]||['—','#60A5FA'];
+  const priMap={high:['🔴 ด่วนมาก','#F87171'],med:['🟠 ปานกลาง','#FBBF24'],low:['🟢 ทั่วไป','#34D399']};
+  const pri=priMap[t.priority]||['—','#9AABC6'];
+  const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim()||'-';
+  const ref=t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
+  const m=elapsedSince(ref);
+  const isClaim=String(t.work_type).toLowerCase()==='claim';
+  // timeline จาก timestamp
+  const tl=[];
+  if(t.created_at) tl.push({t:t.created_at,ic:'#60A5FA',x:'📨 แจ้งงาน'});
+  if(t.assigned_at) tl.push({t:t.assigned_at,ic:'#FBBF24',x:'📋 มอบหมาย'+(t.assigned_to?' → '+allAssignees(t).join(', '):'')});
+  if(t.accepted_at) tl.push({t:t.accepted_at,ic:'#A78BFA',x:'🔧 ช่างรับงาน'});
+  if(t.followup_at) tl.push({t:t.followup_at,ic:'#F87171',x:'🔔 ผู้แจ้งทวงถาม'+(t.followup_msg?': '+esc(String(t.followup_msg).slice(0,50)):'')});
+  if(t.staff_reply_at) tl.push({t:t.staff_reply_at,ic:'#60A5FA',x:'💬 ทีมตอบ: '+esc(String(t.staff_reply||'').slice(0,50))});
+  if(t.resolved_at) tl.push({t:t.resolved_at,ic:'#34D399',x:'✅ ปิดงาน'});
+  tl.sort((a,c)=>dmyKey(a.t).localeCompare(dmyKey(c.t)));
+  const tlHtml=tl.map(e=>'<div class="ti"><span class="dot" style="background:'+e.ic+';color:'+e.ic+'"></span><div><div class="tc">'+e.x+'</div><div class="tt2">'+e.t+'</div></div></div>').join('');
+  const stageRow=isClaim?'<div class="it"><div class="l">ขั้นตอนเคลม</div><div class="v" style="color:#FBBF24">📦 '+claimLabel(t.claim_stage)+'</div></div>':(t.status==='in_progress'&&t.progress!==''&&t.progress!=null?'<div class="it"><div class="l">ความคืบหน้า</div><div class="v" style="color:#A78BFA">'+t.progress+'%</div></div>':'');
+  const img=(t.image_url?String(t.image_url).split(',')[0].trim():'');
+  document.getElementById('tvd-card-body').innerHTML=
+    '<button class="tvd-close" onclick="tvCloseDetail()">✕</button>'+
+    '<h2>'+t.ticket_id+'<span class="tvd-badge" style="background:'+st[1]+'22;color:'+st[1]+'">'+st[0]+'</span><span class="tvd-badge" style="background:'+pri[1]+'22;color:'+pri[1]+'">'+pri[0]+'</span></h2>'+
+    '<div class="tvd-sub">'+(t.category||'-')+(isClaim?' · งานส่งซ่อม/เคลม':'')+'</div>'+
+    '<div class="tvd-grid">'+
+      '<div class="it"><div class="l">📍 สถานที่</div><div class="v">'+place+'</div></div>'+
+      '<div class="it"><div class="l">👤 ผู้แจ้ง</div><div class="v">'+(t.reported_by||t.displayName||'-')+'</div></div>'+
+      '<div class="it"><div class="l">🔧 ผู้รับผิดชอบ</div><div class="v">'+(t.assigned_to?allAssignees(t).join(', '):'ยังไม่มอบหมาย')+'</div></div>'+
+      '<div class="it"><div class="l">⏱️ เวลาที่ใช้</div><div class="v">'+(m!==null?fmtDuration(m):'-')+'</div></div>'+
+      stageRow+
+    '</div>'+
+    (t.description?'<div class="it" style="margin-bottom:16px"><div class="l">📝 รายละเอียด</div><div class="v" style="font-size:15px;font-weight:400;color:#C3CEE2;white-space:pre-line">'+esc(String(t.description).slice(0,300))+'</div></div>':'')+
+    (img?'<img class="tvd-img" src="'+img+'" alt="รูป">':'')+
+    '<div class="tvd-tl"><div class="hh">📋 ไทม์ไลน์งาน</div>'+(tlHtml||'<div class="tc" style="color:#7A87A0">ยังไม่มีบันทึก</div>')+'</div>';
+  ov.classList.add('show');
+  clearTimeout(tvDetailTimer);
+  tvDetailTimer=setTimeout(tvCloseDetail,15000); // ปิดเองใน 15 วิ (จอไม่มีคนเฝ้า)
+}
+function tvCloseDetail(e){
+  if(e&&e.target&&e.target.id!=='tvd-overlay'&&!(e.target.classList&&e.target.classList.contains('tvd-close'))) return;
+  const ov=document.getElementById('tvd-overlay'); if(ov) ov.classList.remove('show');
+  clearTimeout(tvDetailTimer);
 }
 document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement&&document.body.classList.contains('tv')) toggleTV(); });
 
@@ -1696,7 +1890,16 @@ function mkDetailImages(t){
     }).join('');
     return '<div style="grid-column:1/-1"><div class="detail-lbl">'+label+(urls.length>1?' ('+urls.length+' '+L('รูป','imgs')+')':'')+'</div><div class="detail-val" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+imgs+'</div></div>';
   };
-  return mk(t.image_url,L('📷 รูปตอนแจ้งงาน','📷 Report photos')) + mk(t.done_image_url,L('🏁 รูปหลังปิดงาน','🏁 Completion photos'));
+  // วิดีโอแจ้งงาน (ฝัง Drive preview)
+  let vidHtml='';
+  if(t.video_url && String(t.video_url).trim()){
+    const m=String(t.video_url).match(/\/d\/([^/]+)/);
+    if(m) vidHtml='<div style="grid-column:1/-1"><div class="detail-lbl">'+L('🎥 วิดีโอตอนแจ้งงาน','🎥 Report video')+'</div>'+
+      '<div style="margin-top:4px;border-radius:10px;overflow:hidden;border:1px solid var(--border);max-width:360px">'+
+      '<iframe src="https://drive.google.com/file/d/'+m[1]+'/preview" allow="autoplay" allowfullscreen style="width:100%;height:210px;border:0;display:block"></iframe></div>'+
+      '<a href="'+t.video_url+'" target="_blank" rel="noopener" style="display:inline-block;margin-top:5px;font-size:12px;color:var(--blue);text-decoration:underline">'+L('▶️ เปิดวิดีโอแบบเต็ม','▶️ Open video')+'</a></div>';
+  }
+  return mk(t.image_url,L('📷 รูปตอนแจ้งงาน','📷 Report photos')) + vidHtml + mk(t.done_image_url,L('🏁 รูปหลังปิดงาน','🏁 Completion photos'));
 }
 // เปิด gallery จากกลุ่มรูป (อ่านรายการจาก data-attribute ที่ปลอดภัยกว่าการ inline ใน onclick)
 function openImgGroup(el){
@@ -1798,6 +2001,7 @@ async function loadData(silent=false){
         duration_min: g(r,'duration_min'),
         sla_status:   g(r,'sla_status'),
         image_url:    g(r,'image_url'),
+        video_url:    g(r,'video_url'),
         rating:       g(r,'rating'),
         notes:        g(r,'notes'),
         reporter_group_id: g(r,'reporter_group_id'),
