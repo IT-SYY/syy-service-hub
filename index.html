@@ -69,13 +69,16 @@
   .photo-text strong{color:var(--green);}
   .photo-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
   .media-box{border:2px dashed var(--border);border-radius:12px;padding:14px;background:white;}
+  .media-grp{margin-bottom:12px;}
+  .media-grp:last-of-type{margin-bottom:0;}
+  .media-grp-lbl{font-size:12px;font-weight:600;color:var(--text);margin-bottom:7px;}
+  .media-grp-lbl span{font-weight:400;color:var(--text-muted);font-size:11px;}
   .media-btns{display:flex;gap:10px;}
-  .media-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px 8px;border:1.5px solid var(--border);border-radius:11px;background:#FAFAFA;cursor:pointer;transition:all 0.18s;font-family:inherit;}
+  .media-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:13px 8px;border:1.5px solid var(--border);border-radius:11px;background:#FAFAFA;cursor:pointer;transition:all 0.18s;font-family:inherit;}
   .media-btn:hover,.media-btn:active{border-color:var(--green);background:var(--green-light);transform:translateY(-1px);}
-  .media-btn .mb-ic{font-size:28px;}
+  .media-btn .mb-ic{font-size:24px;}
   .media-btn .mb-t{font-size:13px;font-weight:600;color:var(--text);}
   .media-btn .mb-s{font-size:10px;color:var(--text-muted);}
-  .media-hint{font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5;}
   .photo-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
   .photo-thumb-wrap{position:relative;display:inline-block;}
   .photo-thumb{width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid var(--green-mid);}
@@ -327,20 +330,23 @@
     <div class="field">
       <label>📎 แนบรูป / วิดีโอ <span class="en">Photos / Video (optional)</span></label>
       <div class="media-box">
-        <div class="media-btns">
-          <button type="button" class="media-btn" onclick="document.getElementById('photo-input').click()">
-            <span class="mb-ic">📷</span>
-            <span class="mb-t">ถ่าย / เลือกรูป</span>
-            <span class="mb-s">Photos</span>
-          </button>
-          <button type="button" class="media-btn" onclick="document.getElementById('video-input').click()">
-            <span class="mb-ic">🎥</span>
-            <span class="mb-t">ถ่าย / เลือกวิดีโอ</span>
-            <span class="mb-s">Video</span>
-          </button>
+        <div class="media-grp">
+          <div class="media-grp-lbl">📷 รูปภาพ <span>· สูงสุด 5 รูป บีบอัดอัตโนมัติ</span></div>
+          <div class="media-btns">
+            <button type="button" class="media-btn" onclick="document.getElementById('photo-cam').click()"><span class="mb-ic">📸</span><span class="mb-t">ถ่ายรูป</span><span class="mb-s">Camera</span></button>
+            <button type="button" class="media-btn" onclick="document.getElementById('photo-input').click()"><span class="mb-ic">🖼️</span><span class="mb-t">เลือกรูป</span><span class="mb-s">Gallery</span></button>
+          </div>
         </div>
-        <div class="media-hint">รูป: สูงสุด 5 รูป บีบอัดอัตโนมัติ 🗜️ · วิดีโอ: สั้นไม่เกิน 10 วินาที / 10MB 🎬</div>
+        <div class="media-grp">
+          <div class="media-grp-lbl">🎥 วิดีโอ <span>· สั้นไม่เกิน 10 วินาที / 10MB</span></div>
+          <div class="media-btns">
+            <button type="button" class="media-btn" onclick="document.getElementById('video-cam').click()"><span class="mb-ic">🎬</span><span class="mb-t">ถ่ายวิดีโอ</span><span class="mb-s">Record</span></button>
+            <button type="button" class="media-btn" onclick="document.getElementById('video-input').click()"><span class="mb-ic">📁</span><span class="mb-t">เลือกวิดีโอ</span><span class="mb-s">Gallery</span></button>
+          </div>
+        </div>
+        <input type="file" id="photo-cam"   class="hidden-input" accept="image/*" capture="environment" onchange="handlePhotos(this)">
         <input type="file" id="photo-input" class="hidden-input" accept="image/*" multiple onchange="handlePhotos(this)">
+        <input type="file" id="video-cam"   class="hidden-input" accept="video/*" capture="environment" onchange="handleVideo(this)">
         <input type="file" id="video-input" class="hidden-input" accept="video/*" onchange="handleVideo(this)">
         <div class="photo-preview" id="photo-preview"></div>
         <div class="upload-progress" id="upload-progress">
@@ -654,7 +660,7 @@ function renderVideoPreview(objUrl){
 function clearVideo(){
   state.videoFile = null;
   document.getElementById('video-preview').innerHTML='';
-  document.getElementById('video-input').value='';
+  ['video-cam','video-input'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 }
 function selectPriority(p, el) {
   document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
