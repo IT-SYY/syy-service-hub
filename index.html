@@ -130,6 +130,10 @@
     <div class="overlay-title" id="loading-title">กำลังส่งข้อมูล...</div>
     <div class="overlay-sub" id="loading-sub">Submitting your request...</div>
     <div class="overlay-detail" id="loading-detail"></div>
+    <div id="vid-progress-wrap" style="display:none;width:210px;margin:12px auto 0">
+      <div style="background:var(--border);border-radius:5px;height:8px;overflow:hidden"><div id="vid-progress-bar" style="height:100%;background:var(--green);width:0%;transition:width .15s;border-radius:5px"></div></div>
+      <div id="vid-progress-pct" style="font-size:12px;color:var(--text-muted);margin-top:6px">0%</div>
+    </div>
   </div>
 </div>
 
@@ -326,6 +330,17 @@
         <div class="upload-bar-wrap"><div class="upload-bar" id="upload-bar"></div></div>
       </div>
     </div>
+
+    <div class="field">
+      <label>🎥 แนบวิดีโอสั้น <span class="en">Short video (optional)</span></label>
+      <div class="photo-area" onclick="document.getElementById('video-input').click()">
+        <div class="photo-icon">🎥</div>
+        <div class="photo-text">กดเพื่อถ่าย/เลือกวิดีโอ<br><strong>Tap to add a video</strong></div>
+        <div class="photo-sub">ถ่ายปัญหาที่เกิดสั้นๆ · ไม่เกิน 10 วินาที · ไฟล์ไม่เกิน 10MB 🎬</div>
+      </div>
+      <input type="file" id="video-input" class="hidden-input" accept="video/*" capture="environment" onchange="handleVideo(this)">
+      <div class="photo-preview" id="video-preview"></div>
+    </div>
   </div>
 </div>
 
@@ -358,7 +373,7 @@ const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน uploa
 
 // ===== STATE =====
 let state = {
-  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, claim_device:'', claim_model:'', claim_usage:'', claim_serial:'', priority:'low',
+  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, videoFile:null, claim_device:'', claim_model:'', claim_usage:'', claim_serial:'', priority:'low',
   building:'', room:'', description:'', department:'',
   photos:[], uploadedUrls:[],
   userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
@@ -579,6 +594,59 @@ function clearDoc(){
   document.getElementById('doc-preview').innerHTML='';
   document.getElementById('doc-input').value='';
 }
+// แนบ/ถ่ายวิดีโอสั้น — เช็คขนาด (≤10MB) + ความยาว (≤10 วิ) ก่อนเก็บ
+function handleVideo(input){
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const MAX_MB = 10, MAX_SEC = 10;
+  if (f.size > MAX_MB*1024*1024) {
+    alert('วิดีโอใหญ่เกิน '+MAX_MB+'MB ครับ\nThe video exceeds '+MAX_MB+'MB.\n\nกรุณาถ่ายสั้นลง หรือลดความละเอียดกล้อง');
+    input.value=''; return;
+  }
+  const url = URL.createObjectURL(f);
+  const probe = document.createElement('video');
+  probe.preload = 'metadata';
+  probe.onloadedmetadata = function(){
+    const dur = probe.duration;
+    if (isFinite(dur) && dur > MAX_SEC + 0.8) {   // เผื่อ 0.8 วิ
+      URL.revokeObjectURL(url);
+      alert('วิดีโอยาว '+dur.toFixed(1)+' วินาที — เกิน '+MAX_SEC+' วินาทีครับ\nVideo too long (max '+MAX_SEC+'s).\n\nกรุณาถ่ายใหม่สั้นๆ แค่ช่วงที่เห็นปัญหา');
+      input.value=''; return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(){
+      state.videoFile = {
+        name: f.name || ('video_'+Date.now()+'.mp4'),
+        mime: f.type || 'video/mp4',
+        base64: String(reader.result).split(',')[1],
+        sizeMB: (f.size/1024/1024).toFixed(1),
+        dur: isFinite(dur)?dur.toFixed(1):'?'
+      };
+      renderVideoPreview(url);
+    };
+    reader.readAsDataURL(f);
+  };
+  probe.onerror = function(){
+    URL.revokeObjectURL(url);
+    alert('ไม่สามารถอ่านไฟล์วิดีโอนี้ได้ กรุณาเลือกไฟล์อื่น');
+    input.value='';
+  };
+  probe.src = url;
+}
+function renderVideoPreview(objUrl){
+  const v = state.videoFile;
+  document.getElementById('video-preview').innerHTML =
+    '<div style="position:relative;margin-top:8px;border:1px solid #FED7AA;border-radius:10px;overflow:hidden;background:#000">'+
+    '<video src="'+objUrl+'" controls playsinline style="width:100%;max-height:220px;display:block"></video>'+
+    '<button type="button" onclick="clearVideo()" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;font-size:16px;cursor:pointer;line-height:1">×</button>'+
+    '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;padding:3px 8px">🎬 '+v.sizeMB+'MB · '+v.dur+' วิ</div>'+
+    '</div>';
+}
+function clearVideo(){
+  state.videoFile = null;
+  document.getElementById('video-preview').innerHTML='';
+  document.getElementById('video-input').value='';
+}
 function selectPriority(p, el) {
   document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
@@ -715,6 +783,41 @@ function removePhoto(idx, el) {
 
 // ===== UPLOAD PHOTOS TO DRIVE =====
 // GAS รับ Content-Type: text/plain ได้โดยไม่ต้องมี CORS preflight
+// อัปโหลดวิดีโอด้วย XHR + รายงานความคืบหน้าจริง → คืน url ('' ถ้าล้มเหลว)
+function uploadVideoXHR(vf) {
+  return new Promise(function(resolve) {
+    const wrap=document.getElementById('vid-progress-wrap');
+    const bar =document.getElementById('vid-progress-bar');
+    const pct =document.getElementById('vid-progress-pct');
+    const setPct=function(p){ if(bar)bar.style.width=p+'%'; if(pct)pct.textContent=p+'%'; };
+    if(wrap){ wrap.style.display='block'; } setPct(0);
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', GAS_URL, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain');
+    xhr.timeout = 120000; // วิดีโอใช้เวลานานกว่ารูป
+    xhr.upload.onprogress = function(e){
+      if(e.lengthComputable){ setPct(Math.min(99, Math.round(e.loaded/e.total*100))); }
+    };
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200 || xhr.status === 201) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          if (Array.isArray(data)) data = data[0];
+          var url = data.url || data.imageUrl || (data.json && (data.json.url||data.json.imageUrl)) || '';
+          setPct(100);
+          resolve(url);
+        } catch(e) { resolve(''); }
+      } else { resolve(''); }
+    };
+    xhr.ontimeout = function(){ resolve(''); };
+    xhr.onerror   = function(){ resolve(''); };
+    xhr.send(JSON.stringify({
+      action:'upload_image', skip_sheet:true, column:'video_url',
+      fileName: vf.name, mimeType: vf.mime, base64: vf.base64
+    }));
+  });
+}
 function uploadPhotoXHR(ticketId, base64, index) {
   return new Promise(function(resolve) {
     var xhr = new XMLHttpRequest();
@@ -897,7 +1000,7 @@ async function submitForm() {
   if (state.work_type === 'claim' && !state.docFile) {
     if (!confirm('⚠️ คุณยังไม่ได้แนบเอกสารส่งซ่อม/เคลม\n\nงานส่งซ่อม/เคลมควรแนบเอกสารที่อนุมัติแล้ว\nต้องการส่งโดยไม่แนบเอกสารหรือไม่?')) return;
   }
-  const ticketId  = 'TK-' + Date.now();
+  const clientRef = 'TK-' + Date.now();   // เลขชั่วคราว (กันแจ้งซ้ำ + ตั้งชื่อไฟล์รูป) — เลข Ticket จริงสร้างที่ server
   const now       = new Date();
   const thaiTime  = new Date(now.getTime() + 7*60*60*1000);
   const timestamp = thaiTime.toISOString().replace('Z','+07:00');
@@ -912,7 +1015,7 @@ async function submitForm() {
     document.getElementById('loading-title').textContent = 'กำลังอัปโหลดรูปภาพ...';
     document.getElementById('loading-sub').textContent   = 'Uploading photos...';
     try {
-      const urls = await uploadPhotos(ticketId);
+      const urls = await uploadPhotos(clientRef);
       imageUrl = urls.filter(Boolean).join(',');
       document.getElementById('loading-detail').textContent = 'อัปโหลดรูปแล้ว '+urls.length+' รูป ✅';
     } catch(e) {
@@ -935,6 +1038,27 @@ async function submitForm() {
     } catch(e){ console.error('doc upload failed:', e); }
   }
 
+  // Step 1.6: อัปโหลดวิดีโอสั้น (ถ้ามี) — มี progress จริง + ลองใหม่ถ้าล้มเหลว
+  let videoUrl = '';
+  if (state.videoFile) {
+    document.getElementById('loading-title').textContent = 'กำลังอัปโหลดวิดีโอ...';
+    document.getElementById('loading-sub').textContent   = 'Uploading video...';
+    document.getElementById('loading-detail').textContent = 'ขนาด '+state.videoFile.sizeMB+'MB · อย่าปิดหน้านี้';
+    while (true) {
+      videoUrl = await uploadVideoXHR(state.videoFile);
+      if (videoUrl) {
+        document.getElementById('loading-detail').textContent = 'อัปโหลดวิดีโอแล้ว ✅';
+        break;
+      }
+      // อัปไม่สำเร็จ → ถามผู้แจ้งชัดเจน ว่าจะลองใหม่ หรือส่งโดยไม่มีวิดีโอ
+      document.getElementById('vid-progress-wrap').style.display='none';
+      const retry = confirm('⚠️ อัปโหลดวิดีโอไม่สำเร็จ\nVideo upload failed.\n\nอาจเกิดจากสัญญาณเน็ตไม่เสถียร\n\n• กด "ตกลง" เพื่อ ลองอัปใหม่อีกครั้ง\n• กด "ยกเลิก" เพื่อ ส่งงานโดยไม่แนบวิดีโอ');
+      if (!retry) { videoUrl = ''; document.getElementById('loading-detail').textContent = 'ส่งงานโดยไม่มีวิดีโอ'; break; }
+      document.getElementById('loading-detail').textContent = 'กำลังลองอัปใหม่...';
+    }
+    document.getElementById('vid-progress-wrap').style.display='none';
+  }
+
   // Step 2: ส่ง Ticket ไป GAS พร้อม image_url
   document.getElementById('loading-title').textContent = 'กำลังส่งข้อมูล...';
   document.getElementById('loading-sub').textContent   = 'Submitting request...';
@@ -942,14 +1066,14 @@ async function submitForm() {
 
   const payload = {
     source:            'liff_form',
-    ticket_id:         ticketId,
+    client_ref:        clientRef,
     branch:            state.branch,
     reporter_dept:     state.department,
     team:              state._claimTeam || state.team,
     team_code:         state.teamCode,
     category:          state.category,
     work_type:         state.work_type || 'repair',
-    claim_stage:       state.work_type === 'claim' ? 'ส่งซ่อม' : '',
+    claim_stage:       state.work_type === 'claim' ? 'รับเรื่อง' : '',
     doc_url:           docUrl,
     priority:          state.priority,
     building:          state.building,
@@ -964,30 +1088,41 @@ async function submitForm() {
     reporter_group_id: state.groupId,
     timestamp:         timestamp,
     image_url:         imageUrl,
+    video_url:         videoUrl,
     photoCount:        state.photos.length,
   };
 
-  // ส่ง Ticket ตรงไป GAS (text/plain เลี่ยง CORS preflight)
-  fetch(GAS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ liff_data: payload })
-  }).then(r => r.json())
-    .then(d => console.log('create ticket:', d))
-    .catch(e => console.log('GAS error:', e));
+  // ส่ง Ticket ไป GAS แล้ว "รอเลขจริง" กลับมา (server สร้างเลขรันนิ่งตามสาขา+วัน)
+  let finalId = clientRef;
+  try {
+    let res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ liff_data: payload })
+    }).then(r => r.json());
+    if (Array.isArray(res)) res = res[0];
+    if (res && res.ticket_id) finalId = res.ticket_id;
+    console.log('create ticket:', res);
+  } catch (e) { console.log('GAS error:', e); }
 
-  // แสดง Success
-  setTimeout(() => {
-    document.getElementById('overlay-loading').classList.add('hidden');
-    document.getElementById('ticket-badge').textContent = ticketId;
-    window._lastTicketId = ticketId;
-    window._lastPayload = payload;
-    document.getElementById('overlay-success').classList.remove('hidden');
-  }, 1000);
+  // แสดง Success ด้วยเลข Ticket จริง
+  document.getElementById('overlay-loading').classList.add('hidden');
+  document.getElementById('ticket-badge').textContent = finalId;
+  window._lastTicketId = finalId;
+  window._lastPayload = payload;
+  document.getElementById('overlay-success').classList.remove('hidden');
 }
 
 function closeLIFF() {
-  try { liff.closeWindow(); } catch(e) { window.close(); }
+  // ในแอป LINE → ปิดหน้าต่างได้จริง
+  if (typeof liff!=='undefined' && liff.isInClient && liff.isInClient()) {
+    try { liff.closeWindow(); return; } catch(e) {}
+  }
+  // บนคอม/เบราว์เซอร์ปกติ → ลองปิดแท็บ (มักถูกบล็อกถ้าไม่ได้เปิดด้วยสคริปต์)
+  try { window.close(); } catch(e) {}
+  // ถ้าปิดแท็บไม่ได้ (ปกติบนเดสก์ท็อป) → ซ่อน popup แล้วรีเซ็ตฟอร์มให้พร้อมแจ้งใหม่
+  const ov=document.getElementById('overlay-success'); if(ov) ov.classList.add('hidden');
+  setTimeout(function(){ try{ location.reload(); }catch(e){} }, 120);
 }
 function openTracker(){
   const url='https://it-syy.github.io/syy-service-hub/tracker.html?id='+encodeURIComponent(window._lastTicketId||'');
