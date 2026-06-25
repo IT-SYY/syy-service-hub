@@ -68,6 +68,14 @@
   .photo-text{font-size:13px;color:var(--text-muted);}
   .photo-text strong{color:var(--green);}
   .photo-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+  .media-box{border:2px dashed var(--border);border-radius:12px;padding:14px;background:white;}
+  .media-btns{display:flex;gap:10px;}
+  .media-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px 8px;border:1.5px solid var(--border);border-radius:11px;background:#FAFAFA;cursor:pointer;transition:all 0.18s;font-family:inherit;}
+  .media-btn:hover,.media-btn:active{border-color:var(--green);background:var(--green-light);transform:translateY(-1px);}
+  .media-btn .mb-ic{font-size:28px;}
+  .media-btn .mb-t{font-size:13px;font-weight:600;color:var(--text);}
+  .media-btn .mb-s{font-size:10px;color:var(--text-muted);}
+  .media-hint{font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5;}
   .photo-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
   .photo-thumb-wrap{position:relative;display:inline-block;}
   .photo-thumb{width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid var(--green-mid);}
@@ -315,31 +323,32 @@
       <div class="photo-preview" id="doc-preview"></div>
     </div>
 
-    <!-- PHOTO UPLOAD -->
+    <!-- PHOTO + VIDEO UPLOAD (กรอบเดียว) -->
     <div class="field">
-      <label>📷 แนบรูปภาพ <span class="en">Photos (optional)</span></label>
-      <div class="photo-area" onclick="document.getElementById('photo-input').click()">
-        <div class="photo-icon">📷</div>
-        <div class="photo-text">กดเพื่อถ่ายรูปหรือเลือกรูป<br><strong>Tap to add photos</strong></div>
-        <div class="photo-sub">รองรับ JPG, PNG · สูงสุด 5 รูป · บีบอัดอัตโนมัติเหมือน LINE 🗜️</div>
+      <label>📎 แนบรูป / วิดีโอ <span class="en">Photos / Video (optional)</span></label>
+      <div class="media-box">
+        <div class="media-btns">
+          <button type="button" class="media-btn" onclick="document.getElementById('photo-input').click()">
+            <span class="mb-ic">📷</span>
+            <span class="mb-t">ถ่าย / เลือกรูป</span>
+            <span class="mb-s">Photos</span>
+          </button>
+          <button type="button" class="media-btn" onclick="document.getElementById('video-input').click()">
+            <span class="mb-ic">🎥</span>
+            <span class="mb-t">ถ่าย / เลือกวิดีโอ</span>
+            <span class="mb-s">Video</span>
+          </button>
+        </div>
+        <div class="media-hint">รูป: สูงสุด 5 รูป บีบอัดอัตโนมัติ 🗜️ · วิดีโอ: สั้นไม่เกิน 10 วินาที / 10MB 🎬</div>
+        <input type="file" id="photo-input" class="hidden-input" accept="image/*" multiple onchange="handlePhotos(this)">
+        <input type="file" id="video-input" class="hidden-input" accept="video/*" onchange="handleVideo(this)">
+        <div class="photo-preview" id="photo-preview"></div>
+        <div class="upload-progress" id="upload-progress">
+          <div class="upload-status" id="upload-status">กำลังเตรียมรูปภาพ...</div>
+          <div class="upload-bar-wrap"><div class="upload-bar" id="upload-bar"></div></div>
+        </div>
+        <div class="photo-preview" id="video-preview"></div>
       </div>
-      <input type="file" id="photo-input" class="hidden-input" accept="image/*" multiple onchange="handlePhotos(this)">
-      <div class="photo-preview" id="photo-preview"></div>
-      <div class="upload-progress" id="upload-progress">
-        <div class="upload-status" id="upload-status">กำลังเตรียมรูปภาพ...</div>
-        <div class="upload-bar-wrap"><div class="upload-bar" id="upload-bar"></div></div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>🎥 แนบวิดีโอสั้น <span class="en">Short video (optional)</span></label>
-      <div class="photo-area" onclick="document.getElementById('video-input').click()">
-        <div class="photo-icon">🎥</div>
-        <div class="photo-text">กดเพื่อถ่าย/เลือกวิดีโอ<br><strong>Tap to add a video</strong></div>
-        <div class="photo-sub">ถ่ายปัญหาที่เกิดสั้นๆ · ไม่เกิน 10 วินาที · ไฟล์ไม่เกิน 10MB 🎬</div>
-      </div>
-      <input type="file" id="video-input" class="hidden-input" accept="video/*" capture="environment" onchange="handleVideo(this)">
-      <div class="photo-preview" id="video-preview"></div>
     </div>
   </div>
 </div>
