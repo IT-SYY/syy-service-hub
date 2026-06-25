@@ -752,8 +752,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" id="nav-errorlog" style="display:none" onclick="openErrorLogs()"><span class="nav-icon">🩺</span><span>Error Log / Health</span></div>
     <div class="nav-sec" data-th="รายงาน" data-en="Reports">Reports</div>
     <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span><span data-th="รายงาน" data-en="Reports">รายงาน</span></div>
-    <div class="nav-item" onclick="exportPDF()"><span class="nav-icon">📄</span><span data-th="ส่งออก PDF" data-en="Export PDF">Export PDF</span></div>
-    <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">📊</span><span data-th="ส่งออก Excel" data-en="Export Excel">Export Excel</span></div>
+    <div class="nav-item" onclick="openExportModal()"><span class="nav-icon">📄</span><span data-th="ส่งออก PDF" data-en="Export PDF">Export PDF</span></div>
+    <div class="nav-item" onclick="openExportModal()"><span class="nav-icon">📊</span><span data-th="ส่งออก Excel" data-en="Export Excel">Export Excel</span></div>
     <div class="nav-sec" data-th="มุมมอง" data-en="View">มุมมอง</div>
     <div class="nav-item" onclick="toggleLang()"><span class="nav-icon">🌐</span><span id="lang-label" data-th="ภาษา: ไทย" data-en="Language: EN">ภาษา: ไทย</span></div>
     <div class="nav-item" onclick="toggleTheme()"><span class="nav-icon">🌓</span><span data-th="สลับธีมเข้ม/สว่าง" data-en="Toggle Dark/Light">สลับธีมเข้ม/สว่าง</span></div>
@@ -791,8 +791,9 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <button class="btn-tb" onclick="loadData()" title="รีเฟรช">↻<span class="btn-tb-txt"> Refresh</span></button>
       <button class="btn-tb" id="theme-btn" onclick="toggleTheme()" title="สลับธีม">🌙</button>
       <button class="btn-tb" id="tv-btn" onclick="toggleTV()" title="โหมดทีวี">📺</button>
-      <button class="btn-tb" onclick="exportPDF()" title="Export PDF">📄<span class="btn-tb-txt"> PDF</span></button>
-      <button class="btn-tb" onclick="exportExcel()" title="Export Excel">📊<span class="btn-tb-txt"> Excel</span></button>
+      <button class="btn-tb" onclick="openLeaveModal()" title="วันหยุด/ลา ของช่าง">🌴<span class="btn-tb-txt"> วันหยุด</span></button>
+      <button class="btn-tb" onclick="openExportModal()" title="Export PDF">📄<span class="btn-tb-txt"> PDF</span></button>
+      <button class="btn-tb" onclick="openExportModal()" title="Export Excel">📊<span class="btn-tb-txt"> Excel</span></button>
     </div>
   </div>
 
@@ -915,8 +916,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <button class="btn-primary" id="btn-pm-plans" style="display:none;background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openPmPlans()" data-th="🗓️ จัดการแผน PM" data-en="🗓️ Manage PM Plans">🗓️ จัดการแผน PM</button>
         <button class="btn-primary" id="btn-add-claim" style="display:none;background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="openAddClaim()" data-th="+ เพิ่มงานเคลม" data-en="+ Add Claim">+ เพิ่มงานเคลม</button>
         <button class="btn-secondary2" onclick="loadData()" data-th="↻ รีเฟรช" data-en="↻ Refresh">↻ รีเฟรช</button>
-        <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
-        <button class="btn-secondary2" onclick="exportExcel()">📊 Export Excel</button>
+        <button class="btn-primary" onclick="openExportModal()">📄 Export PDF</button>
+        <button class="btn-secondary2" onclick="openExportModal()">📊 Export Excel</button>
       </div>
       <div class="filter-bar">
         <select class="fsel" id="f-status" title="กรองสถานะ" onchange="resetTicketPage();renderTicketsPage()">
@@ -955,7 +956,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="page" id="page-history">
       <div class="tickets-toolbar">
         <div class="toolbar-ttl" data-th="📋 ประวัติงานที่เสร็จสิ้น" data-en="📋 Completed Jobs History">📋 ประวัติงานที่เสร็จสิ้น</div>
-        <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
+        <button class="btn-primary" onclick="openExportModal()">📄 Export PDF</button>
       </div>
       <div class="filter-bar">
         <select class="fsel" id="h-member" title="กรองสมาชิก" onchange="renderHistory()"><option value="all" data-th="ทุกคน" data-en="Everyone">ทุกคน</option><option>Chana</option><option>Farid</option><option>Radthaphol</option><option>Pongsakorn</option><option>Nianas</option></select>
@@ -971,7 +972,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="page" id="page-report">
       <div class="tickets-toolbar">
         <div class="toolbar-ttl">📈 รายงานสรุป</div>
-        <button class="btn-primary" onclick="exportPDF()">📄 Export PDF</button>
+        <button class="btn-primary" onclick="openExportModal()">📄 Export PDF</button>
       </div>
 
       <!-- EXECUTIVE SUMMARY (สรุปเชิงคุณภาพ สำหรับผู้บริหาร) -->
@@ -1026,9 +1027,10 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-ttl"><span data-th="🔧 มอบหมายงาน" data-en="🔧 Assign Job">🔧 มอบหมายงาน</span><button class="modal-x" onclick="closeM('m-assign')">×</button></div>
     <div class="info-box" id="m-assign-info"></div>
     <div class="modal-field"><label class="modal-lbl"><span data-th="ผู้รับหลัก" data-en="Primary Assignee">ผู้รับหลัก</span> <span style="color:var(--red)">*</span></label>
-      <select class="modal-sel" id="m-assign-member" title="เลือกผู้รับหลัก" onchange="rebuildSecondary()">
+      <select class="modal-sel" id="m-assign-member" title="เลือกผู้รับหลัก" onchange="rebuildSecondary();updateLeaveWarn()">
         <option value="" data-th="— เลือกสมาชิก —" data-en="— Select member —">— เลือกสมาชิก —</option>
       </select>
+      <div id="assign-leave-warn" style="display:none;margin-top:7px;font-size:12.5px;font-weight:600;color:#B45309;background:#FEF4E2;border:1px solid #FDE68A;border-radius:8px;padding:7px 11px"></div>
     </div>
     <div class="modal-field"><label class="modal-lbl"><span data-th="ผู้รับรอง" data-en="Secondary Assignees">ผู้รับรอง</span> <span style="color:var(--text3);font-weight:400" data-th="(เพิ่มเติม ไม่บังคับ)" data-en="(optional)">(เพิ่มเติม ไม่บังคับ)</span></label>
       <div id="m-assign-secondary" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;background:var(--bg3);border-radius:8px;padding:8px"></div>
@@ -1263,6 +1265,83 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   <button class="img-viewer-nav img-viewer-next" id="img-viewer-next" onclick="event.stopPropagation();imgViewerStep(1)">›</button>
   <div class="img-viewer-counter" id="img-viewer-counter" style="display:none"></div>
   <a class="img-viewer-link" id="img-viewer-link" href="" target="_blank" onclick="event.stopPropagation()">เปิดรูปเต็ม ↗</a>
+</div>
+
+<!-- LEAVE / DAY-OFF MODAL -->
+<div class="overlay" id="m-leaves">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-ttl"><span data-th="🌴 วันหยุด / ลา ของทีมช่าง" data-en="🌴 Team Leave / Day-off">🌴 วันหยุด / ลา ของทีมช่าง</span><button class="modal-x" onclick="closeM('m-leaves')">×</button></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1.4"><label class="modal-lbl" data-th="ช่าง" data-en="Member">ช่าง</label><select class="modal-sel" id="lv-member"></select></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ประเภท" data-en="Type">ประเภท</label>
+        <select class="modal-sel" id="lv-type"><option value="ลา" data-th="ลา" data-en="Leave">ลา</option><option value="หยุด" data-th="หยุด" data-en="Day-off">หยุด</option><option value="ลาด่วน" data-th="ลาด่วน" data-en="Urgent">ลาด่วน</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="วันที่ จาก" data-en="Date from">วันที่ จาก</label><input type="date" class="modal-sel" id="lv-from"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ถึง (วันเดียวใส่เท่ากัน)" data-en="To (same = single day)">ถึง</label><input type="date" class="modal-sel" id="lv-to"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl" data-th="หมายเหตุ" data-en="Note">หมายเหตุ</label><input class="modal-sel" id="lv-note" data-th-ph="เช่น ลากิจ, ลาป่วย, พักร้อน" data-en-ph="e.g. personal, sick, vacation" placeholder="เช่น ลากิจ, ลาป่วย, พักร้อน"></div>
+    <div class="modal-actions" style="margin-bottom:4px"><button class="btn-ok green" onclick="submitLeave()" data-th="➕ บันทึกวันหยุด" data-en="➕ Save leave">➕ บันทึกวันหยุด</button></div>
+    <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:11px">
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:9px" data-th="📋 รายการวันหยุดทั้งหมด" data-en="📋 All leave records">📋 รายการวันหยุดทั้งหมด</div>
+      <div id="lv-list" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:7px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT FILTER MODAL -->
+<div class="overlay" id="m-export">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-ttl"><span data-th="🖨️ กรองข้อมูลก่อนส่งออก" data-en="🖨️ Filter before export">🖨️ กรองข้อมูลก่อนส่งออก</span><button class="modal-x" onclick="closeM('m-export')">×</button></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="วันที่แจ้ง — จาก" data-en="Date from">วันที่แจ้ง — จาก</label><input type="date" class="modal-sel" id="ex-from" onchange="updateExportCount()"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ถึง" data-en="To">ถึง</label><input type="date" class="modal-sel" id="ex-to" onchange="updateExportCount()"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="สถานะ" data-en="Status">สถานะ</label>
+        <select class="modal-sel" id="ex-status" onchange="updateExportCount()">
+          <option value="all" data-th="ทุกสถานะ" data-en="All statuses">ทุกสถานะ</option>
+          <option value="pending" data-th="รอดำเนินการ" data-en="Pending">รอดำเนินการ</option>
+          <option value="in_progress" data-th="กำลังซ่อม" data-en="In progress">กำลังซ่อม</option>
+          <option value="done" data-th="เสร็จสิ้น" data-en="Completed">เสร็จสิ้น</option>
+          <option value="rejected" data-th="ปฏิเสธ/ยกเลิก" data-en="Rejected">ปฏิเสธ/ยกเลิก</option>
+        </select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ประเภทงาน" data-en="Work type">ประเภทงาน</label>
+        <select class="modal-sel" id="ex-worktype" onchange="updateExportCount()">
+          <option value="all" data-th="ทุกประเภท" data-en="All types">ทุกประเภท</option>
+          <option value="repair" data-th="งานซ่อมบำรุง" data-en="Repair">งานซ่อมบำรุง</option>
+          <option value="claim" data-th="งานส่งซ่อม/เคลม" data-en="Claim">งานส่งซ่อม/เคลม</option>
+          <option value="pm" data-th="งานบำรุงเชิงป้องกัน (PM)" data-en="PM">งานบำรุงเชิงป้องกัน</option>
+          <option value="project" data-th="งานโครงการ" data-en="Project">งานโครงการ</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="สาขา" data-en="Branch">สาขา</label>
+        <select class="modal-sel" id="ex-branch" onchange="updateExportCount()">
+          <option value="all" data-th="ทุกสาขา" data-en="All branches">ทุกสาขา</option>
+          <option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option>
+        </select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ทีม" data-en="Team">ทีม</label>
+        <select class="modal-sel" id="ex-team" onchange="updateExportCount()">
+          <option value="all" data-th="ทุกทีม" data-en="All teams">ทุกทีม</option>
+          <option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape &amp; Garden</option><option value="Environment">Environment</option><option value="Asset">Asset</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl" data-th="ช่างผู้รับผิดชอบ" data-en="Assignee">ช่างผู้รับผิดชอบ</label>
+      <select class="modal-sel" id="ex-assignee" onchange="updateExportCount()"><option value="all" data-th="ทุกคน" data-en="Everyone">ทุกคน</option></select>
+    </div>
+    <div id="ex-count" style="text-align:center;font-size:14px;font-weight:600;color:var(--blue);padding:8px;background:var(--bg3);border-radius:8px;margin-bottom:4px"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeM('m-export')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button>
+      <button class="btn-secondary2" onclick="doExport('excel')" data-th="📊 Excel" data-en="📊 Excel">📊 Excel</button>
+      <button class="btn-ok" onclick="doExport('pdf')" data-th="📄 PDF / พิมพ์" data-en="📄 PDF / Print">📄 PDF / พิมพ์</button>
+    </div>
+  </div>
 </div>
 
 <div id="tv-board"></div>
@@ -1617,6 +1696,74 @@ async function loadMembers(){
     if(currentPage==='technicians') renderTechGrid();
   }catch(e){ console.log('loadMembers error:',e); }
 }
+
+// ===== วันหยุด / ลา ของช่าง =====
+let leaves=[];
+async function loadLeaves(){
+  try{
+    const r=await fetch(`${BASE}/LEAVES!A2:H500?key=${API_KEY}`);
+    const d=await r.json();
+    leaves=(d.values||[]).map(row=>({
+      id:(row[0]||'').trim(), member:(row[1]||'').trim(),
+      date_from:(row[2]||'').trim(), date_to:(row[3]||row[2]||'').trim(),
+      type:(row[4]||'ลา').trim(), note:(row[5]||'').trim(),
+      created_by:(row[6]||'').trim(), created_at:(row[7]||'').trim()
+    })).filter(x=>x.id&&x.member);
+    const lm=document.getElementById('m-leaves');
+    if(lm&&lm.classList.contains('show')) renderLeaveList();
+  }catch(e){ console.log('loadLeaves error:',e); }
+}
+function todayYMD(){ const n=new Date(),p=x=>String(x).padStart(2,'0'); return n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate()); }
+// คืนข้อมูลการลาถ้าช่างคนนี้หยุดในวันที่กำหนด (ค่าเริ่มต้น = วันนี้)
+function isOnLeave(name, ymd){
+  ymd=ymd||todayYMD();
+  return leaves.find(lv=> lv.member===name && String(lv.date_from)<=ymd && String(lv.date_to||lv.date_from)>=ymd ) || null;
+}
+function leaveTagText(name){ const lv=isOnLeave(name); return lv?' · 🌴'+lv.type:''; }
+function openLeaveModal(){
+  const sel=document.getElementById('lv-member');
+  if(sel){ const names=[...new Set(allMembers.map(m=>m.name).filter(Boolean))].sort();
+    sel.innerHTML=names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join(''); }
+  const t=todayYMD();
+  const setv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  setv('lv-from',t); setv('lv-to',t); setv('lv-type','ลา'); setv('lv-note','');
+  renderLeaveList();
+  document.getElementById('m-leaves').classList.add('show');
+  loadLeaves();
+}
+function renderLeaveList(){
+  const box=document.getElementById('lv-list'); if(!box) return;
+  if(!leaves.length){ box.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:16px">'+L('ยังไม่มีการบันทึกวันหยุด','No leave records yet')+'</div>'; return; }
+  const ty=todayYMD();
+  const sorted=leaves.slice().sort((a,b)=>String(b.date_from).localeCompare(String(a.date_from)));
+  box.innerHTML=sorted.map(lv=>{
+    const active=String(lv.date_from)<=ty&&String(lv.date_to||lv.date_from)>=ty;
+    const range=lv.date_from===lv.date_to?lv.date_from:(lv.date_from+' → '+lv.date_to);
+    const tc=lv.type==='ลาด่วน'?'#DC2626':lv.type==='หยุด'?'#0EA5E9':'#F59E0B';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg3);border-radius:9px;border-left:3px solid '+tc+'">'+
+      '<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;color:var(--text)">'+esc(lv.member)+' <span style="color:'+tc+';font-size:12px">· '+esc(lv.type)+'</span>'+(active?' <span style="font-size:10px;background:'+tc+';color:#fff;padding:1px 7px;border-radius:10px">'+L('วันนี้','today')+'</span>':'')+'</div>'+
+      '<div style="font-size:12px;color:var(--text3);font-family:\'JetBrains Mono\',monospace">'+range+(lv.note?' · '+esc(lv.note):'')+'</div></div>'+
+      '<button onclick="removeLeave(\''+lv.id+'\')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;flex-shrink:0" title="'+L('ลบ','Delete')+'">🗑️</button></div>';
+  }).join('');
+}
+async function submitLeave(){
+  const member=document.getElementById('lv-member').value;
+  const from=document.getElementById('lv-from').value;
+  const to=document.getElementById('lv-to').value||from;
+  const type=document.getElementById('lv-type').value;
+  const note=document.getElementById('lv-note').value;
+  if(!member||!from){ toast(L('เลือกช่างและวันที่','Select member and date'),'⚠️','info'); return; }
+  if(to<from){ toast(L('วันที่ "ถึง" ต้องไม่ก่อนวันเริ่ม','End date is before start'),'⚠️','info'); return; }
+  const r=await gasPost({action:'add_leave',member:member,date_from:from,date_to:to,type:type,note:note,access_token:authToken()});
+  if(r.ok){ toast(L('บันทึกวันหยุดแล้ว','Leave saved'),'🌴','success'); document.getElementById('lv-note').value=''; await loadLeaves(); renderLeaveList(); }
+  else toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||''),'❌','info');
+}
+async function removeLeave(id){
+  if(!confirm(L('ลบรายการวันหยุดนี้?','Delete this leave record?'))) return;
+  const r=await gasPost({action:'delete_leave',id:id,access_token:authToken()});
+  if(r.ok){ toast(L('ลบแล้ว','Deleted'),'🗑️','info'); await loadLeaves(); renderLeaveList(); }
+  else toast(L('ลบไม่สำเร็จ','Delete failed'),'❌','info');
+}
 // ตำแหน่งงานสำรอง (ถ้า USERS ไม่มีคอลัมน์ position) — เดิม
 const POSITION_FALLBACK={'Chana':'IT Manager','Farid':'IT Project Supervisor','Radthaphol':'IT Supervisor','Pongsakorn':'IT Officer','Nianas':'IT Officer','Top':'IT Officer'};
 // คืนตำแหน่งงาน: position ในชีต > map สำรองตามชื่อ > ป้าย role
@@ -1750,6 +1897,7 @@ function enterAs(user, degraded){
   currentUser=user; userRole=user.role; userBranches=user.branches||[];
   buildBranchFilter();
   loadMembers();
+  loadLeaves();
   updateEngineeringMenu();
   const elNav=document.getElementById('nav-errorlog'); if(elNav) elNav.style.display=(userRole==='admin')?'flex':'none';
   document.body.classList.toggle('viewer', userRole==='viewer');
@@ -3245,16 +3393,29 @@ function buildAssignOptions(branch, team, current){
   let html='<option value="" data-th="— เลือกสมาชิก —" data-en="— Select member —">— เลือกสมาชิก —</option>';
   if(inBranch.length){
     html+=`<optgroup label="ช่างในสาขา ${B||'(ไม่ระบุ)'}">`;
-    inBranch.forEach(m=>{ html+=`<option value="${m.name}"${m.name===current?' selected':''}>${m.name}${idTag(m)}${m.role==='admin'?' (แอดมิน)':''}</option>`; });
+    inBranch.forEach(m=>{ html+=`<option value="${m.name}"${m.name===current?' selected':''}>${m.name}${idTag(m)}${m.role==='admin'?' (แอดมิน)':''}${leaveTagText(m.name)}</option>`; });
     html+='</optgroup>';
   }
   if(crossBranch.length){
     html+='<optgroup label="ข้ามสาขา (มอบหมายเฉพาะกิจ)">';
-    crossBranch.forEach(m=>{ const bl=m.branches.join(',')||'-'; html+=`<option value="${m.name}"${m.name===current?' selected':''}>${m.name}${idTag(m)} · ${bl}</option>`; });
+    crossBranch.forEach(m=>{ const bl=m.branches.join(',')||'-'; html+=`<option value="${m.name}"${m.name===current?' selected':''}>${m.name}${idTag(m)} · ${bl}${leaveTagText(m.name)}</option>`; });
     html+='</optgroup>';
   }
   sel.innerHTML=html;
   rebuildSecondary(current);
+  updateLeaveWarn();
+}
+// แสดงเตือนถ้าผู้รับหลักที่เลือกหยุดวันนี้ (ยังมอบหมายได้ แค่เตือน)
+function updateLeaveWarn(){
+  const el=document.getElementById('assign-leave-warn'); if(!el) return;
+  const sel=document.getElementById('m-assign-member');
+  const name=sel?sel.value:'';
+  const lv=name?isOnLeave(name):null;
+  if(lv){
+    const range=lv.date_from===lv.date_to?lv.date_from:(lv.date_from+' – '+lv.date_to);
+    el.innerHTML='🌴 '+L('ช่างคนนี้ ','')+esc(name)+' '+L('มีกำหนด','is on')+' '+esc(lv.type)+' ('+range+')'+(lv.note?' · '+esc(lv.note):'')+'<br>'+L('ยังมอบหมายได้ แต่โปรดตรวจสอบก่อน','You can still assign, but please double-check');
+    el.style.display='block';
+  } else el.style.display='none';
 }
 // สร้าง checkbox ผู้รับรอง (ไม่รวมคนที่เป็นผู้รับหลัก) — pre = ชื่อรองเดิม (comma)
 function rebuildSecondary(preChecked){
@@ -3269,9 +3430,11 @@ function rebuildSecondary(preChecked){
     const inB=m.branches.length===0||m.branches.indexOf(B)>=0;
     const tag=(m.emp_id?' ['+m.emp_id+']':'')+(inB?'':' · '+(m.branches.join(',')||'-'));
     const ck=preSet.indexOf(m.name)>=0?' checked':'';
+    const lv=isOnLeave(m.name);
+    const lvTag=lv?' <span style="color:#F59E0B;font-size:10px;font-weight:700">🌴'+esc(lv.type)+'</span>':'';
     return `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)">
       <input type="checkbox" class="assign-sec" value="${m.name}"${ck} style="accent-color:#06C755;width:16px;height:16px">
-      <span>${m.name}<span style="color:var(--text3)">${tag}</span>${inB?'':' <span style="color:var(--orange);font-size:10px">(ข้ามสาขา)</span>'}</span></label>`;
+      <span>${m.name}<span style="color:var(--text3)">${tag}</span>${lvTag}${inB?'':' <span style="color:var(--orange);font-size:10px">(ข้ามสาขา)</span>'}</span></label>`;
   }).join('');
 }
 function openAccept(id){
@@ -4018,9 +4181,86 @@ async function doDone(){
 }
 
 // ===== PRINT REPORT =====
+// ===== EXPORT FILTER (กรองข้อมูลก่อนส่งออก Excel/PDF) =====
+let exportFilter={from:'',to:'',status:'all',workType:'all',branch:'all',team:'all',assignee:'all'};
+function ymdOf_(v){ const m=String(v).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m?(m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')):''; }
+function readExportFilter_(){
+  const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
+  exportFilter={ from:g('ex-from'), to:g('ex-to'), status:g('ex-status')||'all', workType:g('ex-worktype')||'all', branch:g('ex-branch')||'all', team:g('ex-team')||'all', assignee:g('ex-assignee')||'all' };
+}
+function applyExportFilter_(list){
+  const f=exportFilter;
+  return list.filter(t=>{
+    if(f.from||f.to){ const d=ymdOf_(t.created_at); if(!d) return false; if(f.from&&d<f.from) return false; if(f.to&&d>f.to) return false; }
+    if(f.status!=='all'){
+      if(f.status==='pending'){ if(!(t.status==='pending'||t.status==='assigned')) return false; }
+      else if(t.status!==f.status) return false;
+    }
+    if(f.workType!=='all' && String(t.work_type||'repair').toLowerCase()!==f.workType) return false;
+    if(f.branch!=='all' && String(t.branch||'').toUpperCase()!==f.branch) return false;
+    if(f.team!=='all' && !(t.team===f.team||t.department===f.team)) return false;
+    if(f.assignee!=='all'){ const who=(typeof allAssignees==='function'?allAssignees(t):[t.assigned_to]).join(','); if(who.indexOf(f.assignee)<0) return false; }
+    return true;
+  });
+}
+function getExportData(){ return applyExportFilter_(tickets).slice().sort((a,c)=>dmyKey(c.created_at).localeCompare(dmyKey(a.created_at))); }
+function openExportModal(){
+  const sel=document.getElementById('ex-assignee');
+  if(sel){ const names=[...new Set(allMembers.map(m=>m.name).filter(Boolean))].sort();
+    sel.innerHTML='<option value="all">'+L('ทุกคน','Everyone')+'</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join(''); }
+  const setv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  setv('ex-branch',(currentBranch&&currentBranch!=='all')?currentBranch:'all');
+  setv('ex-team',(currentTeam&&currentTeam!=='all')?currentTeam:'all');
+  setv('ex-worktype','all'); setv('ex-status','all'); setv('ex-from',''); setv('ex-to','');
+  updateExportCount();
+  document.getElementById('m-export').classList.add('show');
+}
+function updateExportCount(){
+  readExportFilter_();
+  const n=applyExportFilter_(tickets).length;
+  const el=document.getElementById('ex-count');
+  if(el) el.textContent=L('พบ ','Found ')+n+L(' รายการตามเงื่อนไข',' matching items');
+}
+function doExport(type){
+  readExportFilter_();
+  if(applyExportFilter_(tickets).length===0){ toast(L('ไม่มีข้อมูลตามเงื่อนไขที่เลือก','No data matches the filter'),'📭','info'); return; }
+  closeM('m-export');
+  setTimeout(()=>{ if(type==='excel') exportExcel(); else exportFilteredPDF(); }, 160);
+}
+function exportFilteredPDF(){
+  let pr=document.getElementById('print-report');
+  if(!pr){ pr=document.createElement('div'); pr.id='print-report'; pr.className='print-report'; document.body.appendChild(pr); }
+  document.body.classList.remove('print-live-report');
+  pr.innerHTML=buildFilteredPDF();
+  toast(L('กำลังเตรียม PDF...','Preparing PDF...'),'📄','info');
+  setTimeout(()=>window.print(),250);
+}
+function buildFilteredPDF(){
+  const b=getExportData();
+  const now=new Date().toLocaleString('th-TH',{dateStyle:'full',timeStyle:'short'});
+  const stLbl={pending:[L('รอดำเนินการ','Pending'),'status-pending'],assigned:[L('มอบหมายแล้ว','Assigned'),'status-pending'],in_progress:[L('กำลังซ่อม','In Progress'),'status-inprog'],done:[L('เสร็จสิ้น','Completed'),'status-done'],rejected:[L('ปฏิเสธ','Rejected'),'status-pending']};
+  const nP=b.filter(t=>t.status==='pending'||t.status==='assigned').length;
+  const nI=b.filter(t=>t.status==='in_progress').length;
+  const nD=b.filter(t=>t.status==='done').length;
+  const f=exportFilter, parts=[];
+  if(f.from||f.to) parts.push(L('ช่วงวันที่ ','Date ')+(f.from||'…')+' – '+(f.to||'…'));
+  if(f.workType!=='all') parts.push({repair:L('งานซ่อม','Repair'),claim:L('งานเคลม','Claim'),pm:L('งาน PM','PM'),project:L('งานโครงการ','Project')}[f.workType]||f.workType);
+  if(f.status!=='all') parts.push((stLbl[f.status]||[f.status])[0]);
+  if(f.branch!=='all') parts.push(L('สาขา ','Branch ')+f.branch);
+  if(f.team!=='all') parts.push(f.team);
+  if(f.assignee!=='all') parts.push(L('ช่าง ','Tech ')+f.assignee);
+  const filterTxt=parts.length?parts.join(' · '):L('ทั้งหมด','All records');
+  return '<h1>🔧 SYY Service Hub — '+L('รายงานสรุปงาน','Service Report')+'</h1>'+
+    '<div class="print-sub">'+L('พิมพ์เมื่อ','Printed')+' '+now+'<br><b>'+L('เงื่อนไข','Filter')+':</b> '+filterTxt+'<br>'+L('ทั้งหมด','Total')+' '+b.length+' · '+L('รอ','Pending')+' '+nP+' · '+L('กำลังซ่อม','In Progress')+' '+nI+' · '+L('เสร็จ','Done')+' '+nD+'</div>'+
+    '<table class="print-table"><thead><tr><th>Ticket</th><th>'+L('วันที่แจ้ง','Date')+'</th><th>'+L('สาขา','Branch')+'</th><th>'+L('ประเภท','Category')+'</th><th>'+L('สถานที่','Location')+'</th><th>'+L('ผู้แจ้ง','Reporter')+'</th><th>'+L('ผู้รับงาน','Assignee')+'</th><th>'+L('สถานะ','Status')+'</th><th>'+L('เวลารวม','Total')+'</th></tr></thead><tbody>'+
+    b.map(t=>{const st=stLbl[t.status]||[t.status,''];const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim();
+      return '<tr><td>'+t.ticket_id+'</td><td>'+(t.created_at||'')+'</td><td>'+(t.branch||'-')+'</td><td>'+(t.category||'-')+'</td><td>'+(place||'-')+'</td><td>'+(t.reported_by||t.displayName||'-')+'</td><td>'+(t.assigned_to||'-')+'</td><td><span class="'+st[1]+'">'+st[0]+'</span></td><td>'+(t.duration_min?fmtMins(t.duration_min):'-')+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+
 function exportExcel(){
   if(typeof XLSX==='undefined'){ toast(L('ไลบรารียังโหลดไม่เสร็จ ลองอีกครั้ง','Library still loading, try again'),'⏳','info'); return; }
-  const b=getBase().slice().sort((a,c)=>dmyKey(c.created_at).localeCompare(dmyKey(a.created_at)));
+  const b=getExportData();
   if(!b.length){ toast(L('ไม่มีข้อมูลสำหรับ export','No data to export'),'📊','info'); return; }
   const stTh={pending:'รอดำเนินการ',assigned:'มอบหมายแล้ว',in_progress:'กำลังซ่อม',done:'เสร็จสิ้น',rejected:'ปฏิเสธ'};
   const prTh={high:'ฉุกเฉิน',med:'เร่งด่วน',low:'ปกติ'};
@@ -4057,7 +4297,12 @@ function exportExcel(){
   const sum=[
     ['รายงาน SYY Service Hub'],
     ['สร้างเมื่อ', new Date().toLocaleString('th-TH')],
-    ['ทีมที่กรอง', currentTeam==='all'?'ทุกทีม':currentTeam],
+    ['สาขาที่กรอง', exportFilter.branch==='all'?'ทุกสาขา':exportFilter.branch],
+    ['ทีมที่กรอง', exportFilter.team==='all'?'ทุกทีม':exportFilter.team],
+    ['ประเภทงาน', exportFilter.workType==='all'?'ทุกประเภท':exportFilter.workType],
+    ['สถานะ', exportFilter.status==='all'?'ทุกสถานะ':exportFilter.status],
+    ['ช่วงวันที่', (exportFilter.from||'…')+' – '+(exportFilter.to||'…')],
+    ['ช่างผู้รับผิดชอบ', exportFilter.assignee==='all'?'ทุกคน':exportFilter.assignee],
     [],
     ['สถานะ','จำนวน'],
     ['ทั้งหมด', b.length],
