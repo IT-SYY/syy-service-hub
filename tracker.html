@@ -434,6 +434,7 @@ async function loadData() {
       resolved_at:  g(r,'resolved_at'),
       duration_min: g(r,'duration_min'),
       image_url:    g(r,'image_url'),
+      video_url:    g(r,'video_url'),
       done_image_url: g(r,'done_image_url'),
       rating:       g(r,'rating'),
       notes:        g(r,'notes'),
@@ -839,6 +840,17 @@ function openDetail(id) {
       <div class="img-grid">${beforeUrls.map((u,i) =>
         `<img class="img-thumb" src="${u}" onclick="event.stopPropagation();openImgViewer(${i})" alt="รูปแจ้งงาน ${i+1}">`
       ).join('')}</div>`;
+  }
+  // วิดีโอแจ้งงาน (ฝัง Drive preview)
+  if (t.video_url && String(t.video_url).trim()) {
+    const vid = String(t.video_url).match(/\/d\/([^/]+)/);
+    if (vid) {
+      imgHtml += `<div class="timeline-title" style="margin-top:10px">${L('🎥 วิดีโอตอนแจ้งงาน','🎥 Report video')}</div>
+        <div style="position:relative;border-radius:10px;overflow:hidden;border:2px solid var(--border);max-width:340px" onclick="event.stopPropagation()">
+          <iframe src="https://drive.google.com/file/d/${vid[1]}/preview" allow="autoplay" allowfullscreen style="width:100%;height:200px;border:0;display:block"></iframe>
+        </div>
+        <a href="${t.video_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-block;margin-top:5px;font-size:12px;color:#0EA5E9;text-decoration:underline">${L('▶️ เปิดวิดีโอแบบเต็ม','▶️ Open video')}</a>`;
+    }
   }
   if (afterUrls.length) {
     imgHtml += `<div class="timeline-title" style="margin-top:10px">${L('🏁 รูปหลังปิดงาน','🏁 Completion photos')}</div>
