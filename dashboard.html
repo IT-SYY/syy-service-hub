@@ -553,6 +553,59 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-feed-item .tx{flex:1;color:#C3CEE2;}
 .tvb-feed-item .tx b{color:#EAF0FB;font-family:'JetBrains Mono',monospace;}
 .tvb-feed-item .tm{font-size:10px;color:#7A87A0;font-family:'JetBrains Mono',monospace;}
+/* ===== FUTURISTIC FX (A+B+C) ===== */
+/* A: corner brackets (HUD) */
+.tvb-card::before,.tvb-card::after{content:'';position:absolute;width:13px;height:13px;pointer-events:none;opacity:.5;transition:opacity .2s;}
+.tvb-card::before{top:7px;left:10px;border-top:2px solid var(--uc,#60A5FA);border-left:2px solid var(--uc,#60A5FA);border-top-left-radius:3px;}
+.tvb-card::after{bottom:7px;right:8px;border-bottom:2px solid var(--uc,#60A5FA);border-right:2px solid var(--uc,#60A5FA);border-bottom-right-radius:3px;}
+.tvb-card:hover::before,.tvb-card:hover::after{opacity:1;}
+/* A: progress ring (in-progress) */
+.tvb-card.has-ring{padding-right:52px;}
+.tvb-card .ring{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;background:conic-gradient(var(--uc) calc(var(--pct,0)*3.6deg),rgba(255,255,255,0.10) 0);display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px -3px var(--uc);}
+.tvb-card .ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:#111a2c;}
+.tvb-card .ring span{position:relative;font-size:9.5px;font-weight:800;font-family:'JetBrains Mono',monospace;color:#EAF0FB;}
+/* A: urgent neon breathing border */
+.tvb-card.urgent{border-color:var(--uc);animation:tvCardIn .5s both,tvUrgentGlow 1.4s ease-in-out infinite;}
+@keyframes tvUrgentGlow{0%,100%{box-shadow:0 0 0 1px var(--uc),0 0 14px -5px var(--uc);}50%{box-shadow:0 0 0 1px var(--uc),0 0 26px 1px var(--uc);}}
+/* B: ticker auto-scroll */
+.tvb-ticker .tvb-feed.run{animation:tvTicker var(--tk,26s) linear infinite;}
+.tvb-ticker:hover .tvb-feed.run{animation-play-state:paused;}
+@keyframes tvTicker{from{transform:translateY(0);}to{transform:translateY(-50%);}}
+/* B: breathing glow on column headers + panels */
+.tvb-col-h{animation:tvHeadBreathe 4.5s ease-in-out infinite;}
+@keyframes tvHeadBreathe{0%,100%{box-shadow:inset 0 -24px 30px -26px rgba(255,255,255,0.2);}50%{box-shadow:inset 0 -24px 34px -22px rgba(255,255,255,0.65);}}
+.tvb-live::after{content:'';position:absolute;}
+/* C: FX layer — scanlines + radar sweep + particles */
+#tv-fx{position:fixed;inset:0;z-index:248;pointer-events:none;display:none;overflow:hidden;}
+body.tv #tv-fx{display:block;}
+#tv-fx .scan{position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(120,160,220,0.022) 0,rgba(120,160,220,0.022) 1px,transparent 1px,transparent 4px);}
+#tv-fx .sweep{position:absolute;left:0;right:0;height:200px;top:-200px;background:linear-gradient(to bottom,transparent,rgba(96,165,250,0.07),rgba(96,165,250,0.12),transparent);animation:tvSweep 8s linear infinite;}
+@keyframes tvSweep{0%{top:-200px;}100%{top:100%;}}
+#tv-fx canvas{position:absolute;inset:0;width:100%;height:100%;}
+/* C: gauge center readout */
+.tvb-gauge .cv .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.tvb-gauge .cv .ctr b{font-family:'JetBrains Mono',monospace;font-size:27px;font-weight:800;color:#EAF0FB;line-height:1;text-shadow:0 0 14px rgba(96,165,250,0.5);}
+.tvb-gauge .cv .ctr s{font-size:9px;color:#8FA0BE;text-decoration:none;margin-top:3px;letter-spacing:.5px;}
+/* dept badge + meta */
+.tvb-card .meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
+.tvb-card .dept{font-size:10px;font-weight:700;color:#fff;background:var(--dc,#64748B);padding:1px 9px;border-radius:20px;box-shadow:0 0 10px -3px var(--dc,#64748B);white-space:nowrap;}
+/* attention ring (กระพริบเมื่อทวงถาม/อัปเดต) */
+.tvb-card .attn-ring{position:absolute;inset:0;border-radius:14px;pointer-events:none;border:2px solid transparent;}
+.tvb-card.attn .attn-ring{animation:tvAttnRing 1.1s ease-in-out infinite;}
+@keyframes tvAttnRing{0%,100%{border-color:rgba(147,197,253,0);box-shadow:none;}50%{border-color:#93C5FD;box-shadow:0 0 20px -2px rgba(147,197,253,0.75),inset 0 0 14px -6px rgba(147,197,253,0.6);}}
+/* flags (ทวงถาม / อัปเดต) */
+.tvb-flags{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+.tvb-flag{font-size:10.5px;font-weight:800;padding:2px 9px;border-radius:7px;animation:tvBlink 1s steps(1,end) infinite;}
+.ff-followup{background:rgba(248,113,113,0.18);color:#FCA5A5;border:1px solid rgba(248,113,113,0.55);}
+.ff-update{background:rgba(96,165,250,0.18);color:#93C5FD;border:1px solid rgba(96,165,250,0.55);}
+@keyframes tvBlink{0%,55%{opacity:1;}56%,100%{opacity:.2;}}
+/* pinned (งานด่วนค้างบนสุด) + flip-board scroller */
+.tvb-col-b{gap:9px;}
+.tvb-pin{display:flex;flex-direction:column;gap:9px;flex-shrink:0;position:relative;}
+.tvb-pin::after{content:'PINNED · ด่วน';position:absolute;top:-7px;right:2px;font-size:8px;font-weight:800;color:#FCA5A5;letter-spacing:1px;opacity:.7;}
+.tvb-scroll-wrap{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 10px),transparent);}
+.tvb-scroll-wrap::-webkit-scrollbar{width:0;height:0;display:none;}
+.tvb-scroll{display:flex;flex-direction:column;gap:9px;}
 /* DETAIL OVERLAY */
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
 .tvd-overlay.show{display:flex;animation:tvdFade .25s ease;}
@@ -1495,11 +1548,14 @@ function toggleTV(){
   document.body.classList.toggle('tv',on);
   if(on){
     try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}catch(e){}
+    tvKpiPrev=[];tvCntPrev=[];
+    tvBuildFX();
     renderTVBoard();
     tvClock=setInterval(updateTVClock,1000);
   }else{
     clearInterval(tvClock);tvClock=null;
-    tvLastStatus={}; tvCloseDetail();
+    tvLastStatus={};tvLastSnap={}; tvCloseDetail();
+    tvStopScrollers(); tvDestroyFX();
     ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
   }
 }
@@ -1509,6 +1565,8 @@ function updateTVClock(){
   el.textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
 }
 let tvLastStatus={}, tvDetailTimer=null;
+let tvLastSnap={}, tvKpiPrev=[], tvCntPrev=[];
+let tvScrollers=[], tvScrollRAF=null, tvScrollPaused=false, tvManualUntil=0, tvFxRAF=null;
 const TVCOL={
   pending:{cc:'#FBBF24',dim:'rgba(251,191,36,0.10)',ic:'⏳',th:'รอดำเนินการ'},
   in_progress:{cc:'#A78BFA',dim:'rgba(167,139,250,0.10)',ic:'🔄',th:'กำลังดำเนินการ'},
@@ -1533,7 +1591,68 @@ function playTvChime(){
     if(ctx.state==='suspended'){ctx.resume().then(fire).catch(fire);}else fire();
   }catch(e){}
 }
-function tvCard(t,pal,flash){
+// นับเลขวิ่งขึ้น (count-up)
+function tvCountUp(el,from,to,dur){
+  if(!el) return; from=from||0;
+  if(from===to){el.textContent=to;return;}
+  const t0=performance.now();
+  const step=now=>{
+    const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3);
+    el.textContent=Math.round(from+(to-from)*e);
+    if(k<1) requestAnimationFrame(step); else el.textContent=to;
+  };
+  requestAnimationFrame(step);
+}
+// กระดานเลื่อนอัตโนมัติแบบไฟล์บินสนามบิน
+function tvSetupScrollers(){
+  tvScrollers=[];
+  document.querySelectorAll('.tvb-scroll-wrap').forEach(wrap=>{
+    const inner=wrap.querySelector('.tvb-scroll'); if(!inner) return;
+    if(inner.scrollHeight > wrap.clientHeight + 6){
+      inner.innerHTML=inner.innerHTML+inner.innerHTML;  // ทำซ้ำเพื่อวนต่อเนื่องไร้รอยต่อ
+      wrap._half=inner.scrollHeight/2; wrap._auto=true; wrap._pos=0;
+    } else wrap._auto=false;
+    wrap._hover=false;
+    wrap.addEventListener('wheel',()=>{tvManualUntil=performance.now()+4500;},{passive:true});
+    wrap.addEventListener('touchstart',()=>{tvManualUntil=performance.now()+4500;},{passive:true});
+    wrap.addEventListener('mouseenter',()=>wrap._hover=true);
+    wrap.addEventListener('mouseleave',()=>wrap._hover=false);
+    tvScrollers.push(wrap);
+  });
+  if(!tvScrollRAF) tvScrollLoop();
+}
+function tvScrollLoop(){
+  const manual=performance.now()<tvManualUntil;
+  tvScrollers.forEach(wrap=>{
+    if(!wrap._auto||!document.body.contains(wrap)) return;
+    if(tvScrollPaused||wrap._hover||manual){ wrap._pos=wrap.scrollTop; return; }
+    wrap._pos=(wrap._pos||0)+0.5;                // สะสมเป็นทศนิยม
+    if(wrap._half&&wrap._pos>=wrap._half) wrap._pos-=wrap._half;
+    wrap.scrollTop=wrap._pos;
+  });
+  tvScrollRAF=requestAnimationFrame(tvScrollLoop);
+}
+function tvStopScrollers(){ if(tvScrollRAF){cancelAnimationFrame(tvScrollRAF);tvScrollRAF=null;} tvScrollers=[]; }
+// ชั้นเอฟเฟกต์อนาคต: scanline + radar sweep + อนุภาคลอย
+function tvBuildFX(){
+  let fx=document.getElementById('tv-fx');
+  if(!fx){ fx=document.createElement('div'); fx.id='tv-fx'; fx.innerHTML='<div class="scan"></div><div class="sweep"></div><canvas></canvas>'; document.body.appendChild(fx); }
+  const cv=fx.querySelector('canvas'), cx=cv.getContext('2d'); let W,H,ps=[];
+  const rz=()=>{W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}; rz();
+  fx._rz=rz; window.addEventListener('resize',rz);
+  const COL=['rgba(52,211,153,','rgba(96,165,250,','rgba(167,139,250,'];
+  for(let i=0;i<34;i++) ps.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.8+0.6,vx:(Math.random()-.5)*0.16,vy:-(Math.random()*0.22+0.05),a:Math.random()*0.4+0.12,c:COL[i%3]});
+  const loop=()=>{
+    cx.clearRect(0,0,W,H);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y<-6){p.y=H+6;p.x=Math.random()*W;}if(p.x<-6)p.x=W+6;if(p.x>W+6)p.x=-6;
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.283);cx.fillStyle=p.c+p.a+')';cx.shadowColor=p.c+'0.85)';cx.shadowBlur=6;cx.fill();});
+    tvFxRAF=requestAnimationFrame(loop);
+  }; loop();
+}
+function tvDestroyFX(){ if(tvFxRAF){cancelAnimationFrame(tvFxRAF);tvFxRAF=null;} const fx=document.getElementById('tv-fx'); if(fx){ if(fx._rz)window.removeEventListener('resize',fx._rz); fx.remove(); } }
+// ปลั๊กอินเรืองแสง (neon glow) ให้กราฟ
+const tvGlow={id:'tvglow',beforeDatasetsDraw(c){const g=c.config.options.plugins&&c.config.options.plugins.glowColor;if(g){c.ctx.save();c.ctx.shadowColor=g;c.ctx.shadowBlur=14;}},afterDatasetsDraw(c){if(c.config.options.plugins&&c.config.options.plugins.glowColor)c.ctx.restore();}};
+function tvCard(t,pal,flash,attn){
   const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim();
   const ref=t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
   const m=elapsedSince(ref), lt=lateLevel(m,t.priority);
@@ -1543,33 +1662,57 @@ function tvCard(t,pal,flash){
   else if(lt.level==='warn'){uc='#FBBF24';wash='rgba(251,191,36,0.15)';bd='rgba(251,191,36,0.45)';dim='rgba(251,191,36,0.30)';dot='🟠 ';}
   else {uc=pal.c;wash=pal.wash;bd=pal.bd;dim=pal.dim;dot='';}
   const who=t.assigned_to?allAssignees(t).join(', '):'ยังไม่มอบหมาย';
-  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+(flash?' flash':'');
-  return '<div class="'+cls+'" style="--uc:'+uc+';--uc-wash:'+wash+';--uc-bd:'+bd+';--uc-dim:'+dim+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
-    '<div class="edge"></div>'+
+  const dc=ticketColor(t);
+  const dept=t.team||t.department||({project:'งานโครงการ',pm:'งาน PM',claim:'งานเคลม'}[String(t.work_type||'').toLowerCase()]||'อื่นๆ');
+  const pct=parseInt(t.progress)||0;
+  const ring=(t.status==='in_progress')?'<div class="ring" style="--pct:'+pct+'"><span>'+pct+'</span></div>':'';
+  const hasFollowup=(parseInt(t.followup_count)||0)>0 && String(t.followup_ack||'').toLowerCase()!=='true' && t.status!=='done';
+  const blink=hasFollowup||attn;
+  const flags=[];
+  if(hasFollowup) flags.push('<span class="tvb-flag ff-followup">🔔 ทวงถาม'+((parseInt(t.followup_count)||0)>1?' '+(parseInt(t.followup_count)||0)+'×':'')+'</span>');
+  if(attn) flags.push('<span class="tvb-flag ff-update">📈 อัปเดต</span>');
+  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+(t.status==='in_progress'?' has-ring':'')+(blink?' attn':'')+(flash?' flash':'');
+  return '<div class="'+cls+'" style="--uc:'+uc+';--uc-wash:'+wash+';--uc-bd:'+bd+';--uc-dim:'+dim+'" data-id="'+t.ticket_id+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
+    '<div class="edge"></div>'+(blink?'<div class="attn-ring"></div>':'')+ring+
     '<div class="id">'+dot+t.ticket_id+'<span class="cat">· '+(t.category||'')+'</span></div>'+
-    '<div class="m">📍 '+(place||'-')+'</div>'+
+    '<div class="meta"><span class="dept" style="--dc:'+dc+'">'+dept+'</span><span class="m">📍 '+(place||'-')+'</span></div>'+
     '<div class="a"><span>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(showPill&&m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':(t.status==='done'&&t.rating?'<span class="pill">⭐ '+t.rating+'</span>':''))+'</div>'+
+    (flags.length?'<div class="tvb-flags">'+flags.join('')+'</div>':'')+
   '</div>';
 }
 function renderTVBoard(){
   const board=document.getElementById('tv-board'); if(!board) return;
-  const b=tickets.filter(t=>passesScope_(t));   // command center: งานทุกประเภทในขอบเขต (ไม่ขึ้นกับ inbox/followup mode)
+  const b=tickets.filter(t=>passesScope_(t) && !['project','claim'].includes(String(t.work_type||'repair').toLowerCase()));   // command center: ไม่รวมงานโครงการ/เคลม (ใช้เวลานาน ทำให้กรอบดูค้าง) — เน้นงานซ่อม/PM ที่หมุนเร็ว
   const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
   const prog=b.filter(t=>t.status==='in_progress');
   const today=(()=>{const n=new Date(),p=x=>String(x).padStart(2,'0');return p(n.getDate())+'/'+p(n.getMonth()+1)+'/'+n.getFullYear();})();
   const doneToday=b.filter(t=>t.status==='done'&&String(t.resolved_at||'').startsWith(today));
-  // ตรวจงานที่ "เพิ่งขยับสถานะ" → flash + เสียง
+  const done=b.filter(t=>t.status==='done');
+  // ตรวจงานที่ "เพิ่งขยับสถานะ/อัปเดต/ถูกทวง" → flash + กระพริบ + เสียง
   const firstTv=Object.keys(tvLastStatus).length===0;
-  const changed=new Set();
-  b.forEach(t=>{ if(!firstTv && tvLastStatus[t.ticket_id]!==undefined && tvLastStatus[t.ticket_id]!==t.status) changed.add(t.ticket_id); });
+  const changed=new Set(), attn=new Set();
+  b.forEach(t=>{
+    if(!firstTv && tvLastStatus[t.ticket_id]!==undefined && tvLastStatus[t.ticket_id]!==t.status) changed.add(t.ticket_id);
+    const pv=tvLastSnap[t.ticket_id];
+    if(pv){ const fc=parseInt(t.followup_count)||0, pg=parseInt(t.progress)||0;
+      if(fc>(pv.fc||0) || pg!==(pv.pg||0) || pv.status!==t.status) attn.add(t.ticket_id); }
+  });
   const n=new Date(),p=x=>String(x).padStart(2,'0');
-  const lim=8;
   const PAL={
     pending:{c:'#F59E0B',c2:'#FB923C',wash:'rgba(245,158,11,0.10)',bd:'rgba(245,158,11,0.30)',dim:'rgba(245,158,11,0.26)'},
     prog:   {c:'#8B5CF6',c2:'#6366F1',wash:'rgba(139,92,246,0.11)',bd:'rgba(139,92,246,0.30)',dim:'rgba(139,92,246,0.26)'},
     done:   {c:'#10B981',c2:'#059669',wash:'rgba(16,185,129,0.10)',bd:'rgba(16,185,129,0.28)',dim:'rgba(16,185,129,0.24)'}
   };
-  const mk=(list,pal)=>list.length?list.slice(0,lim).map(t=>tvCard(t,pal,changed.has(t.ticket_id))).join('')+(list.length>lim?'<div class="tvb-more">+ อีก '+(list.length-lim)+' งาน</div>':''):'<div class="tvb-empty">— ไม่มีงาน —</div>';
+  const refOf=t=>t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
+  const isUrgent=t=>t.status!=='done' && lateLevel(elapsedSince(refOf(t)),t.priority).level==='danger';
+  const card1=(t,pal)=>tvCard(t,pal,changed.has(t.ticket_id),attn.has(t.ticket_id));
+  const mk=(list,pal)=>{
+    if(!list.length) return '<div class="tvb-empty">— ไม่มีงาน —</div>';
+    const urg=list.filter(isUrgent), rest=list.filter(t=>!isUrgent(t)).slice(0,40);
+    const pinHTML=urg.length?'<div class="tvb-pin">'+urg.map(t=>card1(t,pal)).join('')+'</div>':'';
+    const inner=rest.length?rest.map(t=>card1(t,pal)).join(''):(urg.length?'':'<div class="tvb-empty">— ไม่มีงาน —</div>');
+    return pinHTML+'<div class="tvb-scroll-wrap"><div class="tvb-scroll">'+inner+'</div></div>';
+  };
   const colHTML=(pal,icon,title,list)=>
     '<div class="tvb-col" style="--cc:'+pal.c+';--cc2:'+pal.c2+';--cc-wash:'+pal.wash+';--cc-bd:'+pal.bd+'">'+
       '<div class="tvb-col-h"><span class="hl"><span class="cicon">'+icon+'</span><span class="ctitle">'+title+'</span></span><span class="ccount">'+list.length+'</span></div>'+
@@ -1596,32 +1739,42 @@ function renderTVBoard(){
       colHTML(PAL.done,'✅','เสร็จวันนี้',doneToday)+
     '</div>'+
     '<div class="tvb-side">'+
-      '<div class="tvb-panel"><div class="ttl">📊 ภาพรวมสถานะงาน</div><div class="tvb-gauge"><div class="cv"><canvas id="tv-chart-status"></canvas></div><div class="tvb-leg" id="tv-leg"></div></div></div>'+
+      '<div class="tvb-panel"><div class="ttl">📊 ภาพรวมสถานะงาน</div><div class="tvb-gauge"><div class="cv"><canvas id="tv-chart-status"></canvas><div class="ctr"><b>'+(pend.length+prog.length+done.length)+'</b><s>งานรวม</s></div></div><div class="tvb-leg" id="tv-leg"></div></div></div>'+
       '<div class="tvb-panel"><div class="ttl">📈 งานแจ้งใหม่ 7 วัน</div><div class="tvb-spark"><canvas id="tv-chart-daily"></canvas></div></div>'+
       '<div class="tvb-panel tvb-ticker"><div class="ttl">⚡ กิจกรรมล่าสุด</div><div class="tvb-feed">'+feed+'</div></div>'+
     '</div>';
-  // อัปเดตสถานะล่าสุด + เล่นเสียงถ้ามีการขยับ
-  b.forEach(t=>{ tvLastStatus[t.ticket_id]=t.status; });
+  // อัปเดตสถานะ/สแนปช็อตล่าสุด + เล่นเสียงถ้ามีการขยับ
+  b.forEach(t=>{ tvLastStatus[t.ticket_id]=t.status; tvLastSnap[t.ticket_id]={status:t.status,fc:parseInt(t.followup_count)||0,pg:parseInt(t.progress)||0}; });
   if(changed.size){ playTvChime(); }
+  // นับเลขวิ่งขึ้น (count-up) KPI + จำนวนแต่ละคอลัมน์
+  const kn=board.querySelectorAll('.tvb-kpi .n');
+  [[0,b.length],[1,pend.length],[2,prog.length],[3,doneToday.length]].forEach(([i,v])=>{ if(kn[i]) tvCountUp(kn[i],(tvKpiPrev[i]!=null?tvKpiPrev[i]:0),v,850); });
+  tvKpiPrev=[b.length,pend.length,prog.length,doneToday.length];
+  const ccs=board.querySelectorAll('.tvb-col .ccount');
+  [[0,pend.length],[1,prog.length],[2,doneToday.length]].forEach(([i,v])=>{ if(ccs[i]) tvCountUp(ccs[i],(tvCntPrev[i]!=null?tvCntPrev[i]:0),v,850); });
+  tvCntPrev=[pend.length,prog.length,doneToday.length];
+  // กระดานเลื่อนอัตโนมัติ (flip-board) — เลื่อนเฉพาะส่วนที่ล้นกรอบ งานด่วนค้างบนสุด
+  requestAnimationFrame(tvSetupScrollers);
   // กราฟ
   ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
-  const done=b.filter(t=>t.status==='done');
   const leg=document.getElementById('tv-leg');
   if(leg) leg.innerHTML=
     '<div class="row"><span class="sw" style="background:#F59E0B"></span>รอ/มอบหมาย<b>'+pend.length+'</b></div>'+
     '<div class="row"><span class="sw" style="background:#8B5CF6"></span>กำลังทำ<b>'+prog.length+'</b></div>'+
     '<div class="row"><span class="sw" style="background:#10B981"></span>เสร็จ<b>'+done.length+'</b></div>';
   charts.tvStatus=new Chart(document.getElementById('tv-chart-status').getContext('2d'),{
-    type:'doughnut',
+    type:'doughnut',plugins:[tvGlow],
     data:{labels:['รอ','กำลังทำ','เสร็จ'],datasets:[{data:[pend.length,prog.length,done.length],backgroundColor:['#F59E0B','#8B5CF6','#10B981'],borderWidth:0,hoverOffset:6}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'66%',animation:{animateRotate:true,duration:900},plugins:{legend:{display:false}}}
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',animation:{animateRotate:true,duration:900},plugins:{legend:{display:false},glowColor:'rgba(255,255,255,0.35)'}}
   });
   const days=[],cnts=[];
   for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();days.push(ds.slice(0,5));cnts.push(b.filter(t=>String(t.created_at||'').startsWith(ds)).length);}
-  charts.tvDaily=new Chart(document.getElementById('tv-chart-daily').getContext('2d'),{
-    type:'line',
-    data:{labels:days,datasets:[{data:cnts,borderColor:'#60A5FA',backgroundColor:'rgba(96,165,250,0.14)',fill:true,tension:0.42,pointBackgroundColor:'#60A5FA',pointRadius:3,borderWidth:2.5}]},
-    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900},plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7A87A0',font:{family:'Prompt',size:11}},grid:{display:false}},y:{ticks:{color:'#7A87A0',stepSize:1},grid:{color:'rgba(122,135,160,0.10)'}}}}
+  const dctx=document.getElementById('tv-chart-daily').getContext('2d');
+  const grd=dctx.createLinearGradient(0,0,0,160);grd.addColorStop(0,'rgba(96,165,250,0.45)');grd.addColorStop(1,'rgba(96,165,250,0.02)');
+  charts.tvDaily=new Chart(dctx,{
+    type:'line',plugins:[tvGlow],
+    data:{labels:days,datasets:[{data:cnts,borderColor:'#7DD3FC',backgroundColor:grd,fill:true,tension:0.42,pointBackgroundColor:'#7DD3FC',pointBorderColor:'#fff',pointBorderWidth:1,pointRadius:3.5,borderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900},plugins:{legend:{display:false},glowColor:'rgba(125,211,252,0.7)'},scales:{x:{ticks:{color:'#7A87A0',font:{family:'Prompt',size:11}},grid:{display:false}},y:{ticks:{color:'#7A87A0',stepSize:1},grid:{color:'rgba(122,135,160,0.10)'}}}}
   });
 }
 // สร้างฟีดกิจกรรมล่าสุดจาก timestamp งาน
@@ -1677,12 +1830,14 @@ function tvShowDetail(id){
     (img?'<img class="tvd-img" src="'+img+'" alt="รูป">':'')+
     '<div class="tvd-tl"><div class="hh">📋 ไทม์ไลน์งาน</div>'+(tlHtml||'<div class="tc" style="color:#7A87A0">ยังไม่มีบันทึก</div>')+'</div>';
   ov.classList.add('show');
+  tvScrollPaused=true;
   clearTimeout(tvDetailTimer);
   tvDetailTimer=setTimeout(tvCloseDetail,15000); // ปิดเองใน 15 วิ (จอไม่มีคนเฝ้า)
 }
 function tvCloseDetail(e){
   if(e&&e.target&&e.target.id!=='tvd-overlay'&&!(e.target.classList&&e.target.classList.contains('tvd-close'))) return;
   const ov=document.getElementById('tvd-overlay'); if(ov) ov.classList.remove('show');
+  tvScrollPaused=false;
   clearTimeout(tvDetailTimer);
 }
 document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement&&document.body.classList.contains('tv')) toggleTV(); });
