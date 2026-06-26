@@ -606,6 +606,10 @@ body.tv #tv-fx{display:block;}
 .tvb-scroll-wrap{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 10px),transparent);}
 .tvb-scroll-wrap::-webkit-scrollbar{width:0;height:0;display:none;}
 .tvb-scroll{display:flex;flex-direction:column;gap:9px;}
+/* งานระยะยาว (โครงการ/เคลม) — ไม่เน้น จางลง อยู่ท้าย */
+.tvb-card.tvb-low{opacity:.72;filter:saturate(.85);}
+.tvb-card.tvb-low:hover{opacity:1;filter:none;}
+.tvb-longtag{font-size:9px;font-weight:700;color:#94A3B8;background:rgba(148,163,184,0.14);border:1px solid rgba(148,163,184,0.3);padding:1px 7px;border-radius:6px;margin-left:6px;white-space:nowrap;}
 /* DETAIL OVERLAY */
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
 .tvd-overlay.show{display:flex;animation:tvdFade .25s ease;}
@@ -1671,10 +1675,12 @@ function tvCard(t,pal,flash,attn){
   const flags=[];
   if(hasFollowup) flags.push('<span class="tvb-flag ff-followup">🔔 ทวงถาม'+((parseInt(t.followup_count)||0)>1?' '+(parseInt(t.followup_count)||0)+'×':'')+'</span>');
   if(attn) flags.push('<span class="tvb-flag ff-update">📈 อัปเดต</span>');
-  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+(t.status==='in_progress'?' has-ring':'')+(blink?' attn':'')+(flash?' flash':'');
+  const isLongJob=['project','claim'].includes(String(t.work_type||'').toLowerCase());
+  const longTag=isLongJob?'<span class="tvb-longtag">'+(String(t.work_type).toLowerCase()==='project'?'📁 โครงการ':'📦 เคลม')+'</span>':'';
+  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+(t.status==='in_progress'?' has-ring':'')+(blink?' attn':'')+(isLongJob?' tvb-low':'')+(flash?' flash':'');
   return '<div class="'+cls+'" style="--uc:'+uc+';--uc-wash:'+wash+';--uc-bd:'+bd+';--uc-dim:'+dim+'" data-id="'+t.ticket_id+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
     '<div class="edge"></div>'+(blink?'<div class="attn-ring"></div>':'')+ring+
-    '<div class="id">'+dot+t.ticket_id+'<span class="cat">· '+(t.category||'')+'</span></div>'+
+    '<div class="id">'+dot+t.ticket_id+'<span class="cat">· '+(t.category||'')+'</span>'+longTag+'</div>'+
     '<div class="meta"><span class="dept" style="--dc:'+dc+'">'+dept+'</span><span class="m">📍 '+(place||'-')+'</span></div>'+
     '<div class="a"><span>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(showPill&&m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':(t.status==='done'&&t.rating?'<span class="pill">⭐ '+t.rating+'</span>':''))+'</div>'+
     (flags.length?'<div class="tvb-flags">'+flags.join('')+'</div>':'')+
@@ -1682,7 +1688,7 @@ function tvCard(t,pal,flash,attn){
 }
 function renderTVBoard(){
   const board=document.getElementById('tv-board'); if(!board) return;
-  const b=tickets.filter(t=>passesScope_(t) && !['project','claim'].includes(String(t.work_type||'repair').toLowerCase()));   // command center: ไม่รวมงานโครงการ/เคลม (ใช้เวลานาน ทำให้กรอบดูค้าง) — เน้นงานซ่อม/PM ที่หมุนเร็ว
+  const b=tickets.filter(t=>passesScope_(t));   // command center: ดึงทุกประเภท — แต่งานโครงการ/เคลมจะถูกจัดไปท้ายและไม่ pin (เป็นงานระยะยาว ไม่เน้น)
   const pend=b.filter(t=>t.status==='pending'||t.status==='assigned');
   const prog=b.filter(t=>t.status==='in_progress');
   const today=(()=>{const n=new Date(),p=x=>String(x).padStart(2,'0');return p(n.getDate())+'/'+p(n.getMonth()+1)+'/'+n.getFullYear();})();
@@ -1704,13 +1710,16 @@ function renderTVBoard(){
     done:   {c:'#10B981',c2:'#059669',wash:'rgba(16,185,129,0.10)',bd:'rgba(16,185,129,0.28)',dim:'rgba(16,185,129,0.24)'}
   };
   const refOf=t=>t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
-  const isUrgent=t=>t.status!=='done' && lateLevel(elapsedSince(refOf(t)),t.priority).level==='danger';
+  const isLong=t=>['project','claim'].includes(String(t.work_type||'repair').toLowerCase());   // งานระยะยาว: โครงการ/เคลม
+  const isUrgent=t=>t.status!=='done' && !isLong(t) && lateLevel(elapsedSince(refOf(t)),t.priority).level==='danger';   // งานระยะยาวไม่ pin
   const card1=(t,pal)=>tvCard(t,pal,changed.has(t.ticket_id),attn.has(t.ticket_id));
   const mk=(list,pal)=>{
     if(!list.length) return '<div class="tvb-empty">— ไม่มีงาน —</div>';
-    const urg=list.filter(isUrgent), rest=list.filter(t=>!isUrgent(t)).slice(0,40);
+    const urg=list.filter(isUrgent);
+    const rest=list.filter(t=>!isUrgent(t));
+    const ordered=rest.filter(t=>!isLong(t)).concat(rest.filter(isLong)).slice(0,40);   // งานปกติก่อน · งานระยะยาวไปท้ายเสมอ
     const pinHTML=urg.length?'<div class="tvb-pin">'+urg.map(t=>card1(t,pal)).join('')+'</div>':'';
-    const inner=rest.length?rest.map(t=>card1(t,pal)).join(''):(urg.length?'':'<div class="tvb-empty">— ไม่มีงาน —</div>');
+    const inner=ordered.length?ordered.map(t=>card1(t,pal)).join(''):(urg.length?'':'<div class="tvb-empty">— ไม่มีงาน —</div>');
     return pinHTML+'<div class="tvb-scroll-wrap"><div class="tvb-scroll">'+inner+'</div></div>';
   };
   const colHTML=(pal,icon,title,list)=>
