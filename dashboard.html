@@ -606,10 +606,14 @@ body.tv #tv-fx{display:block;}
 .tvb-scroll-wrap{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 10px),transparent);}
 .tvb-scroll-wrap::-webkit-scrollbar{width:0;height:0;display:none;}
 .tvb-scroll{display:flex;flex-direction:column;gap:9px;}
-/* งานระยะยาว (โครงการ/เคลม) — ไม่เน้น จางลง อยู่ท้าย */
-.tvb-card.tvb-low{opacity:.72;filter:saturate(.85);}
-.tvb-card.tvb-low:hover{opacity:1;filter:none;}
-.tvb-longtag{font-size:9px;font-weight:700;color:#94A3B8;background:rgba(148,163,184,0.14);border:1px solid rgba(148,163,184,0.3);padding:1px 7px;border-radius:6px;margin-left:6px;white-space:nowrap;}
+/* งานระยะยาว (โครงการ/เคลม) — ไม่เน้น: กะทัดรัด เงียบ อยู่ท้าย */
+.tvb-card .id .tid{white-space:nowrap;}
+.tvb-card.tvb-low{opacity:.58;padding:8px 12px 8px 16px;}
+.tvb-card.tvb-low:hover{opacity:1;}
+.tvb-card.tvb-low .cat{display:none;}            /* ซ่อนหมวดหมู่ ให้กะทัดรัด (ดูเต็มตอนแตะ) */
+.tvb-card.tvb-low .meta{margin-top:3px;}
+.tvb-card.tvb-low::before,.tvb-card.tvb-low::after{display:none;}  /* ไม่มี corner bracket */
+.dept-low{background:rgba(148,163,184,0.16)!important;color:#9FB0C4!important;box-shadow:none!important;font-weight:600!important;}
 /* DETAIL OVERLAY */
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
 .tvd-overlay.show{display:flex;animation:tvdFade .25s ease;}
@@ -1669,19 +1673,21 @@ function tvCard(t,pal,flash,attn){
   const dc=ticketColor(t);
   const dept=t.team||t.department||({project:'งานโครงการ',pm:'งาน PM',claim:'งานเคลม'}[String(t.work_type||'').toLowerCase()]||'อื่นๆ');
   const pct=parseInt(t.progress)||0;
-  const ring=(t.status==='in_progress')?'<div class="ring" style="--pct:'+pct+'"><span>'+pct+'</span></div>':'';
+  const isLongJob=['project','claim'].includes(String(t.work_type||'').toLowerCase());
+  const ring=(t.status==='in_progress'&&!isLongJob)?'<div class="ring" style="--pct:'+pct+'"><span>'+pct+'</span></div>':'';
   const hasFollowup=(parseInt(t.followup_count)||0)>0 && String(t.followup_ack||'').toLowerCase()!=='true' && t.status!=='done';
   const blink=hasFollowup||attn;
   const flags=[];
   if(hasFollowup) flags.push('<span class="tvb-flag ff-followup">🔔 ทวงถาม'+((parseInt(t.followup_count)||0)>1?' '+(parseInt(t.followup_count)||0)+'×':'')+'</span>');
   if(attn) flags.push('<span class="tvb-flag ff-update">📈 อัปเดต</span>');
-  const isLongJob=['project','claim'].includes(String(t.work_type||'').toLowerCase());
-  const longTag=isLongJob?'<span class="tvb-longtag">'+(String(t.work_type).toLowerCase()==='project'?'📁 โครงการ':'📦 เคลม')+'</span>':'';
-  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+(t.status==='in_progress'?' has-ring':'')+(blink?' attn':'')+(isLongJob?' tvb-low':'')+(flash?' flash':'');
+  const deptHtml=isLongJob
+    ? '<span class="dept dept-low">'+(String(t.work_type).toLowerCase()==='project'?'📁 โครงการ':'📦 เคลม')+'</span>'
+    : '<span class="dept" style="--dc:'+dc+'">'+dept+'</span>';
+  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+((t.status==='in_progress'&&!isLongJob)?' has-ring':'')+(blink?' attn':'')+(isLongJob?' tvb-low':'')+(flash?' flash':'');
   return '<div class="'+cls+'" style="--uc:'+uc+';--uc-wash:'+wash+';--uc-bd:'+bd+';--uc-dim:'+dim+'" data-id="'+t.ticket_id+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
     '<div class="edge"></div>'+(blink?'<div class="attn-ring"></div>':'')+ring+
-    '<div class="id">'+dot+t.ticket_id+'<span class="cat">· '+(t.category||'')+'</span>'+longTag+'</div>'+
-    '<div class="meta"><span class="dept" style="--dc:'+dc+'">'+dept+'</span><span class="m">📍 '+(place||'-')+'</span></div>'+
+    '<div class="id"><span class="tid">'+dot+t.ticket_id+'</span><span class="cat">· '+(t.category||'')+'</span></div>'+
+    '<div class="meta">'+deptHtml+'<span class="m">📍 '+(place||'-')+'</span></div>'+
     '<div class="a"><span>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(showPill&&m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':(t.status==='done'&&t.rating?'<span class="pill">⭐ '+t.rating+'</span>':''))+'</div>'+
     (flags.length?'<div class="tvb-flags">'+flags.join('')+'</div>':'')+
   '</div>';
