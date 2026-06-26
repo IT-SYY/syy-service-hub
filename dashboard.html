@@ -495,9 +495,11 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-brand .tt{font-size:19px;font-weight:700;letter-spacing:.3px;}
 .tvb-brand .ss{font-size:11px;color:#8FA0BE;}
 .tvb-kpis{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-.tvb-kpi{position:relative;border-radius:16px;padding:12px 18px;display:flex;flex-direction:column;justify-content:center;gap:3px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(8px);}
-.tvb-kpi .bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--kc,#60A5FA);box-shadow:0 0 14px var(--kc,#60A5FA);}
-.tvb-kpi .n{font-size:40px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;color:var(--kc,#EAF0FB);}
+.tvb-kpi{position:relative;border-radius:18px;padding:12px 18px;display:flex;align-items:center;gap:14px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.09);backdrop-filter:blur(8px);}
+.tvb-kpi::after{content:'';position:absolute;right:-28px;top:-28px;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle,var(--kc,#60A5FA),transparent 70%);opacity:.20;pointer-events:none;}
+.tvb-kpi .kic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;background:var(--kc-dim,rgba(96,165,250,0.16));border:1px solid var(--kc,#60A5FA);box-shadow:0 0 16px -3px var(--kc,#60A5FA);flex-shrink:0;z-index:1;}
+.tvb-kpi .kt{display:flex;flex-direction:column;gap:2px;z-index:1;}
+.tvb-kpi .n{font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;color:var(--kc,#EAF0FB);}
 .tvb-kpi .l{font-size:12px;color:#9AABC6;font-weight:500;}
 .tvb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(8px);}
 .tvb-clock .t{font-size:34px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;letter-spacing:1px;}
@@ -507,21 +509,23 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 @keyframes tvPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.7);}}
 /* FLOW */
 .tvb-flow{grid-area:flow;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;min-height:0;}
-.tvb-col{display:flex;flex-direction:column;min-height:0;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(6px);position:relative;}
-.tvb-col-h{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.06);background:linear-gradient(90deg,var(--cc-dim,transparent),transparent);}
-.tvb-col-h .hl{display:flex;align-items:center;gap:9px;}
-.tvb-col-h .dotled{width:9px;height:9px;border-radius:50%;background:var(--cc,#60A5FA);box-shadow:0 0 10px var(--cc,#60A5FA);}
-.tvb-col-h .c{font-family:'JetBrains Mono',monospace;font-size:25px;font-weight:800;color:var(--cc,#fff);min-width:34px;text-align:right;}
+.tvb-col{display:flex;flex-direction:column;min-height:0;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,var(--cc-wash,rgba(255,255,255,0.03)),rgba(255,255,255,0.008));border:1px solid var(--cc-bd,rgba(255,255,255,0.08));box-shadow:0 22px 46px -28px var(--cc,#000),inset 0 1px 0 rgba(255,255,255,0.04);position:relative;}
+.tvb-col-h{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;color:#fff;background:linear-gradient(135deg,var(--cc,#60A5FA),var(--cc2,var(--cc,#60A5FA)));position:relative;overflow:hidden;}
+.tvb-col-h::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.20),transparent 55%);pointer-events:none;}
+.tvb-col-h .hl{display:flex;align-items:center;gap:11px;z-index:1;}
+.tvb-col-h .cicon{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.24);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.tvb-col-h .ctitle{font-size:16px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 4px rgba(0,0,0,0.28);}
+.tvb-col-h .ccount{z-index:1;font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:800;color:#fff;background:rgba(0,0,0,0.26);padding:2px 14px;border-radius:30px;min-width:32px;text-align:center;}
 .tvb-col-b{padding:11px;display:flex;flex-direction:column;gap:9px;overflow:hidden;flex:1;min-height:0;}
-.tvb-card{position:relative;border-radius:13px;padding:11px 13px 11px 17px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);transition:transform .18s ease,box-shadow .18s ease,border-color .18s;animation:tvCardIn .5s cubic-bezier(.2,.8,.2,1) both;}
+.tvb-card{position:relative;border-radius:14px;padding:11px 13px 11px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,var(--uc-wash,rgba(255,255,255,0.06)),rgba(255,255,255,0.015));border:1px solid var(--uc-bd,rgba(255,255,255,0.09));transition:transform .18s ease,box-shadow .18s ease,border-color .18s;animation:tvCardIn .5s cubic-bezier(.2,.8,.2,1) both;}
 .tvb-card:active{transform:scale(.97);}
-.tvb-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px -12px rgba(0,0,0,0.65);border-color:rgba(255,255,255,0.18);}
+.tvb-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px -14px var(--uc,#60A5FA);border-color:var(--uc,#60A5FA);}
 .tvb-card .edge{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--uc,#60A5FA);box-shadow:0 0 12px var(--uc,#60A5FA);}
 .tvb-card .id{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#EAF0FB;display:flex;align-items:center;gap:6px;}
 .tvb-card .cat{font-weight:400;color:#94A3B8;font-size:12px;}
 .tvb-card .m{font-size:13px;color:#C3CEE2;margin-top:3px;font-weight:500;}
 .tvb-card .a{font-size:12px;color:#8FA0BE;margin-top:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-.tvb-card .pill{font-size:11px;font-weight:700;padding:1px 9px;border-radius:20px;background:var(--uc-dim,rgba(96,165,250,0.18));color:var(--uc,#60A5FA);}
+.tvb-card .pill{font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:var(--uc-dim,rgba(96,165,250,0.20));color:#fff;}
 @keyframes tvCardIn{from{opacity:0;transform:translateY(14px) scale(.96);}to{opacity:1;transform:none;}}
 .tvb-card.urgent .edge{animation:tvEdgePulse 1.1s ease-in-out infinite;}
 @keyframes tvEdgePulse{0%,100%{box-shadow:0 0 10px var(--uc);}50%{box-shadow:0 0 24px var(--uc),0 0 6px var(--uc);}}
@@ -1529,20 +1533,22 @@ function playTvChime(){
     if(ctx.state==='suspended'){ctx.resume().then(fire).catch(fire);}else fire();
   }catch(e){}
 }
-function tvCard(t,colColor,flash){
+function tvCard(t,pal,flash){
   const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim();
   const ref=t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
   const m=elapsedSince(ref), lt=lateLevel(m,t.priority);
-  const uc=lt.level==='danger'?'#F87171':lt.level==='warn'?'#FBBF24':colColor;
-  const ucDim=lt.level==='danger'?'rgba(248,113,113,0.16)':lt.level==='warn'?'rgba(251,191,36,0.16)':'rgba(255,255,255,0.10)';
-  const dot=lt.level==='danger'?'🔴 ':lt.level==='warn'?'🟠 ':'';
+  let uc,wash,bd,dim,dot,showPill=true;
+  if(t.status==='done'){uc=pal.c;wash=pal.wash;bd=pal.bd;dim=pal.dim;dot='';showPill=false;}
+  else if(lt.level==='danger'){uc='#F87171';wash='rgba(248,113,113,0.16)';bd='rgba(248,113,113,0.50)';dim='rgba(248,113,113,0.32)';dot='🔴 ';}
+  else if(lt.level==='warn'){uc='#FBBF24';wash='rgba(251,191,36,0.15)';bd='rgba(251,191,36,0.45)';dim='rgba(251,191,36,0.30)';dot='🟠 ';}
+  else {uc=pal.c;wash=pal.wash;bd=pal.bd;dim=pal.dim;dot='';}
   const who=t.assigned_to?allAssignees(t).join(', '):'ยังไม่มอบหมาย';
-  const cls='tvb-card'+(lt.level==='danger'?' urgent':'')+(flash?' flash':'');
-  return '<div class="'+cls+'" style="--uc:'+uc+';--uc-dim:'+ucDim+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
+  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+(flash?' flash':'');
+  return '<div class="'+cls+'" style="--uc:'+uc+';--uc-wash:'+wash+';--uc-bd:'+bd+';--uc-dim:'+dim+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
     '<div class="edge"></div>'+
     '<div class="id">'+dot+t.ticket_id+'<span class="cat">· '+(t.category||'')+'</span></div>'+
     '<div class="m">📍 '+(place||'-')+'</div>'+
-    '<div class="a"><span>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':'')+'</div>'+
+    '<div class="a"><span>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(showPill&&m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':(t.status==='done'&&t.rating?'<span class="pill">⭐ '+t.rating+'</span>':''))+'</div>'+
   '</div>';
 }
 function renderTVBoard(){
@@ -1558,26 +1564,36 @@ function renderTVBoard(){
   b.forEach(t=>{ if(!firstTv && tvLastStatus[t.ticket_id]!==undefined && tvLastStatus[t.ticket_id]!==t.status) changed.add(t.ticket_id); });
   const n=new Date(),p=x=>String(x).padStart(2,'0');
   const lim=8;
-  const mk=(list,cc)=>list.length?list.slice(0,lim).map(t=>tvCard(t,cc,changed.has(t.ticket_id))).join('')+(list.length>lim?'<div class="tvb-more">+ อีก '+(list.length-lim)+' งาน</div>':''):'<div class="tvb-empty">— ไม่มีงาน —</div>';
+  const PAL={
+    pending:{c:'#F59E0B',c2:'#FB923C',wash:'rgba(245,158,11,0.10)',bd:'rgba(245,158,11,0.30)',dim:'rgba(245,158,11,0.26)'},
+    prog:   {c:'#8B5CF6',c2:'#6366F1',wash:'rgba(139,92,246,0.11)',bd:'rgba(139,92,246,0.30)',dim:'rgba(139,92,246,0.26)'},
+    done:   {c:'#10B981',c2:'#059669',wash:'rgba(16,185,129,0.10)',bd:'rgba(16,185,129,0.28)',dim:'rgba(16,185,129,0.24)'}
+  };
+  const mk=(list,pal)=>list.length?list.slice(0,lim).map(t=>tvCard(t,pal,changed.has(t.ticket_id))).join('')+(list.length>lim?'<div class="tvb-more">+ อีก '+(list.length-lim)+' งาน</div>':''):'<div class="tvb-empty">— ไม่มีงาน —</div>';
+  const colHTML=(pal,icon,title,list)=>
+    '<div class="tvb-col" style="--cc:'+pal.c+';--cc2:'+pal.c2+';--cc-wash:'+pal.wash+';--cc-bd:'+pal.bd+'">'+
+      '<div class="tvb-col-h"><span class="hl"><span class="cicon">'+icon+'</span><span class="ctitle">'+title+'</span></span><span class="ccount">'+list.length+'</span></div>'+
+      '<div class="tvb-col-b">'+mk(list,pal)+'</div>'+
+    '</div>';
   // KPI
-  const kc=(v,c,l)=>'<div class="tvb-kpi" style="--kc:'+c+'"><div class="bar"></div><div class="n">'+v+'</div><div class="l">'+l+'</div></div>';
+  const kc=(v,c,cdim,ic,l)=>'<div class="tvb-kpi" style="--kc:'+c+';--kc-dim:'+cdim+'"><div class="kic">'+ic+'</div><div class="kt"><div class="n">'+v+'</div><div class="l">'+l+'</div></div></div>';
   // ฟีดกิจกรรมล่าสุด
   const feed=buildTvFeed(b).slice(0,7).map(f=>'<div class="tvb-feed-item" style="--fc:'+f.c+'"><span class="ic">'+f.ic+'</span><span class="tx">'+f.tx+'</span><span class="tm">'+f.tm+'</span></div>').join('')||'<div class="tvb-empty" style="padding:10px">ยังไม่มีกิจกรรม</div>';
   board.innerHTML=
     '<div class="tvb-head">'+
       '<div class="tvb-brand"><div class="tvb-logo">🛠️</div><div><div class="tt">SYY Service Hub</div><div class="ss">ศูนย์ควบคุมงานซ่อมบำรุง · Operations Center</div></div></div>'+
       '<div class="tvb-kpis">'+
-        kc(b.length,'#60A5FA','งานทั้งหมด')+
-        kc(pend.length,'#FBBF24','รอดำเนินการ')+
-        kc(prog.length,'#A78BFA','กำลังดำเนินการ')+
-        kc(doneToday.length,'#34D399','เสร็จวันนี้')+
+        kc(b.length,'#60A5FA','rgba(96,165,250,0.16)','🎫','งานทั้งหมด')+
+        kc(pend.length,'#F59E0B','rgba(245,158,11,0.16)','⏳','รอดำเนินการ')+
+        kc(prog.length,'#8B5CF6','rgba(139,92,246,0.16)','🔄','กำลังดำเนินการ')+
+        kc(doneToday.length,'#10B981','rgba(16,185,129,0.16)','✅','เสร็จวันนี้')+
       '</div>'+
       '<div class="tvb-clock"><div class="t" id="tvb-time">'+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())+'</div><div class="d">'+today+' <span class="tvb-live">LIVE</span></div></div>'+
     '</div>'+
     '<div class="tvb-flow">'+
-      '<div class="tvb-col" style="--cc:#FBBF24;--cc-dim:rgba(251,191,36,0.12)"><div class="tvb-col-h" style="color:#FBBF24"><span class="hl"><span class="dotled"></span>⏳ รอดำเนินการ</span><span class="c">'+pend.length+'</span></div><div class="tvb-col-b">'+mk(pend,'#FBBF24')+'</div></div>'+
-      '<div class="tvb-col" style="--cc:#A78BFA;--cc-dim:rgba(167,139,250,0.12)"><div class="tvb-col-h" style="color:#A78BFA"><span class="hl"><span class="dotled"></span>🔄 กำลังดำเนินการ</span><span class="c">'+prog.length+'</span></div><div class="tvb-col-b">'+mk(prog,'#A78BFA')+'</div></div>'+
-      '<div class="tvb-col" style="--cc:#34D399;--cc-dim:rgba(52,211,153,0.12)"><div class="tvb-col-h" style="color:#34D399"><span class="hl"><span class="dotled"></span>✅ เสร็จวันนี้</span><span class="c">'+doneToday.length+'</span></div><div class="tvb-col-b">'+mk(doneToday,'#34D399')+'</div></div>'+
+      colHTML(PAL.pending,'⏳','รอดำเนินการ',pend)+
+      colHTML(PAL.prog,'🔄','กำลังดำเนินการ',prog)+
+      colHTML(PAL.done,'✅','เสร็จวันนี้',doneToday)+
     '</div>'+
     '<div class="tvb-side">'+
       '<div class="tvb-panel"><div class="ttl">📊 ภาพรวมสถานะงาน</div><div class="tvb-gauge"><div class="cv"><canvas id="tv-chart-status"></canvas></div><div class="tvb-leg" id="tv-leg"></div></div></div>'+
@@ -1592,12 +1608,12 @@ function renderTVBoard(){
   const done=b.filter(t=>t.status==='done');
   const leg=document.getElementById('tv-leg');
   if(leg) leg.innerHTML=
-    '<div class="row"><span class="sw" style="background:#FBBF24"></span>รอ/มอบหมาย<b>'+pend.length+'</b></div>'+
-    '<div class="row"><span class="sw" style="background:#A78BFA"></span>กำลังทำ<b>'+prog.length+'</b></div>'+
-    '<div class="row"><span class="sw" style="background:#34D399"></span>เสร็จ<b>'+done.length+'</b></div>';
+    '<div class="row"><span class="sw" style="background:#F59E0B"></span>รอ/มอบหมาย<b>'+pend.length+'</b></div>'+
+    '<div class="row"><span class="sw" style="background:#8B5CF6"></span>กำลังทำ<b>'+prog.length+'</b></div>'+
+    '<div class="row"><span class="sw" style="background:#10B981"></span>เสร็จ<b>'+done.length+'</b></div>';
   charts.tvStatus=new Chart(document.getElementById('tv-chart-status').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['รอ','กำลังทำ','เสร็จ'],datasets:[{data:[pend.length,prog.length,done.length],backgroundColor:['#FBBF24','#A78BFA','#34D399'],borderWidth:0,hoverOffset:6}]},
+    data:{labels:['รอ','กำลังทำ','เสร็จ'],datasets:[{data:[pend.length,prog.length,done.length],backgroundColor:['#F59E0B','#8B5CF6','#10B981'],borderWidth:0,hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'66%',animation:{animateRotate:true,duration:900},plugins:{legend:{display:false}}}
   });
   const days=[],cnts=[];
