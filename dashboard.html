@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>SYY Service Hub - Dashboard</title>
+<title>SYY Service Hub — Dashboard</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#05070D">
+<meta name="theme-color" content="#06C755">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SYY Hub">
@@ -758,132 +758,6 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 .arch-desc{font-size:14px;color:var(--text);margin-bottom:4px}
 .arch-meta{font-size:12px;color:var(--text2)}
 .arch-meta2{font-size:11px;color:var(--text3);margin-top:2px}
-/* ===== SCI-FI CINEMA THEME OVERRIDE ===== */
-@media screen{
-  :root{
-    --bg:#05070D;--bg2:rgba(13,20,33,0.78);--bg3:rgba(20,31,49,0.82);--border:rgba(107,243,255,0.22);
-    --green:#41F6B2;--green2:#0CCF9B;--green-dim:rgba(65,246,178,0.13);
-    --blue:#38D5FF;--blue-dim:rgba(56,213,255,0.14);
-    --orange:#FFD166;--orange-dim:rgba(255,209,102,0.14);
-    --red:#FF5C8A;--red-dim:rgba(255,92,138,0.14);
-    --purple:#B48CFF;--purple-dim:rgba(180,140,255,0.15);
-    --brown:#F8B86A;--brown-light:#E59D3B;--brown-dim:rgba(248,184,106,0.16);
-    --text:#F3FAFF;--text2:#A8BED3;--text3:#6F8399;
-    --radius:10px;
-    --shadow:0 0 0 1px rgba(107,243,255,0.05),0 12px 32px rgba(0,0,0,0.34);
-    --shadow-md:0 0 0 1px rgba(107,243,255,0.16),0 18px 42px rgba(0,0,0,0.46),0 0 28px rgba(56,213,255,0.08);
-    --shadow-lg:0 0 0 1px rgba(107,243,255,0.20),0 28px 70px rgba(0,0,0,0.58),0 0 42px rgba(65,246,178,0.10);
-  }
-  body.light{
-    --bg:#E9F3FA;--bg2:rgba(255,255,255,0.82);--bg3:rgba(237,247,253,0.88);--border:rgba(24,111,154,0.20);
-    --green:#07966E;--green2:#047A62;--green-dim:rgba(7,150,110,0.10);
-    --blue:#087FB7;--blue-dim:rgba(8,127,183,0.10);
-    --orange:#BA7900;--orange-dim:rgba(186,121,0,0.11);
-    --red:#D93664;--red-dim:rgba(217,54,100,0.11);
-    --purple:#7154C8;--purple-dim:rgba(113,84,200,0.11);
-    --text:#071421;--text2:#496176;--text3:#7A8EA0;
-  }
-  html{background:#05070D;}
-  body{
-    background:
-      radial-gradient(circle at 12% 10%,rgba(56,213,255,0.18),transparent 28%),
-      radial-gradient(circle at 84% 4%,rgba(180,140,255,0.15),transparent 24%),
-      linear-gradient(135deg,#05070D 0%,#08111F 48%,#04060B 100%);
-    letter-spacing:0;
-  }
-  body::before{
-    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
-    background-image:
-      linear-gradient(rgba(107,243,255,0.055) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(107,243,255,0.045) 1px,transparent 1px),
-      linear-gradient(120deg,transparent 0 47%,rgba(65,246,178,0.07) 49%,transparent 52%);
-    background-size:42px 42px,42px 42px,280px 280px;
-    mask-image:linear-gradient(to bottom,rgba(0,0,0,0.95),rgba(0,0,0,0.20));
-  }
-  body::after{
-    content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.18;
-    background:repeating-linear-gradient(to bottom,rgba(255,255,255,0.08) 0,rgba(255,255,255,0.08) 1px,transparent 1px,transparent 4px);
-    mix-blend-mode:screen;
-  }
-  .sidebar{
-    background:linear-gradient(180deg,rgba(5,10,18,0.96),rgba(8,17,31,0.92));
-    border-right:1px solid rgba(107,243,255,0.18);
-    box-shadow:14px 0 42px rgba(0,0,0,0.42),inset -1px 0 0 rgba(65,246,178,0.08);
-    backdrop-filter:blur(18px) saturate(145%);
-  }
-  .sidebar-logo,.team-filter,.sidebar-ver{border-color:rgba(107,243,255,0.16);}
-  .logo-icon,.tech-av,.tech-card-av{
-    background:linear-gradient(135deg,var(--green),var(--blue));
-    box-shadow:0 0 22px rgba(56,213,255,0.34),inset 0 0 14px rgba(255,255,255,0.28);
-  }
-  .logo-text,.topbar-title,.kanban-ttl,.chart-ttl,.modal-ttl{letter-spacing:.2px;text-shadow:0 0 16px rgba(56,213,255,0.22);}
-  .nav-sec{color:#4CD6F8;opacity:.76;letter-spacing:1.8px;}
-  .nav-item{border-radius:8px;color:#9CB2C8;border:1px solid transparent;position:relative;overflow:hidden;}
-  .nav-item::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(56,213,255,0.10),transparent);transform:translateX(-120%);transition:transform .45s ease;}
-  .nav-item:hover::before,.nav-item.active::before{transform:translateX(120%);}
-  .nav-item:hover{background:rgba(56,213,255,0.09);border-color:rgba(56,213,255,0.20);color:#F3FAFF;}
-  .nav-item.active{background:linear-gradient(90deg,rgba(65,246,178,0.20),rgba(56,213,255,0.08));border-color:rgba(65,246,178,0.34);color:var(--green);box-shadow:0 0 22px rgba(65,246,178,0.09);}
-  .topbar{
-    height:58px;background:rgba(7,14,25,0.72);border-bottom:1px solid rgba(107,243,255,0.18);
-    box-shadow:0 12px 36px rgba(0,0,0,0.30);backdrop-filter:blur(18px) saturate(150%);
-  }
-  .content{padding:14px 16px 18px;}
-  .topbar-search,.team-select,.modal-sel,.modal-ta,input,select,textarea{
-    background:rgba(7,15,28,0.72)!important;border-color:rgba(107,243,255,0.22)!important;color:var(--text)!important;
-    box-shadow:inset 0 0 18px rgba(56,213,255,0.04);
-  }
-  .topbar-search:focus-within,.modal-sel:focus,.modal-ta:focus{border-color:var(--blue)!important;box-shadow:0 0 0 3px rgba(56,213,255,0.10),inset 0 0 18px rgba(56,213,255,0.05);}
-  .live-dot{background:var(--green);box-shadow:0 0 14px var(--green),0 0 28px rgba(65,246,178,0.44);}
-  .live-txt{color:var(--green);text-transform:uppercase;letter-spacing:1.4px;font-family:'JetBrains Mono',monospace;}
-  .btn-tb,.btn-lang,.back-btn,.btn-secondary2,.btn-view2,.pager-btn,.btn-cancel{
-    background:linear-gradient(180deg,rgba(20,31,49,0.88),rgba(9,18,32,0.88));border:1px solid rgba(107,243,255,0.24);color:#CFE9F6;
-    border-radius:8px;box-shadow:inset 0 0 16px rgba(56,213,255,0.04),0 0 16px rgba(56,213,255,0.04);
-  }
-  .btn-tb:hover,.btn-lang:hover,.back-btn:hover,.pager-btn:hover:not(:disabled),.btn-secondary2:hover,.btn-view2:hover{
-    border-color:var(--blue);color:#fff;background:linear-gradient(180deg,rgba(22,47,70,0.95),rgba(10,27,45,0.95));box-shadow:0 0 22px rgba(56,213,255,0.16);
-  }
-  .kpi-card,.exec-card,.chart-card,.kb-card,.tech-item,.tech-card,.modal,.new-alert,.toast,.followup-alert{
-    background:linear-gradient(180deg,rgba(17,27,44,0.78),rgba(8,15,27,0.82));
-    border:1px solid rgba(107,243,255,0.18);border-radius:10px;box-shadow:var(--shadow);backdrop-filter:blur(14px) saturate(145%);
-  }
-  .kpi-card,.chart-card,.kb-card,.tech-card,.modal{position:relative;overflow:hidden;}
-  .kpi-card::after,.chart-card::after,.kb-card::after,.tech-card::after,.modal::after{
-    content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
-    background:linear-gradient(135deg,rgba(255,255,255,0.10),transparent 24%,transparent 72%,rgba(56,213,255,0.08));
-  }
-  .kpi-card:hover,.chart-card:hover,.kb-card:hover,.tech-card:hover,.tech-item:hover{transform:translateY(-3px);border-color:rgba(107,243,255,0.36);box-shadow:var(--shadow-md);}
-  .kpi-card::before{height:2px;box-shadow:0 0 18px currentColor;}
-  .kpi-icon,.exec-ico{border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 0 18px rgba(255,255,255,0.07),0 0 18px rgba(56,213,255,0.08);}
-  .kpi-num,.exec-num{font-family:'JetBrains Mono',monospace;text-shadow:0 0 18px currentColor;}
-  .kpi-badge,.tech-badge,.assigned-badge,.team-badge,.kb-col-count,.nav-badge{border:1px solid rgba(255,255,255,0.13);box-shadow:0 0 16px rgba(255,255,255,0.06);}
-  .charts-row,.bottom-row{gap:10px;}
-  .chart-dot{box-shadow:0 0 12px currentColor;}
-  .kb-col{border:1px solid rgba(107,243,255,0.16);border-radius:10px;background:rgba(5,11,20,0.56);box-shadow:var(--shadow);}
-  .kb-col-hdr{position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,0.13);}
-  .kb-col-hdr::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);transform:translateX(-110%);animation:sciSweep 4.8s infinite;}
-  .kb-col-body.pending,.kb-col-body.inprog,.kb-col-body.done{background:rgba(5,11,20,0.34);}
-  .kb-card{border-left-width:4px;}
-  .kb-id,.alert-id{color:var(--blue);text-shadow:0 0 14px rgba(56,213,255,0.34);}
-  .filter-bar,.tickets-toolbar{background:rgba(5,11,20,0.30);border:1px solid rgba(107,243,255,0.12);border-radius:10px;padding:9px;}
-  .overlay{background:rgba(1,5,12,0.72);backdrop-filter:blur(10px) saturate(130%);}
-  .modal{box-shadow:var(--shadow-lg);}
-  .btn-primary,.btn-ok.green,.btn-assign,.btn-accept,.btn-done2{
-    border:1px solid rgba(255,255,255,0.14);box-shadow:0 0 22px rgba(65,246,178,0.18),inset 0 0 18px rgba(255,255,255,0.10);
-  }
-  .btn-primary:hover,.btn-ok:hover,.btn-assign:hover,.btn-accept:hover,.btn-done2:hover{transform:translateY(-2px);filter:saturate(1.16) brightness(1.08);}
-  .skl{background:linear-gradient(90deg,rgba(20,31,49,0.70) 20%,rgba(56,213,255,0.18) 48%,rgba(20,31,49,0.70) 78%);background-size:220% 100%;}
-  ::-webkit-scrollbar{width:10px;height:10px;}::-webkit-scrollbar-track{background:rgba(6,12,22,0.85);}::-webkit-scrollbar-thumb{background:linear-gradient(var(--blue),var(--green));border-radius:999px;border:3px solid rgba(6,12,22,0.85);}
-  body.light::before{opacity:.52;mask-image:linear-gradient(to bottom,rgba(0,0,0,0.75),rgba(0,0,0,0.12));}
-  body.light::after{opacity:.06;}
-  body.light .sidebar,body.light .topbar{background:rgba(245,251,255,0.78);}
-  body.light .kpi-card,body.light .exec-card,body.light .chart-card,body.light .kb-card,body.light .tech-item,body.light .tech-card,body.light .modal,body.light .new-alert,body.light .toast{background:linear-gradient(180deg,rgba(255,255,255,0.86),rgba(236,247,253,0.88));}
-  body.light .kb-col-body.pending,body.light .kb-col-body.inprog,body.light .kb-col-body.done{background:rgba(232,243,250,0.58);}
-  body.light .topbar-search,body.light .team-select,body.light .modal-sel,body.light .modal-ta,body.light input,body.light select,body.light textarea{background:rgba(255,255,255,0.76)!important;color:var(--text)!important;}
-  @keyframes sciSweep{0%,42%{transform:translateX(-115%);}58%,100%{transform:translateX(115%);}}
-  @media(max-width:760px){.topbar{height:54px}.content{padding:10px}.kpi-card,.chart-card,.kb-card,.tech-card{border-radius:9px}.filter-bar,.tickets-toolbar{padding:7px}}
-  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important;}}
-}
-/* ===== END SCI-FI CINEMA THEME OVERRIDE ===== */
 </style>
 </head>
 <body>
@@ -4971,4 +4845,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
-
