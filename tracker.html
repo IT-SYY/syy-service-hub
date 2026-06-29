@@ -182,6 +182,30 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
   .overlay{align-items:center;}
   .modal{border-radius:20px;max-height:85vh;}
 }
+/* ===== CHAT (ผู้แจ้ง) ===== */
+.tc-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;display:none;align-items:flex-end;justify-content:center;}
+.tc-overlay.show{display:flex;}
+.tc-box{width:100%;max-width:520px;height:80vh;max-height:680px;background:var(--bg);border-radius:18px 18px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,0.3);}
+@media(min-width:560px){.tc-overlay{align-items:center;}.tc-box{border-radius:18px;height:74vh;}}
+.tc-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);}
+.tc-head .tc-id{font-family:monospace;font-weight:800;color:var(--accent,#0EA5E9);font-size:14px;}
+.tc-head .tc-cat{font-weight:700;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tc-head .tc-x{background:none;border:none;font-size:24px;color:var(--text3);cursor:pointer;line-height:1;}
+.tc-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--bg2);}
+.tc-msg{max-width:78%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.45;word-break:break-word;}
+.tc-msg .tcm-name{font-size:10px;font-weight:700;opacity:.7;margin-bottom:2px;}
+.tc-msg .tcm-time{font-size:9.5px;opacity:.55;margin-top:3px;text-align:right;}
+.tc-msg.admin{align-self:flex-start;background:var(--bg);border:1px solid var(--border);border-bottom-left-radius:4px;}
+.tc-msg.reporter{align-self:flex-end;background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;border-bottom-right-radius:4px;}
+.tc-empty{text-align:center;color:var(--text3);font-size:13px;padding:30px 10px;}
+.tc-date{align-self:center;font-size:10.5px;color:var(--text3);background:var(--bg);padding:2px 12px;border-radius:12px;}
+.tc-inbar{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--bg);}
+.tc-input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;}
+.tc-input:focus{border-color:var(--accent,#0EA5E9);}
+.tc-send{background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;border:none;border-radius:10px;padding:0 20px;font-weight:700;font-size:14px;cursor:pointer;}
+.tc-send:disabled{opacity:.5;}
+.tc-note{font-size:10.5px;color:var(--text3);text-align:center;padding:5px;background:var(--bg2);}
+
 </style>
 </head>
 <body>
@@ -673,6 +697,7 @@ function mkTicketCard(t) {
         <button class="followup-send" onclick="event.stopPropagation();doFollowup('${t.ticket_id}',true)">${L('💬 ส่ง','💬 Send')}</button>
       </div>
       <button class="followup-nudge" onclick="event.stopPropagation();doFollowup('${t.ticket_id}',false)">⏰ ${L('ทวงถามงาน (กระตุ้นให้ทีมอัปเดต)','Nudge the team for an update')}</button>
+      <button class="followup-nudge" style="border-color:#3B82F6;color:#2563EB;background:rgba(59,130,246,0.08);margin-top:7px" onclick="event.stopPropagation();openTrackerChat('${t.ticket_id}')">💬 ${L('แชตกับทีมงาน (เรียลไทม์)','Chat with team (live)')}</button>
     </div>`:''}
   </div>`;
 }
@@ -1003,6 +1028,64 @@ function lateLevel(min, priority) {
   if(min>=threshold*0.66) return {late:true,level:'warn',label:'ใกล้ครบ'};
   return {late:false,level:'ok',label:''};
 }
+// ===== CHAT (ผู้แจ้งติดตามงานกับทีมงาน) =====
+let tcTicket=null, tcLastId='', tcMsgs=[], tcTimer=null;
+async function tcApi(body){ try{ const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)}); return await r.json(); }catch(e){ return {success:false}; } }
+function tcEsc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function openTrackerChat(tid){
+  const t=allTickets.find(x=>x.ticket_id===tid);
+  tcTicket=tid; tcLastId=''; tcMsgs=[];
+  document.getElementById('tc-id').textContent=tid;
+  document.getElementById('tc-cat').textContent=t?(t.category||t.building||''):'';
+  document.getElementById('tc-note').textContent=L('ทีมงานจะเห็นข้อความและตอบกลับที่นี่ · อัปเดตทุก ~4 วิ','The team sees and replies here · refresh ~4s');
+  document.getElementById('tc-msgs').innerHTML='<div class="tc-empty">'+L('กำลังโหลด...','Loading...')+'</div>';
+  document.getElementById('tc-overlay').classList.add('show');
+  tcPoll(true);
+  tcTimer=setInterval(()=>tcPoll(false),4000);
+}
+function closeTrackerChat(){ document.getElementById('tc-overlay').classList.remove('show'); tcTicket=null; if(tcTimer){clearInterval(tcTimer);tcTimer=null;} }
+async function tcPoll(reset){
+  if(!tcTicket) return;
+  const r=await tcApi({action:'chat_fetch',ticket_id:tcTicket,after_id:tcLastId});
+  if(!r||!r.success) return;
+  const inc=r.messages||[];
+  if(inc.length){ tcMsgs=tcMsgs.concat(inc); tcLastId=inc[inc.length-1].msg_id; }
+  if(reset||inc.length) tcRender();
+}
+function tcRender(){
+  const box=document.getElementById('tc-msgs'); if(!box) return;
+  if(!tcMsgs.length){ box.innerHTML='<div class="tc-empty">'+L('ยังไม่มีข้อความ ทักทีมงานได้เลย','No messages yet — say hi!')+'</div>'; return; }
+  let last='';
+  box.innerHTML=tcMsgs.map(m=>{
+    const d=String(m.created_at||'').split(' ')[0]; let sep='';
+    if(d&&d!==last){ last=d; sep='<div class="tc-date">'+tcEsc(d)+'</div>'; }
+    const time=String(m.created_at||'').split(' ')[1]||'';
+    return sep+'<div class="tc-msg '+(m.sender==='admin'?'admin':'reporter')+'"><div class="tcm-name">'+tcEsc(m.sender_name||(m.sender==='admin'?'ทีมงาน':'คุณ'))+'</div>'+tcEsc(m.message)+'<div class="tcm-time">'+tcEsc(time)+'</div></div>';
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+}
+async function sendReporterMessage(){
+  const inp=document.getElementById('tc-input'); const msg=inp.value.trim();
+  if(!msg||!tcTicket) return;
+  const t=allTickets.find(x=>x.ticket_id===tcTicket);
+  const name=(t&&(t.displayName||t.reported_by))||'ผู้แจ้ง';
+  const btn=document.getElementById('tc-send'); btn.disabled=true; inp.value='';
+  const r=await tcApi({action:'chat_send',ticket_id:tcTicket,sender:'reporter',sender_name:name,message:msg});
+  if(r&&r.success) tcPoll(false); else { alert(L('ส่งไม่สำเร็จ','Send failed')); inp.value=msg; }
+  btn.disabled=false; inp.focus();
+}
+
 </script>
+<div class="tc-overlay" id="tc-overlay" onclick="if(event.target===this)closeTrackerChat()">
+  <div class="tc-box">
+    <div class="tc-head"><span class="tc-id" id="tc-id"></span><span class="tc-cat" id="tc-cat"></span><button class="tc-x" onclick="closeTrackerChat()">×</button></div>
+    <div class="tc-msgs" id="tc-msgs"></div>
+    <div class="tc-note" id="tc-note"></div>
+    <div class="tc-inbar">
+      <input class="tc-input" id="tc-input" maxlength="1000" placeholder="พิมพ์ข้อความถึงทีมงาน..." onkeydown="if(event.key==='Enter')sendReporterMessage()">
+      <button class="tc-send" id="tc-send" onclick="sendReporterMessage()">ส่ง</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
