@@ -1088,13 +1088,24 @@ function tcRender(){
 }
 let tcPendingAttach=null;
 async function tcPickFile(input){ const f=input.files&&input.files[0]; input.value=''; if(f) await tcDoUpload(f); }
+function tcCompress(file){
+  const MAXW=1280, Q=0.75;
+  function draw(src,sw,sh){ const sc=Math.min(1,MAXW/Math.max(sw,sh)); const w=Math.max(1,Math.round(sw*sc)),h=Math.max(1,Math.round(sh*sc)); const c=document.createElement('canvas'); c.width=w;c.height=h; const x=c.getContext('2d'); x.fillStyle='#FFF'; x.fillRect(0,0,w,h); x.drawImage(src,0,0,w,h); return c.toDataURL('image/jpeg',Q); }
+  return new Promise(function(resolve,reject){
+    if(typeof createImageBitmap==='function'){ createImageBitmap(file,{imageOrientation:'from-image'}).then(function(b){ const o=draw(b,b.width,b.height); if(b.close)b.close(); resolve(o); }).catch(fb); }
+    else fb();
+    function fb(){ const r=new FileReader(); r.onload=function(){ const img=new Image(); img.onload=function(){ resolve(draw(img,img.width,img.height)); }; img.onerror=reject; img.src=r.result; }; r.onerror=reject; r.readAsDataURL(file); }
+  });
+}
 async function tcDoUpload(file){
   if(file.size>10*1024*1024){ alert(L('ไฟล์ใหญ่เกิน 10MB','File exceeds 10MB')); return; }
   const prev=document.getElementById('tc-attach-prev'); if(prev){ prev.style.display='flex'; prev.innerHTML='<span style="font-size:12px;color:var(--text3)">⏳ '+L('กำลังอัปโหลด...','Uploading...')+'</span>'; }
   try{
     const isImg=/^image\//.test(file.type);
-    const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
-    const r=await tcApi({action:'upload_image',skip_sheet:true,base64:b64,mimeType:file.type||'application/octet-stream',fileName:(tcTicket||'chat')+'_'+Date.now()+'_'+file.name});
+    let b64, mime, fname;
+    if(isImg){ const du=await tcCompress(file); b64=du.split(',')[1]; mime='image/jpeg'; fname=file.name.replace(/\.[^.]+$/,'')+'.jpg'; }
+    else { b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);}); mime=file.type||'application/octet-stream'; fname=file.name; }
+    const r=await tcApi({action:'upload_image',skip_sheet:true,base64:b64,mimeType:mime,fileName:(tcTicket||'chat')+'_'+Date.now()+'_'+fname});
     const url=(r&&((r.data&&(r.data.imageUrl||r.data.url))||r.imageUrl||r.url))||'';
     if(!url) throw new Error('no url');
     tcPendingAttach=isImg?{image_url:url,name:file.name,img:true}:{file_url:url,file_name:file.name,img:false};
