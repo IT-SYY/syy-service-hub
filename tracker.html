@@ -200,6 +200,11 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .tc-empty{text-align:center;color:var(--text3);font-size:13px;padding:30px 10px;}
 .tc-date{align-self:center;font-size:10.5px;color:var(--text3);background:var(--bg);padding:2px 12px;border-radius:12px;}
 .tc-inbar{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--bg);}
+.tc-attach{background:var(--bg2);border:1px solid var(--border);border-radius:10px;width:46px;flex-shrink:0;font-size:18px;cursor:pointer;color:var(--text);}
+.tc-msg .tcm-img{margin-top:5px;}
+.tc-msg .tcm-img img{max-width:200px;max-height:230px;border-radius:10px;cursor:pointer;display:block;}
+.tc-msg .tcm-file{display:inline-flex;align-items:center;gap:6px;margin-top:5px;padding:7px 11px;background:rgba(0,0,0,0.12);border-radius:9px;font-size:12.5px;text-decoration:none;color:inherit;font-weight:600;}
+.tc-msg.reporter .tcm-file{background:rgba(255,255,255,0.2);}
 .tc-input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;}
 .tc-input:focus{border-color:var(--accent,#0EA5E9);}
 .tc-send{background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;border:none;border-radius:10px;padding:0 20px;font-weight:700;font-size:14px;cursor:pointer;}
@@ -1062,6 +1067,13 @@ async function tcPoll(reset){
     if(reset||added) tcRender();
   } finally { tcBusy=false; }
 }
+function tcGDrive(u){ u=String(u||''); const m=u.match(/\/file\/d\/([^/]+)/)||u.match(/[?&]id=([^&]+)/); return m?('https://drive.google.com/uc?id='+m[1]+'&export=download'):u; }
+function tcAttachHtml(m){
+  let h='';
+  if(m.image_url) h+='<div class="tcm-img"><img src="'+tcEsc(tcGDrive(m.image_url))+'" onclick="window.open(this.src,\'_blank\')" loading="lazy"></div>';
+  if(m.file_url) h+='<a class="tcm-file" href="'+tcEsc(m.file_url)+'" target="_blank">📎 '+tcEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
+  return h;
+}
 function tcRender(){
   const box=document.getElementById('tc-msgs'); if(!box) return;
   if(!tcMsgs.length){ box.innerHTML='<div class="tc-empty">'+L('ยังไม่มีข้อความ ทักทีมงานได้เลย','No messages yet — say hi!')+'</div>'; return; }
@@ -1070,18 +1082,44 @@ function tcRender(){
     const d=String(m.created_at||'').split(' ')[0]; let sep='';
     if(d&&d!==last){ last=d; sep='<div class="tc-date">'+tcEsc(d)+'</div>'; }
     const time=String(m.created_at||'').split(' ')[1]||'';
-    return sep+'<div class="tc-msg '+(m.sender==='admin'?'admin':'reporter')+'"><div class="tcm-name">'+tcEsc(m.sender_name||(m.sender==='admin'?'ทีมงาน':'คุณ'))+'</div>'+tcEsc(m.message)+'<div class="tcm-time">'+tcEsc(time)+'</div></div>';
+    return sep+'<div class="tc-msg '+(m.sender==='admin'?'admin':'reporter')+'"><div class="tcm-name">'+tcEsc(m.sender_name||(m.sender==='admin'?'ทีมงาน':'คุณ'))+'</div>'+(m.message?tcEsc(m.message):'')+tcAttachHtml(m)+'<div class="tcm-time">'+tcEsc(time)+'</div></div>';
   }).join('');
   box.scrollTop=box.scrollHeight;
 }
+let tcPendingAttach=null;
+async function tcPickFile(input){ const f=input.files&&input.files[0]; input.value=''; if(f) await tcDoUpload(f); }
+async function tcDoUpload(file){
+  if(file.size>10*1024*1024){ alert(L('ไฟล์ใหญ่เกิน 10MB','File exceeds 10MB')); return; }
+  const prev=document.getElementById('tc-attach-prev'); if(prev){ prev.style.display='flex'; prev.innerHTML='<span style="font-size:12px;color:var(--text3)">⏳ '+L('กำลังอัปโหลด...','Uploading...')+'</span>'; }
+  try{
+    const isImg=/^image\//.test(file.type);
+    const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    const r=await tcApi({action:'upload_image',skip_sheet:true,base64:b64,mimeType:file.type||'application/octet-stream',fileName:(tcTicket||'chat')+'_'+Date.now()+'_'+file.name});
+    const url=(r&&((r.data&&(r.data.imageUrl||r.data.url))||r.imageUrl||r.url))||'';
+    if(!url) throw new Error('no url');
+    tcPendingAttach=isImg?{image_url:url,name:file.name,img:true}:{file_url:url,file_name:file.name,img:false};
+    tcRenderAttachPrev();
+  }catch(e){ alert(L('อัปโหลดไม่สำเร็จ','Upload failed')); tcClearAttach(); }
+}
+function tcRenderAttachPrev(){
+  const prev=document.getElementById('tc-attach-prev'); if(!prev) return;
+  if(!tcPendingAttach){ prev.style.display='none'; prev.innerHTML=''; return; }
+  prev.style.display='flex';
+  prev.innerHTML=(tcPendingAttach.img?'<img src="'+tcEsc(tcGDrive(tcPendingAttach.image_url))+'" style="width:38px;height:38px;object-fit:cover;border-radius:6px">':'<span style="font-size:18px">📎</span>')+
+    '<span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+tcEsc(tcPendingAttach.name||tcPendingAttach.file_name)+'</span>'+
+    '<button onclick="tcClearAttach()" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:16px">×</button>';
+}
+function tcClearAttach(){ tcPendingAttach=null; tcRenderAttachPrev(); }
 async function sendReporterMessage(){
   const inp=document.getElementById('tc-input'); const msg=inp.value.trim();
-  if(!msg||!tcTicket) return;
+  if((!msg && !tcPendingAttach)||!tcTicket) return;
   const t=allTickets.find(x=>x.ticket_id===tcTicket);
   const name=(t&&(t.displayName||t.reported_by))||'ผู้แจ้ง';
   const btn=document.getElementById('tc-send'); btn.disabled=true; inp.value='';
-  const r=await tcApi({action:'chat_send',ticket_id:tcTicket,sender:'reporter',sender_name:name,message:msg});
-  if(r&&r.success) tcPoll(false); else { alert(L('ส่งไม่สำเร็จ','Send failed')); inp.value=msg; }
+  const body={action:'chat_send',ticket_id:tcTicket,sender:'reporter',sender_name:name,message:msg};
+  if(tcPendingAttach){ if(tcPendingAttach.img) body.image_url=tcPendingAttach.image_url; else { body.file_url=tcPendingAttach.file_url; body.file_name=tcPendingAttach.file_name; } }
+  const r=await tcApi(body);
+  if(r&&r.success){ tcClearAttach(); tcPoll(false); } else { alert(L('ส่งไม่สำเร็จ','Send failed')); inp.value=msg; }
   btn.disabled=false; inp.focus();
 }
 
@@ -1091,7 +1129,10 @@ async function sendReporterMessage(){
     <div class="tc-head"><span class="tc-id" id="tc-id"></span><span class="tc-cat" id="tc-cat"></span><button class="tc-x" onclick="closeTrackerChat()">×</button></div>
     <div class="tc-msgs" id="tc-msgs"></div>
     <div class="tc-note" id="tc-note"></div>
+    <div id="tc-attach-prev" style="display:none;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border)"></div>
     <div class="tc-inbar">
+      <button class="tc-attach" onclick="document.getElementById('tc-file').click()" title="แนบรูป/ไฟล์">📎</button>
+      <input type="file" id="tc-file" accept="image/*,application/pdf" style="display:none" onchange="tcPickFile(this)">
       <input class="tc-input" id="tc-input" maxlength="1000" placeholder="พิมพ์ข้อความถึงทีมงาน..." onkeydown="if(event.key==='Enter')sendReporterMessage()">
       <button class="tc-send" id="tc-send" onclick="sendReporterMessage()">ส่ง</button>
     </div>
