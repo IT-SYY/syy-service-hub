@@ -5112,15 +5112,23 @@ async function openChatThread(tid){
   renderChatList();
   await pollChatMessages(true);
 }
+let chatPollBusy=false;
 async function pollChatMessages(reset){
   if(!chatCurrentTicket) return;
+  if(chatPollBusy && !reset) return;        // กัน poll ซ้อน (interval ทับ manual)
+  chatPollBusy=true;
+  const tid=chatCurrentTicket;
   if(reset){ chatMsgsCache=[]; chatLastMsgId=''; }
-  const r=await chatApi({action:'chat_fetch',ticket_id:chatCurrentTicket,after_id:chatLastMsgId});
-  if(!r||!r.success) return;
-  const incoming=r.messages||[];
-  if(incoming.length){ chatMsgsCache=chatMsgsCache.concat(incoming); chatLastMsgId=incoming[incoming.length-1].msg_id; }
-  if(reset||incoming.length){ renderChatMessages(); }
-  if(chatMsgsCache.length){ chatSetRead(chatCurrentTicket, chatMsgsCache[chatMsgsCache.length-1].msg_id); updateChatBadge(); renderChatList(); }
+  try{
+    const r=await chatApi({action:'chat_fetch',ticket_id:tid,after_id:chatLastMsgId});
+    if(tid!==chatCurrentTicket || !r || !r.success) return;   // เปลี่ยนห้องระหว่างรอ
+    const incoming=r.messages||[];
+    let added=false;
+    incoming.forEach(m=>{ if(!chatMsgsCache.some(x=>x.msg_id===m.msg_id)){ chatMsgsCache.push(m); added=true; } });  // กันซ้ำด้วย msg_id
+    if(chatMsgsCache.length) chatLastMsgId=chatMsgsCache[chatMsgsCache.length-1].msg_id;
+    if(reset||added){ renderChatMessages(); }
+    if(chatMsgsCache.length){ chatSetRead(chatCurrentTicket, chatMsgsCache[chatMsgsCache.length-1].msg_id); updateChatBadge(); renderChatList(); }
+  } finally { chatPollBusy=false; }
 }
 function renderChatMessages(){
   const box=document.getElementById('chat-msgs'); if(!box) return;
