@@ -620,7 +620,42 @@ body.tv #tv-fx{display:block;}
 .tvb-longrotate .lr-item{display:none;}
 .tvb-longrotate .lr-item.on{display:block;animation:lrFade .7s ease;}
 @keyframes lrFade{from{opacity:0;transform:translateY(4px);}to{opacity:.58;transform:none;}}
+/* ===== CHAT ===== */
+.chat-wrap{display:flex;gap:12px;height:calc(100vh - 170px);min-height:420px;}
+.chat-list{width:300px;flex-shrink:0;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:8px;}
+.chat-empty{color:var(--text3);font-size:13px;text-align:center;padding:30px 10px;}
+.chat-thread{display:flex;flex-direction:column;gap:3px;padding:10px;border-radius:9px;cursor:pointer;margin-bottom:5px;border:1px solid transparent;transition:.15s;}
+.chat-thread:hover{background:var(--bg3);}
+.chat-thread.active{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.4);}
+.chat-thread .ct-top{display:flex;align-items:center;gap:6px;}
+.chat-thread .ct-id{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--blue);}
+.chat-thread .ct-cat{font-size:12px;color:var(--text);font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chat-thread .ct-last{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chat-thread .ct-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3);}
+.chat-thread .ct-unread{width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;box-shadow:0 0 8px -1px var(--red);}
+.chat-thread .ct-dept{font-size:9.5px;font-weight:700;color:#fff;padding:1px 7px;border-radius:10px;}
+.chat-main{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-width:0;}
+.chat-ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);font-size:15px;text-align:center;gap:8px;}
+.chat-ph{font-size:34px;}.chat-ph span{font-size:14px;}
+.chat-conv{flex:1;display:flex;flex-direction:column;min-height:0;}
+.chat-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.chat-head .ch-id{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--blue);font-size:14px;}
+.chat-head .ch-cat{font-weight:700;color:var(--text);}
+.chat-head .ch-sub{font-size:12px;color:var(--text3);width:100%;}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.chat-msg{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;word-break:break-word;position:relative;}
+.chat-msg .cm-name{font-size:10px;font-weight:700;opacity:.7;margin-bottom:2px;}
+.chat-msg .cm-time{font-size:9.5px;opacity:.55;margin-top:3px;text-align:right;}
+.chat-msg.reporter{align-self:flex-start;background:var(--bg3);border:1px solid var(--border);border-bottom-left-radius:4px;}
+.chat-msg.admin{align-self:flex-end;background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;border-bottom-right-radius:4px;}
+.chat-input-bar{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;}
+.chat-input:focus{border-color:var(--blue);}
+.chat-send-btn{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;border:none;border-radius:10px;padding:0 22px;font-weight:700;cursor:pointer;font-size:14px;}
+.chat-send-btn:disabled{opacity:.5;cursor:default;}
+.chat-date-sep{align-self:center;font-size:10.5px;color:var(--text3);background:var(--bg3);padding:2px 12px;border-radius:12px;margin:4px 0;}
 /* DETAIL OVERLAY */
+
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
 .tvd-overlay.show{display:flex;animation:tvdFade .25s ease;}
 @keyframes tvdFade{from{opacity:0;}to{opacity:1;}}
@@ -814,6 +849,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
     <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="งานจัดซื้อ" data-en="Procurement">งานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('chat',this)"><span class="nav-icon">💬</span><span data-th="แชตติดตามงาน" data-en="Chat">แชตติดตามงาน</span><span class="nav-badge" id="chat-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-sec" data-th="การจัดการ" data-en="Management">Management</div>
     <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="openExternal('https://it-syy.github.io/Generator-System/')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
@@ -1022,6 +1058,25 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     </div>
 
     <!-- TECHNICIANS PAGE -->
+    <div class="page" id="page-chat">
+      <div class="page-head"><h1 class="page-title">💬 <span data-th="แชตติดตามงาน" data-en="Chat / Follow-up">แชตติดตามงาน</span></h1>
+        <div style="font-size:12px;color:var(--text3)" data-th="ผู้แจ้งทักผ่านหน้าติดตามงาน · อัปเดตอัตโนมัติทุก ~4 วิ" data-en="Reporters chat via tracker · auto-refresh ~4s">ผู้แจ้งทักผ่านหน้าติดตามงาน · อัปเดตอัตโนมัติทุก ~4 วิ</div>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-list" id="chat-list"><div class="chat-empty" data-th="— ยังไม่มีห้องแชต —" data-en="— No chats yet —">— ยังไม่มีห้องแชต —</div></div>
+        <div class="chat-main">
+          <div class="chat-ph" id="chat-ph">💬<br><span data-th="เลือกห้องแชตทางซ้ายเพื่อเริ่มสนทนา" data-en="Select a chat to start">เลือกห้องแชตทางซ้ายเพื่อเริ่มสนทนา</span></div>
+          <div class="chat-conv" id="chat-conv" style="display:none">
+            <div class="chat-head" id="chat-head"></div>
+            <div class="chat-msgs" id="chat-msgs"></div>
+            <div class="chat-input-bar">
+              <input id="chat-input" class="chat-input" maxlength="1000" data-th-ph="พิมพ์ข้อความถึงผู้แจ้ง..." data-en-ph="Message the reporter..." placeholder="พิมพ์ข้อความถึงผู้แจ้ง..." onkeydown="if(event.key==='Enter')sendAdminMessage()">
+              <button class="chat-send-btn" id="chat-send-btn" onclick="sendAdminMessage()" data-th="ส่ง" data-en="Send">ส่ง</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="page" id="page-technicians">
       <div class="tickets-toolbar"><div class="toolbar-ttl" id="tech-title" data-th="👥 ทีมช่าง" data-en="👥 Technicians">👥 ทีมช่าง</div></div>
       <div class="tech-grid" id="tech-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
@@ -2602,6 +2657,7 @@ function renderAll(){
   if(ap==='page-technicians') renderTechGrid();
   if(ap==='page-history') renderHistory();
   if(ap==='page-report') renderReport();
+  if(typeof loadChatThreads==='function') loadChatThreads();   // รีเฟรช badge/รายการแชต
 }
 
 // ===== BASE FILTER =====
@@ -4967,7 +5023,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,inbox:1,tickets:2,projects:3,pm:4,claim:5,technicians:9,history:10,archive:11,report:13};
+const PAGE_NAV={dashboard:0,inbox:1,tickets:2,projects:3,pm:4,claim:5,purchase:6,chat:7,technicians:11,history:12,archive:13,report:15};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
@@ -5005,6 +5061,94 @@ function doArchiveSearch(){
     });
 }
 function archiveSearchKey(ev){ if(ev && ev.key==='Enter') doArchiveSearch(); }
+
+// ===== แชตติดตามงาน (admin side) =====
+let chatPollTimer=null, chatCurrentTicket=null, chatLastMsgId='', chatThreadsCache=[], chatMsgsCache=[];
+function chatEsc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function chatLastRead(){ try{return JSON.parse(localStorage.getItem('chatLastRead')||'{}');}catch(e){return {};} }
+function chatSetRead(tid,msgId){ const m=chatLastRead(); m[tid]=msgId; try{localStorage.setItem('chatLastRead',JSON.stringify(m));}catch(e){} }
+async function chatApi(body){
+  try{ const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)}); return await r.json(); }catch(e){ return {success:false,error:'network'}; }
+}
+function chatTicketInfo(tid){ return (typeof tickets!=='undefined'?tickets:[]).find(t=>t.ticket_id===tid)||null; }
+function updateChatBadge(){
+  const lr=chatLastRead(); let n=0;
+  chatThreadsCache.forEach(t=>{ if(t.last_sender==='reporter' && lr[t.ticket_id]!==t.last_id) n++; });
+  const b=document.getElementById('chat-badge'); if(b){ b.textContent=n; b.style.display=n>0?'':'none'; }
+}
+async function loadChatThreads(){
+  const r=await chatApi({action:'chat_threads'});
+  if(!r||!r.success) return;
+  chatThreadsCache=r.threads||[];
+  renderChatList(); updateChatBadge();
+}
+function renderChatList(){
+  const box=document.getElementById('chat-list'); if(!box) return;
+  const lr=chatLastRead();
+  const th=chatThreadsCache.slice().sort((a,b)=>String(b.last_at).localeCompare(String(a.last_at)));
+  if(!th.length){ box.innerHTML='<div class="chat-empty">'+L('— ยังไม่มีห้องแชต —','— No chats yet —')+'</div>'; return; }
+  box.innerHTML=th.map(t=>{
+    const tk=chatTicketInfo(t.ticket_id);
+    const cat=tk?(tk.category||tk.building||'-'):'-';
+    const branch=tk?(tk.branch||''):'';
+    const dc=tk?ticketColor(tk):'#64748B';
+    const unread=(t.last_sender==='reporter' && lr[t.ticket_id]!==t.last_id);
+    const lastTxt=(t.last_sender==='admin'?L('คุณ: ','You: '):'')+t.last_msg;
+    return '<div class="chat-thread'+(t.ticket_id===chatCurrentTicket?' active':'')+'" onclick="openChatThread(\''+t.ticket_id+'\')">'+
+      '<div class="ct-top">'+(unread?'<span class="ct-unread"></span>':'')+'<span class="ct-id">'+t.ticket_id+'</span><span class="ct-cat">'+chatEsc(cat)+'</span></div>'+
+      '<div class="ct-last">'+chatEsc(lastTxt)+'</div>'+
+      '<div class="ct-meta">'+(branch?'<span class="ct-dept" style="background:'+dc+'">'+chatEsc(branch)+'</span>':'')+'<span>'+chatEsc(t.last_at)+'</span></div>'+
+    '</div>';
+  }).join('');
+}
+async function openChatThread(tid){
+  chatCurrentTicket=tid; chatLastMsgId='';
+  document.getElementById('chat-ph').style.display='none';
+  document.getElementById('chat-conv').style.display='flex';
+  const tk=chatTicketInfo(tid);
+  document.getElementById('chat-head').innerHTML='<span class="ch-id">'+tid+'</span>'+(tk?'<span class="ch-cat">'+chatEsc(tk.category||tk.building||'')+'</span>':'')+
+    '<span class="ch-sub">'+(tk?('📍 '+chatEsc((tk.building||tk.location||'-')+(tk.room?' '+tk.room:''))+' · '+L('ผู้แจ้ง','Reporter')+': '+chatEsc(tk.reported_by||tk.displayName||'-')+' · '+L('สถานะ','Status')+': '+chatEsc(tk.status||'')):L('ไม่พบ Ticket นี้ในระบบ','Ticket not found'))+'</span>';
+  document.getElementById('chat-msgs').innerHTML='<div class="chat-empty">'+L('กำลังโหลด...','Loading...')+'</div>';
+  renderChatList();
+  await pollChatMessages(true);
+}
+async function pollChatMessages(reset){
+  if(!chatCurrentTicket) return;
+  if(reset){ chatMsgsCache=[]; chatLastMsgId=''; }
+  const r=await chatApi({action:'chat_fetch',ticket_id:chatCurrentTicket,after_id:chatLastMsgId});
+  if(!r||!r.success) return;
+  const incoming=r.messages||[];
+  if(incoming.length){ chatMsgsCache=chatMsgsCache.concat(incoming); chatLastMsgId=incoming[incoming.length-1].msg_id; }
+  if(reset||incoming.length){ renderChatMessages(); }
+  if(chatMsgsCache.length){ chatSetRead(chatCurrentTicket, chatMsgsCache[chatMsgsCache.length-1].msg_id); updateChatBadge(); renderChatList(); }
+}
+function renderChatMessages(){
+  const box=document.getElementById('chat-msgs'); if(!box) return;
+  if(!chatMsgsCache.length){ box.innerHTML='<div class="chat-empty">'+L('ยังไม่มีข้อความ เริ่มสนทนาได้เลย','No messages yet')+'</div>'; return; }
+  let lastDate='';
+  box.innerHTML=chatMsgsCache.map(m=>{
+    const d=String(m.created_at||'').split(' ')[0];
+    let sep=''; if(d && d!==lastDate){ lastDate=d; sep='<div class="chat-date-sep">'+chatEsc(d)+'</div>'; }
+    const time=String(m.created_at||'').split(' ')[1]||'';
+    return sep+'<div class="chat-msg '+(m.sender==='admin'?'admin':'reporter')+'"><div class="cm-name">'+chatEsc(m.sender_name||(m.sender==='admin'?'แอดมิน':'ผู้แจ้ง'))+'</div>'+chatEsc(m.message)+'<div class="cm-time">'+chatEsc(time)+'</div></div>';
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+}
+async function sendAdminMessage(){
+  const inp=document.getElementById('chat-input'); const msg=inp.value.trim();
+  if(!msg||!chatCurrentTicket) return;
+  const btn=document.getElementById('chat-send-btn'); btn.disabled=true; inp.value='';
+  const r=await chatApi({action:'chat_send',ticket_id:chatCurrentTicket,sender:'admin',sender_name:(currentUser&&currentUser.name)||'แอดมิน',message:msg});
+  if(r&&r.success){ await pollChatMessages(); loadChatThreads(); }
+  else { toast(L('ส่งไม่สำเร็จ','Send failed'),'❌','error'); inp.value=msg; }
+  btn.disabled=false; inp.focus();
+}
+function renderChatPage(){ loadChatThreads(); }
+function startChatPoll(){
+  stopChatPoll();
+  chatPollTimer=setInterval(()=>{ if(currentPage==='chat'){ if(chatCurrentTicket) pollChatMessages(); loadChatThreads(); } },4000);
+}
+function stopChatPoll(){ if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer=null; } }
 
 function showPage(p,el,fromPop){
   window._navByMember=false;
@@ -5049,6 +5193,7 @@ function showPage(p,el,fromPop){
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
   if(p==='report') renderReport();
+  if(p==='chat'){ renderChatPage(); startChatPoll(); } else { stopChatPoll(); }
 }
 function goBack(){
   if(history.state && history.state.page){ history.back(); }
