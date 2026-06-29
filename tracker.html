@@ -1033,6 +1033,7 @@ let tcTicket=null, tcLastId='', tcMsgs=[], tcTimer=null;
 async function tcApi(body){ try{ const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)}); return await r.json(); }catch(e){ return {success:false}; } }
 function tcEsc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function openTrackerChat(tid){
+  if(tcTimer){ clearInterval(tcTimer); tcTimer=null; }   // กัน interval ซ้อนจากห้องก่อน
   const t=allTickets.find(x=>x.ticket_id===tid);
   tcTicket=tid; tcLastId=''; tcMsgs=[];
   document.getElementById('tc-id').textContent=tid;
@@ -1044,13 +1045,22 @@ function openTrackerChat(tid){
   tcTimer=setInterval(()=>tcPoll(false),4000);
 }
 function closeTrackerChat(){ document.getElementById('tc-overlay').classList.remove('show'); tcTicket=null; if(tcTimer){clearInterval(tcTimer);tcTimer=null;} }
+let tcBusy=false;
 async function tcPoll(reset){
   if(!tcTicket) return;
-  const r=await tcApi({action:'chat_fetch',ticket_id:tcTicket,after_id:tcLastId});
-  if(!r||!r.success) return;
-  const inc=r.messages||[];
-  if(inc.length){ tcMsgs=tcMsgs.concat(inc); tcLastId=inc[inc.length-1].msg_id; }
-  if(reset||inc.length) tcRender();
+  if(tcBusy && !reset) return;              // กัน poll ซ้อน
+  tcBusy=true;
+  const tid=tcTicket;
+  if(reset){ tcMsgs=[]; tcLastId=''; }
+  try{
+    const r=await tcApi({action:'chat_fetch',ticket_id:tid,after_id:tcLastId});
+    if(tid!==tcTicket || !r || !r.success) return;
+    const inc=r.messages||[];
+    let added=false;
+    inc.forEach(m=>{ if(!tcMsgs.some(x=>x.msg_id===m.msg_id)){ tcMsgs.push(m); added=true; } });  // กันซ้ำด้วย msg_id
+    if(tcMsgs.length) tcLastId=tcMsgs[tcMsgs.length-1].msg_id;
+    if(reset||added) tcRender();
+  } finally { tcBusy=false; }
 }
 function tcRender(){
   const box=document.getElementById('tc-msgs'); if(!box) return;
