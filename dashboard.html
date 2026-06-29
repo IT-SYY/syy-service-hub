@@ -633,6 +633,17 @@ body.tv #tv-fx{display:block;}
 .chat-thread .ct-last{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .chat-thread .ct-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3);}
 .chat-thread .ct-unread{width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;box-shadow:0 0 8px -1px var(--red);}
+.chat-thread .ct-badge{margin-left:auto;background:var(--red);color:#fff;font-size:11px;font-weight:800;min-width:19px;height:19px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 0 8px -1px var(--red);}
+.chat-thread.unread{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.25);}
+.chat-thread.unread .ct-cat{color:var(--red);}
+.chat-thread .ct-info{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chat-thread .ct-st{font-size:10px;color:var(--text3);}
+.chat-attach-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;width:44px;flex-shrink:0;font-size:18px;cursor:pointer;color:var(--text);}
+.chat-attach-btn:hover{border-color:var(--blue);}
+.chat-msg .cm-img{margin-top:5px;}
+.chat-msg .cm-img img{max-width:220px;max-height:240px;border-radius:10px;cursor:pointer;display:block;}
+.chat-msg .cm-file{display:inline-flex;align-items:center;gap:6px;margin-top:5px;padding:7px 11px;background:rgba(0,0,0,0.12);border-radius:9px;font-size:12.5px;text-decoration:none;color:inherit;font-weight:600;}
+.chat-msg.admin .cm-file{background:rgba(255,255,255,0.18);}
 .chat-thread .ct-dept{font-size:9.5px;font-weight:700;color:#fff;padding:1px 7px;border-radius:10px;}
 .chat-main{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-width:0;}
 .chat-ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);font-size:15px;text-align:center;gap:8px;}
@@ -1069,7 +1080,10 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
           <div class="chat-conv" id="chat-conv" style="display:none">
             <div class="chat-head" id="chat-head"></div>
             <div class="chat-msgs" id="chat-msgs"></div>
+            <div id="chat-attach-prev" style="display:none;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border)"></div>
             <div class="chat-input-bar">
+              <button class="chat-attach-btn" onclick="document.getElementById('chat-file').click()" title="แนบรูป/ไฟล์">📎</button>
+              <input type="file" id="chat-file" accept="image/*,application/pdf" style="display:none" onchange="chatPickFile(this)">
               <input id="chat-input" class="chat-input" maxlength="1000" data-th-ph="พิมพ์ข้อความถึงผู้แจ้ง..." data-en-ph="Message the reporter..." placeholder="พิมพ์ข้อความถึงผู้แจ้ง..." onkeydown="if(event.key==='Enter')sendAdminMessage()">
               <button class="chat-send-btn" id="chat-send-btn" onclick="sendAdminMessage()" data-th="ส่ง" data-en="Send">ส่ง</button>
             </div>
@@ -5064,27 +5078,49 @@ function archiveSearchKey(ev){ if(ev && ev.key==='Enter') doArchiveSearch(); }
 
 // ===== แชตติดตามงาน (admin side) =====
 let chatPollTimer=null, chatCurrentTicket=null, chatLastMsgId='', chatThreadsCache=[], chatMsgsCache=[];
+let chatThreadSnap={}, chatSnapInit=false, chatPendingAttach=null;
 function chatEsc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function chatLastRead(){ try{return JSON.parse(localStorage.getItem('chatLastRead')||'{}');}catch(e){return {};} }
-function chatSetRead(tid,msgId){ const m=chatLastRead(); m[tid]=msgId; try{localStorage.setItem('chatLastRead',JSON.stringify(m));}catch(e){} }
+function chatRead(){ try{return JSON.parse(localStorage.getItem('chatReadV2')||'{}');}catch(e){return {};} }
+function chatSetRead(tid,msgId,count){ const m=chatRead(); m[tid]={id:msgId,count:count||0}; try{localStorage.setItem('chatReadV2',JSON.stringify(m));}catch(e){} }
+function chatUnreadN(t){ const rd=chatRead()[t.ticket_id]; if(t.last_sender!=='reporter') return 0; return Math.max(0,(t.count||0)-((rd&&rd.count)||0)); }
+function chatStatusLabel(s){ return ({pending:'⏳ รอรับ',assigned:'📌 มอบหมาย',in_progress:'🔧 กำลังทำ',done:'✅ เสร็จ',rejected:'❌ ปฏิเสธ'}[String(s||'').toLowerCase()]||s||''); }
+function chatGDrive(u){ u=String(u||''); const m=u.match(/\/file\/d\/([^/]+)/)||u.match(/[?&]id=([^&]+)/); return m?('https://drive.google.com/uc?id='+m[1]+'&export=download'):u; }
+function playChatSound(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination); o.type='sine';
+    o.frequency.setValueAtTime(880,ctx.currentTime);
+    o.frequency.setValueAtTime(1175,ctx.currentTime+0.13);
+    g.gain.setValueAtTime(0.0001,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.28,ctx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.45);
+    o.start(); o.stop(ctx.currentTime+0.45);
+  }catch(e){}
+}
 async function chatApi(body){
   try{ const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)}); return await r.json(); }catch(e){ return {success:false,error:'network'}; }
 }
 function chatTicketInfo(tid){ return (typeof tickets!=='undefined'?tickets:[]).find(t=>t.ticket_id===tid)||null; }
 function updateChatBadge(){
-  const lr=chatLastRead(); let n=0;
-  chatThreadsCache.forEach(t=>{ if(t.last_sender==='reporter' && lr[t.ticket_id]!==t.last_id) n++; });
-  const b=document.getElementById('chat-badge'); if(b){ b.textContent=n; b.style.display=n>0?'':'none'; }
+  let n=0; chatThreadsCache.forEach(t=>{ n+=chatUnreadN(t); });
+  const b=document.getElementById('chat-badge'); if(b){ b.textContent=n>99?'99+':n; b.style.display=n>0?'':'none'; }
 }
 async function loadChatThreads(){
   const r=await chatApi({action:'chat_threads'});
   if(!r||!r.success) return;
   chatThreadsCache=r.threads||[];
+  let hasNew=false;
+  chatThreadsCache.forEach(t=>{
+    if(t.last_sender==='reporter' && chatThreadSnap[t.ticket_id]!==t.last_id){ if(chatSnapInit) hasNew=true; }
+    chatThreadSnap[t.ticket_id]=t.last_id;
+  });
+  chatSnapInit=true;
+  if(hasNew) playChatSound();
   renderChatList(); updateChatBadge();
 }
 function renderChatList(){
   const box=document.getElementById('chat-list'); if(!box) return;
-  const lr=chatLastRead();
   const th=chatThreadsCache.slice().sort((a,b)=>String(b.last_at).localeCompare(String(a.last_at)));
   if(!th.length){ box.innerHTML='<div class="chat-empty">'+L('— ยังไม่มีห้องแชต —','— No chats yet —')+'</div>'; return; }
   box.innerHTML=th.map(t=>{
@@ -5092,22 +5128,38 @@ function renderChatList(){
     const cat=tk?(tk.category||tk.building||'-'):'-';
     const branch=tk?(tk.branch||''):'';
     const dc=tk?ticketColor(tk):'#64748B';
-    const unread=(t.last_sender==='reporter' && lr[t.ticket_id]!==t.last_id);
+    const un=chatUnreadN(t);
+    const place=tk?((tk.building||tk.location||'')+(tk.room?' '+tk.room:'')).trim():'';
+    const who=tk?(tk.reported_by||tk.displayName||''):'';
+    const stTxt=tk?chatStatusLabel(tk.status):'';
     const lastTxt=(t.last_sender==='admin'?L('คุณ: ','You: '):'')+t.last_msg;
-    return '<div class="chat-thread'+(t.ticket_id===chatCurrentTicket?' active':'')+'" onclick="openChatThread(\''+t.ticket_id+'\')">'+
-      '<div class="ct-top">'+(unread?'<span class="ct-unread"></span>':'')+'<span class="ct-id">'+t.ticket_id+'</span><span class="ct-cat">'+chatEsc(cat)+'</span></div>'+
+    return '<div class="chat-thread'+(t.ticket_id===chatCurrentTicket?' active':'')+(un>0?' unread':'')+'" onclick="openChatThread(\''+t.ticket_id+'\')">'+
+      '<div class="ct-top"><span class="ct-id">'+t.ticket_id+'</span><span class="ct-cat">'+chatEsc(cat)+'</span>'+(un>0?'<span class="ct-badge">'+(un>99?'99+':un)+'</span>':'')+'</div>'+
+      (tk?'<div class="ct-info">'+(place?'📍 '+chatEsc(place):L('(ไม่พบข้อมูลงาน)','(no ticket info)'))+(who?' · 👤 '+chatEsc(who):'')+'</div>':'<div class="ct-info" style="color:#EF4444">'+L('⚠ ไม่พบ Ticket ในระบบ','⚠ Ticket not found')+'</div>')+
       '<div class="ct-last">'+chatEsc(lastTxt)+'</div>'+
-      '<div class="ct-meta">'+(branch?'<span class="ct-dept" style="background:'+dc+'">'+chatEsc(branch)+'</span>':'')+'<span>'+chatEsc(t.last_at)+'</span></div>'+
+      '<div class="ct-meta">'+(branch?'<span class="ct-dept" style="background:'+dc+'">'+chatEsc(branch)+'</span>':'')+(stTxt?'<span class="ct-st">'+chatEsc(stTxt)+'</span>':'')+'<span style="margin-left:auto">'+chatEsc(t.last_at)+'</span></div>'+
     '</div>';
   }).join('');
 }
 async function openChatThread(tid){
-  chatCurrentTicket=tid; chatLastMsgId='';
+  chatCurrentTicket=tid; chatLastMsgId=''; chatClearAttach();
   document.getElementById('chat-ph').style.display='none';
   document.getElementById('chat-conv').style.display='flex';
   const tk=chatTicketInfo(tid);
-  document.getElementById('chat-head').innerHTML='<span class="ch-id">'+tid+'</span>'+(tk?'<span class="ch-cat">'+chatEsc(tk.category||tk.building||'')+'</span>':'')+
-    '<span class="ch-sub">'+(tk?('📍 '+chatEsc((tk.building||tk.location||'-')+(tk.room?' '+tk.room:''))+' · '+L('ผู้แจ้ง','Reporter')+': '+chatEsc(tk.reported_by||tk.displayName||'-')+' · '+L('สถานะ','Status')+': '+chatEsc(tk.status||'')):L('ไม่พบ Ticket นี้ในระบบ','Ticket not found'))+'</span>';
+  let head='<span class="ch-id">'+tid+'</span>';
+  if(tk){
+    head+='<span class="ch-cat">'+chatEsc(tk.category||tk.building||'')+'</span>';
+    const place=((tk.building||tk.location||'-')+(tk.room?' '+tk.room:'')).trim();
+    const who=tk.reported_by||tk.displayName||'-';
+    const asg=tk.assigned_to?(tk.assigned_to+(tk.assigned_secondary?', '+tk.assigned_secondary:'')):L('ยังไม่มอบหมาย','Unassigned');
+    const team=tk.team||tk.department||'-';
+    const wt=({repair:'🔧 งานซ่อม',project:'📁 โครงการ',pm:'🔧 PM',claim:'📦 เคลม',purchase:'🛒 จัดซื้อ'}[String(tk.work_type||'repair').toLowerCase()]||'งาน');
+    const pri=tk.priority?(' · ⚡'+chatEsc(tk.priority)):'';
+    head+='<span class="ch-sub">'+wt+' · 🏢 '+chatEsc(tk.branch||'-')+' · 📍 '+chatEsc(place)+pri+'</span>'+
+          '<span class="ch-sub">👤 '+L('ผู้แจ้ง','Reporter')+': '+chatEsc(who)+' · 👷 '+L('ผู้รับผิดชอบ','Assignee')+': '+chatEsc(asg)+' · '+L('ทีม','Team')+': '+chatEsc(team)+'</span>'+
+          '<span class="ch-sub">'+chatStatusLabel(tk.status)+(tk.created_at?' · '+L('แจ้งเมื่อ','Created')+' '+chatEsc(String(tk.created_at).substring(0,16)):'')+' · <a href="javascript:void(0)" onclick="openDetail(\''+tid+'\')" style="color:var(--blue)">'+L('เปิดดูงานเต็ม','Open ticket')+'</a></span>';
+  } else { head+='<span class="ch-sub" style="color:#EF4444">'+L('⚠ ไม่พบ Ticket นี้ในระบบ (อาจถูกลบ/archive)','⚠ Ticket not found')+'</span>'; }
+  document.getElementById('chat-head').innerHTML=head;
   document.getElementById('chat-msgs').innerHTML='<div class="chat-empty">'+L('กำลังโหลด...','Loading...')+'</div>';
   renderChatList();
   await pollChatMessages(true);
@@ -5115,20 +5167,26 @@ async function openChatThread(tid){
 let chatPollBusy=false;
 async function pollChatMessages(reset){
   if(!chatCurrentTicket) return;
-  if(chatPollBusy && !reset) return;        // กัน poll ซ้อน (interval ทับ manual)
+  if(chatPollBusy && !reset) return;
   chatPollBusy=true;
   const tid=chatCurrentTicket;
   if(reset){ chatMsgsCache=[]; chatLastMsgId=''; }
   try{
     const r=await chatApi({action:'chat_fetch',ticket_id:tid,after_id:chatLastMsgId});
-    if(tid!==chatCurrentTicket || !r || !r.success) return;   // เปลี่ยนห้องระหว่างรอ
+    if(tid!==chatCurrentTicket || !r || !r.success) return;
     const incoming=r.messages||[];
     let added=false;
-    incoming.forEach(m=>{ if(!chatMsgsCache.some(x=>x.msg_id===m.msg_id)){ chatMsgsCache.push(m); added=true; } });  // กันซ้ำด้วย msg_id
+    incoming.forEach(m=>{ if(!chatMsgsCache.some(x=>x.msg_id===m.msg_id)){ chatMsgsCache.push(m); added=true; } });
     if(chatMsgsCache.length) chatLastMsgId=chatMsgsCache[chatMsgsCache.length-1].msg_id;
     if(reset||added){ renderChatMessages(); }
-    if(chatMsgsCache.length){ chatSetRead(chatCurrentTicket, chatMsgsCache[chatMsgsCache.length-1].msg_id); updateChatBadge(); renderChatList(); }
+    if(chatMsgsCache.length){ chatSetRead(chatCurrentTicket, chatMsgsCache[chatMsgsCache.length-1].msg_id, chatMsgsCache.length); updateChatBadge(); renderChatList(); }
   } finally { chatPollBusy=false; }
+}
+function chatAttachHtml(m){
+  let h='';
+  if(m.image_url) h+='<div class="cm-img"><img src="'+chatEsc(chatGDrive(m.image_url))+'" onclick="window.open(this.src,\'_blank\')" loading="lazy"></div>';
+  if(m.file_url) h+='<a class="cm-file" href="'+chatEsc(m.file_url)+'" target="_blank">📎 '+chatEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
+  return h;
 }
 function renderChatMessages(){
   const box=document.getElementById('chat-msgs'); if(!box) return;
@@ -5138,16 +5196,42 @@ function renderChatMessages(){
     const d=String(m.created_at||'').split(' ')[0];
     let sep=''; if(d && d!==lastDate){ lastDate=d; sep='<div class="chat-date-sep">'+chatEsc(d)+'</div>'; }
     const time=String(m.created_at||'').split(' ')[1]||'';
-    return sep+'<div class="chat-msg '+(m.sender==='admin'?'admin':'reporter')+'"><div class="cm-name">'+chatEsc(m.sender_name||(m.sender==='admin'?'แอดมิน':'ผู้แจ้ง'))+'</div>'+chatEsc(m.message)+'<div class="cm-time">'+chatEsc(time)+'</div></div>';
+    return sep+'<div class="chat-msg '+(m.sender==='admin'?'admin':'reporter')+'"><div class="cm-name">'+chatEsc(m.sender_name||(m.sender==='admin'?'แอดมิน':'ผู้แจ้ง'))+'</div>'+(m.message?chatEsc(m.message):'')+chatAttachHtml(m)+'<div class="cm-time">'+chatEsc(time)+'</div></div>';
   }).join('');
   box.scrollTop=box.scrollHeight;
 }
+// แนบไฟล์ (admin)
+async function chatPickFile(input){ const f=input.files&&input.files[0]; input.value=''; if(f) await chatDoUpload(f); }
+async function chatDoUpload(file){
+  if(file.size>10*1024*1024){ toast(L('ไฟล์ใหญ่เกิน 10MB','File exceeds 10MB'),'⚠️','info'); return; }
+  const prev=document.getElementById('chat-attach-prev'); if(prev){ prev.style.display='flex'; prev.innerHTML='<span style="font-size:12px;color:var(--text3)">⏳ '+L('กำลังอัปโหลด...','Uploading...')+'</span>'; }
+  try{
+    const isImg=/^image\//.test(file.type);
+    const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    const r=await chatApi({action:'upload_image',skip_sheet:true,base64:b64,mimeType:file.type||'application/octet-stream',fileName:(chatCurrentTicket||'chat')+'_'+Date.now()+'_'+file.name});
+    const url=(r&&((r.data&&(r.data.imageUrl||r.data.url))||r.imageUrl||r.url))||'';
+    if(!url){ throw new Error('no url'); }
+    chatPendingAttach=isImg?{image_url:url,name:file.name,img:true}:{file_url:url,file_name:file.name,img:false};
+    chatRenderAttachPrev();
+  }catch(e){ toast(L('อัปโหลดไม่สำเร็จ','Upload failed'),'❌','error'); chatClearAttach(); }
+}
+function chatRenderAttachPrev(){
+  const prev=document.getElementById('chat-attach-prev'); if(!prev) return;
+  if(!chatPendingAttach){ prev.style.display='none'; prev.innerHTML=''; return; }
+  prev.style.display='flex';
+  prev.innerHTML=(chatPendingAttach.img?'<img src="'+chatEsc(chatGDrive(chatPendingAttach.image_url))+'" style="width:38px;height:38px;object-fit:cover;border-radius:6px">':'<span style="font-size:18px">📎</span>')+
+    '<span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+chatEsc(chatPendingAttach.name||chatPendingAttach.file_name)+'</span>'+
+    '<button onclick="chatClearAttach()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">×</button>';
+}
+function chatClearAttach(){ chatPendingAttach=null; chatRenderAttachPrev(); }
 async function sendAdminMessage(){
   const inp=document.getElementById('chat-input'); const msg=inp.value.trim();
-  if(!msg||!chatCurrentTicket) return;
+  if((!msg && !chatPendingAttach)||!chatCurrentTicket) return;
   const btn=document.getElementById('chat-send-btn'); btn.disabled=true; inp.value='';
-  const r=await chatApi({action:'chat_send',ticket_id:chatCurrentTicket,sender:'admin',sender_name:(currentUser&&currentUser.name)||'แอดมิน',message:msg});
-  if(r&&r.success){ await pollChatMessages(); loadChatThreads(); }
+  const body={action:'chat_send',ticket_id:chatCurrentTicket,sender:'admin',sender_name:(currentUser&&currentUser.name)||'แอดมิน',message:msg};
+  if(chatPendingAttach){ if(chatPendingAttach.img) body.image_url=chatPendingAttach.image_url; else { body.file_url=chatPendingAttach.file_url; body.file_name=chatPendingAttach.file_name; } }
+  const r=await chatApi(body);
+  if(r&&r.success){ chatClearAttach(); await pollChatMessages(); loadChatThreads(); }
   else { toast(L('ส่งไม่สำเร็จ','Send failed'),'❌','error'); inp.value=msg; }
   btn.disabled=false; inp.focus();
 }
