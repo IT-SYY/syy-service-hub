@@ -5106,17 +5106,31 @@ function updateChatBadge(){
   let n=0; chatThreadsCache.forEach(t=>{ n+=chatUnreadN(t); });
   const b=document.getElementById('chat-badge'); if(b){ b.textContent=n>99?'99+':n; b.style.display=n>0?'':'none'; }
 }
+function chatNotifyAsk(){ try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch(e){} }
+function chatNotify(tid, msg){
+  try{
+    if(!('Notification' in window) || Notification.permission!=='granted') return;
+    const tk=chatTicketInfo(tid);
+    const title='💬 ข้อความใหม่ · '+tid;
+    const body=(tk?((tk.category||tk.building||'')+(tk.reported_by||tk.displayName?(' · '+(tk.reported_by||tk.displayName)):'')+'\n'):'')+(msg||'');
+    const n=new Notification(title,{body:body,tag:'chat-'+tid,renotify:true});
+    n.onclick=function(){ try{ window.focus(); const nav=Array.from(document.querySelectorAll('.nav-item')).find(x=>x.textContent.includes('แชต')); if(nav) showPage('chat',nav); openChatThread(tid); }catch(e){} n.close(); };
+  }catch(e){}
+}
 async function loadChatThreads(){
   const r=await chatApi({action:'chat_threads'});
   if(!r||!r.success) return;
   chatThreadsCache=r.threads||[];
-  let hasNew=false;
+  let hasNew=false, newOnes=[];
   chatThreadsCache.forEach(t=>{
-    if(t.last_sender==='reporter' && chatThreadSnap[t.ticket_id]!==t.last_id){ if(chatSnapInit) hasNew=true; }
+    if(t.last_sender==='reporter' && chatThreadSnap[t.ticket_id]!==t.last_id){ if(chatSnapInit){ hasNew=true; newOnes.push(t); } }
     chatThreadSnap[t.ticket_id]=t.last_id;
   });
   chatSnapInit=true;
-  if(hasNew) playChatSound();
+  if(hasNew){
+    playChatSound();
+    if(document.hidden) newOnes.forEach(t=>chatNotify(t.ticket_id, t.last_msg));   // เด้งเฉพาะตอนสลับแท็บไป
+  }
   renderChatList(); updateChatBadge();
 }
 function renderChatList(){
@@ -5207,8 +5221,10 @@ async function chatDoUpload(file){
   const prev=document.getElementById('chat-attach-prev'); if(prev){ prev.style.display='flex'; prev.innerHTML='<span style="font-size:12px;color:var(--text3)">⏳ '+L('กำลังอัปโหลด...','Uploading...')+'</span>'; }
   try{
     const isImg=/^image\//.test(file.type);
-    const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
-    const r=await chatApi({action:'upload_image',skip_sheet:true,base64:b64,mimeType:file.type||'application/octet-stream',fileName:(chatCurrentTicket||'chat')+'_'+Date.now()+'_'+file.name});
+    let b64, mime, fname;
+    if(isImg){ const du=await compressToDataURL(file); b64=du.split(',')[1]; mime='image/jpeg'; fname=file.name.replace(/\.[^.]+$/,'')+'.jpg'; }
+    else { b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(file);}); mime=file.type||'application/octet-stream'; fname=file.name; }
+    const r=await chatApi({action:'upload_image',skip_sheet:true,base64:b64,mimeType:mime,fileName:(chatCurrentTicket||'chat')+'_'+Date.now()+'_'+fname});
     const url=(r&&((r.data&&(r.data.imageUrl||r.data.url))||r.imageUrl||r.url))||'';
     if(!url){ throw new Error('no url'); }
     chatPendingAttach=isImg?{image_url:url,name:file.name,img:true}:{file_url:url,file_name:file.name,img:false};
@@ -5235,12 +5251,14 @@ async function sendAdminMessage(){
   else { toast(L('ส่งไม่สำเร็จ','Send failed'),'❌','error'); inp.value=msg; }
   btn.disabled=false; inp.focus();
 }
-function renderChatPage(){ loadChatThreads(); }
+function renderChatPage(){ chatNotifyAsk(); loadChatThreads(); }
 function startChatPoll(){
   stopChatPoll();
   chatPollTimer=setInterval(()=>{ if(currentPage==='chat'){ if(chatCurrentTicket) pollChatMessages(); loadChatThreads(); } },4000);
 }
 function stopChatPoll(){ if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer=null; } }
+// อัปเดตเลขแจ้งเตือนที่เมนูซ้าย + เด้ง/เสียง ทุก 15 วิ แม้ไม่ได้เปิดหน้าแชต
+setInterval(function(){ try{ if(typeof currentPage!=='undefined' && currentPage!=='chat' && typeof currentUser!=='undefined' && currentUser) loadChatThreads(); }catch(e){} }, 15000);
 
 function showPage(p,el,fromPop){
   window._navByMember=false;
