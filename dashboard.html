@@ -528,7 +528,7 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-card .pill{font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:var(--uc-dim,rgba(96,165,250,0.20));color:#fff;}
 @keyframes tvCardIn{from{opacity:0;transform:translateY(14px) scale(.96);}to{opacity:1;transform:none;}}
 .tvb-card.urgent .edge{animation:tvEdgePulse 1.1s ease-in-out infinite;}
-@keyframes tvEdgePulse{0%,100%{box-shadow:0 0 10px var(--uc);}50%{box-shadow:0 0 24px var(--uc),0 0 6px var(--uc);}}
+@keyframes tvEdgePulse{0%,100%{box-shadow:0 0 10px var(--sla,var(--uc));}50%{box-shadow:0 0 24px var(--sla,var(--uc)),0 0 6px var(--sla,var(--uc));}}
 .tvb-card.flash{animation:tvCardIn .5s both,tvFlash 1.9s ease-out;}
 @keyframes tvFlash{0%{box-shadow:0 0 0 2px var(--uc),0 0 30px 8px var(--uc);background:var(--uc-dim);}100%{box-shadow:none;}}
 .tvb-more{font-size:13px;color:#7A87A0;text-align:center;padding:7px;font-weight:600;}
@@ -564,9 +564,15 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-card .ring{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;background:conic-gradient(var(--uc) calc(var(--pct,0)*3.6deg),rgba(255,255,255,0.10) 0);display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px -3px var(--uc);}
 .tvb-card .ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:#111a2c;}
 .tvb-card .ring span{position:relative;font-size:9.5px;font-weight:800;font-family:'JetBrains Mono',monospace;color:#EAF0FB;}
+/* SLA accent (แดง/ส้ม) แยกจากกรอบสถานะ — sci-fi warning beacon */
+.tvb-card.sla-danger{--sla:#F87171;}
+.tvb-card.sla-warn{--sla:#FBBF24;}
+.tvb-card.sla-danger .edge,.tvb-card.sla-warn .edge{background:linear-gradient(180deg,var(--uc) 0%,var(--uc) 45%,var(--sla) 100%);box-shadow:0 0 12px var(--sla);}
+.tvb-card.sla-danger .id .tid,.tvb-card.sla-warn .id .tid{text-shadow:0 0 9px var(--sla);}
+.tvb-card.sla-danger::before,.tvb-card.sla-warn::before{border-color:var(--sla) !important;box-shadow:0 0 8px var(--sla);}
 /* A: urgent neon breathing border */
-.tvb-card.urgent{border-color:var(--uc);animation:tvCardIn .5s both,tvUrgentGlow 1.4s ease-in-out infinite;}
-@keyframes tvUrgentGlow{0%,100%{box-shadow:0 0 0 1px var(--uc),0 0 14px -5px var(--uc);}50%{box-shadow:0 0 0 1px var(--uc),0 0 26px 1px var(--uc);}}
+.tvb-card.urgent{border-color:var(--sla,var(--uc));animation:tvCardIn .5s both,tvUrgentGlow 1.4s ease-in-out infinite;}
+@keyframes tvUrgentGlow{0%,100%{box-shadow:0 0 0 1px var(--sla,var(--uc)),0 0 14px -5px var(--sla,var(--uc));}50%{box-shadow:0 0 0 1px var(--sla,var(--uc)),0 0 26px 1px var(--sla,var(--uc));}}
 /* B: ticker auto-scroll */
 .tvb-ticker .tvb-feed.run{animation:tvTicker var(--tk,26s) linear infinite;}
 .tvb-ticker:hover .tvb-feed.run{animation-play-state:paused;}
@@ -665,6 +671,33 @@ body.tv #tv-fx{display:block;}
 .chat-send-btn{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;border:none;border-radius:10px;padding:0 22px;font-weight:700;cursor:pointer;font-size:14px;}
 .chat-send-btn:disabled{opacity:.5;cursor:default;}
 .chat-date-sep{align-self:center;font-size:10.5px;color:var(--text3);background:var(--bg3);padding:2px 12px;border-radius:12px;margin:4px 0;}
+.kb-prog{display:flex;align-items:center;gap:7px;margin:6px 0 2px;}
+.kb-prog-bar{flex:1;height:7px;background:var(--bg3,#e5e7eb);border-radius:5px;overflow:hidden;}
+.kb-prog-bar span{display:block;height:100%;background:linear-gradient(90deg,#8B5CF6,#A78BFA);border-radius:5px;transition:width .4s;}
+.kb-prog-txt{font-size:11px;font-weight:800;color:#8B5CF6;min-width:32px;text-align:right;}
+.tr-prog{display:flex;align-items:center;gap:5px;margin-top:3px;}
+.tr-prog-bar{width:42px;height:5px;background:var(--bg3,#e5e7eb);border-radius:4px;overflow:hidden;}
+.tr-prog-bar span{display:block;height:100%;background:linear-gradient(90deg,#8B5CF6,#A78BFA);}
+.tr-prog-txt{font-size:9px;font-weight:800;color:#8B5CF6;}
+.chat-back{display:none;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 14px;margin:10px 12px 0;font-size:13px;font-weight:700;cursor:pointer;width:max-content;}
+@media(max-width:768px){
+  .chat-wrap{flex-direction:column;height:calc(100vh - 150px);position:relative;gap:0;}
+  .chat-list{width:100%;height:100%;border-radius:12px;}
+  .chat-main{position:absolute;inset:0;display:none;border-radius:12px;}
+  .chat-wrap.show-conv .chat-list{display:none;}
+  .chat-wrap.show-conv .chat-main{display:flex;}
+  .chat-back{display:inline-flex;}
+  .chat-head{padding:10px 14px;}
+  .chat-head .ch-sub{font-size:11px;line-height:1.5;}
+  .chat-msg{max-width:86%;font-size:14px;}
+  .chat-msgs{padding:12px;}
+  .chat-input{font-size:16px;padding:10px 12px;}
+  .chat-input-bar{padding:10px;}
+  .chat-attach-btn{width:42px;}
+  .chat-thread{padding:12px;}
+  .chat-thread .ct-cat{font-size:13px;}
+  .chat-msg .cm-img img{max-width:70vw;}
+}
 /* DETAIL OVERLAY */
 
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
@@ -1078,6 +1111,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <div class="chat-main">
           <div class="chat-ph" id="chat-ph">💬<br><span data-th="เลือกห้องแชตทางซ้ายเพื่อเริ่มสนทนา" data-en="Select a chat to start">เลือกห้องแชตทางซ้ายเพื่อเริ่มสนทนา</span></div>
           <div class="chat-conv" id="chat-conv" style="display:none">
+            <button class="chat-back" onclick="chatBackToList()">← <span data-th="ห้องแชต" data-en="Chats">ห้องแชต</span></button>
             <div class="chat-head" id="chat-head"></div>
             <div class="chat-msgs" id="chat-msgs"></div>
             <div id="chat-attach-prev" style="display:none;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border)"></div>
@@ -1823,11 +1857,10 @@ function tvCard(t,pal,flash,attn){
   const place=((t.building||t.location||'')+(t.room?' '+t.room:'')).trim();
   const ref=t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
   const m=elapsedSince(ref), lt=lateLevel(m,t.priority);
-  let uc,wash,bd,dim,dot,showPill=true;
-  if(t.status==='done'){uc=pal.c;wash=pal.wash;bd=pal.bd;dim=pal.dim;dot='';showPill=false;}
-  else if(lt.level==='danger'){uc='#F87171';wash='rgba(248,113,113,0.16)';bd='rgba(248,113,113,0.50)';dim='rgba(248,113,113,0.32)';dot='🔴 ';}
-  else if(lt.level==='warn'){uc='#FBBF24';wash='rgba(251,191,36,0.15)';bd='rgba(251,191,36,0.45)';dim='rgba(251,191,36,0.30)';dot='🟠 ';}
-  else {uc=pal.c;wash=pal.wash;bd=pal.bd;dim=pal.dim;dot='';}
+  let uc=pal.c, wash=pal.wash, bd=pal.bd, dim=pal.dim, dot='', showPill=true, slaCls='';
+  if(t.status==='done'){ showPill=false; }
+  else if(lt.level==='danger'){ slaCls=' sla-danger'; dot='🔴 '; }
+  else if(lt.level==='warn'){ slaCls=' sla-warn'; dot='🟠 '; }
   const who=t.assigned_to?allAssignees(t).join(', '):'ยังไม่มอบหมาย';
   const dc=ticketColor(t);
   const dept=t.team||t.department||({project:'งานโครงการ',pm:'งาน PM',claim:'งานเคลม',purchase:'งานจัดซื้อ'}[String(t.work_type||'').toLowerCase()]||'อื่นๆ');
@@ -1844,7 +1877,7 @@ function tvCard(t,pal,flash,attn){
   const deptHtml=isLongJob
     ? '<span class="dept dept-low">'+(String(t.work_type).toLowerCase()==='project'?'📁 โครงการ':'📦 เคลม')+'</span>'
     : '<span class="dept" style="--dc:'+dc+'">'+dept+'</span>';
-  const cls='tvb-card'+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+((t.status==='in_progress'&&!isLongJob)?' has-ring':'')+(blink?' attn':'')+(isLongJob?' tvb-low':'')+(flash?' flash':'');
+  const cls='tvb-card'+slaCls+(t.status!=='done'&&lt.level==='danger'?' urgent':'')+((t.status==='in_progress'&&!isLongJob)?' has-ring':'')+(blink?' attn':'')+(isLongJob?' tvb-low':'')+(flash?' flash':'');
   return '<div class="'+cls+'" style="--uc:'+uc+';--uc-wash:'+wash+';--uc-bd:'+bd+';--uc-dim:'+dim+'" data-id="'+t.ticket_id+'" onclick="tvShowDetail(\''+t.ticket_id+'\')">'+
     '<div class="edge"></div>'+(blink?'<div class="attn-ring"></div>':'')+ring+
     '<div class="id"><span class="tid">'+dot+t.ticket_id+'</span><span class="cat">· '+(t.category||'')+'</span></div>'+
@@ -1872,9 +1905,9 @@ function renderTVBoard(){
   });
   const n=new Date(),p=x=>String(x).padStart(2,'0');
   const PAL={
-    pending:{c:'#F59E0B',c2:'#FB923C',wash:'rgba(245,158,11,0.10)',bd:'rgba(245,158,11,0.30)',dim:'rgba(245,158,11,0.26)'},
-    prog:   {c:'#8B5CF6',c2:'#6366F1',wash:'rgba(139,92,246,0.11)',bd:'rgba(139,92,246,0.30)',dim:'rgba(139,92,246,0.26)'},
-    done:   {c:'#10B981',c2:'#059669',wash:'rgba(16,185,129,0.10)',bd:'rgba(16,185,129,0.28)',dim:'rgba(16,185,129,0.24)'}
+    pending:{c:'#FBBF24',c2:'#F59E0B',wash:'rgba(251,191,36,0.10)',bd:'rgba(251,191,36,0.32)',dim:'rgba(251,191,36,0.26)'},
+    prog:   {c:'#22D3EE',c2:'#0EA5E9',wash:'rgba(34,211,238,0.11)',bd:'rgba(34,211,238,0.36)',dim:'rgba(34,211,238,0.26)'},
+    done:   {c:'#34D399',c2:'#10B981',wash:'rgba(52,211,153,0.10)',bd:'rgba(52,211,153,0.30)',dim:'rgba(52,211,153,0.24)'}
   };
   const refOf=t=>t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
   const isLong=t=>['project','claim','purchase'].includes(String(t.work_type||'repair').toLowerCase());   // งานระยะยาว: โครงการ/เคลม
@@ -3002,7 +3035,12 @@ function mkCard(t){
 
   let btns='';
   if(t.status==='pending'){
-    btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button>`;
+    if(String(t.work_type).toLowerCase()==='claim')
+      btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
+    else if(String(t.work_type).toLowerCase()==='purchase')
+      btns+=`<button class="btn-done2" style="background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
+    else
+      btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button>`;
   }else if(t.status==='assigned'){
     btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button>`;
   }else if(t.status==='in_progress'){
@@ -3026,6 +3064,7 @@ function mkCard(t){
     ${hasPendingFollowup(t)?`<div class="followup-flag">🔔 ${L('ผู้แจ้งทวงถาม','Reporter followed up')}${parseInt(t.followup_count,10)>1?' ('+parseInt(t.followup_count,10)+')':''}${t.followup_msg?'<div class="followup-flag-msg">💬 '+esc(String(t.followup_msg).substring(0,80))+'</div>':''}</div>`:''}
     ${mkCardImage(t)}
     ${timerHtml}
+    ${(t.status==='in_progress' && (parseInt(t.progress)||0)>0)?`<div class="kb-prog"><div class="kb-prog-bar"><span style="width:${parseInt(t.progress)||0}%"></span></div><span class="kb-prog-txt">${parseInt(t.progress)||0}%</span></div>`:''}
     <div class="kb-meta">
       <span><span style="display:inline-block;padding:1px 7px;border-radius:4px;background:${ticketColor(t)};color:#fff;font-size:10px;font-weight:700;margin-right:4px">${t.team||t.department||'—'}</span> 📍 ${loc||L('ไม่ระบุ','N/A')} &nbsp;·&nbsp; 🏷️ ${t.category||L('ไม่ระบุ','N/A')}</span>
       <span>${assigneeBadge} &nbsp;·&nbsp; 🕐 ${ts}</span>
@@ -3231,7 +3270,7 @@ function renderTicketsPage(_keepPage){
       <td style="font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.description||'—'}</td>
       <td style="font-size:10px">${t.displayName||t.reported_by||t.userId||'—'}</td>
       <td><span class="pri-badge ${pc}">${pl}</span></td>
-      <td><span class="sbadge ${sc}">${sl}</span></td>
+      <td><span class="sbadge ${sc}">${sl}</span>${(t.status==='in_progress'&&(parseInt(t.progress)||0)>0)?`<div class="tr-prog"><div class="tr-prog-bar"><span style="width:${parseInt(t.progress)||0}%"></span></div><span class="tr-prog-txt">${parseInt(t.progress)||0}%</span></div>`:''}</td>
       <td>${assigneeDisplay}</td>
       <td style="font-size:10px;white-space:nowrap">${t.assigned_at||'—'}</td>
       <td style="font-size:10px;white-space:nowrap">${t.resolved_at||'—'}</td>
@@ -4541,14 +4580,14 @@ function openDetail(id){
   const isClaim = String(t.work_type).toLowerCase()==='claim';
   const isPurchase = String(t.work_type).toLowerCase()==='purchase';
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">${L('ปิด','Close')}</button>`;
-  if(t.status==='pending') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">${L('❌ ปฏิเสธ','❌ Reject')}</button>`;
+  if(t.status==='pending' && !isClaim && !isPurchase) ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">${L('❌ ปฏิเสธ','❌ Reject')}</button>`;
   else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">${L('↩️ เปิดงานใหม่','↩️ Reopen')}</button>`;
   else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button>`;
   else if(t.status==='in_progress' && !isClaim) ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">${L('📊 อัปเดต %','📊 Update %')}</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">${L('🏁 ปิดงาน','🏁 Close')}</button>`;
   // งานเคลม: ใช้ปุ่มอัปเดตสถานะอย่างเดียว (รวมการปิดงานในตัว) — แสดงเมื่อมีผู้รับผิดชอบแล้ว
-  if(isClaim && (t.status==='assigned'||t.status==='in_progress'))
+  if(isClaim && t.status!=='done' && t.status!=='rejected')
     ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="closeM('m-detail');openClaimStage('${t.ticket_id}')">${L('📦 อัปเดตสถานะ','📦 Update Status')}</button>`;
-  if(isPurchase && (t.status==='assigned'||t.status==='in_progress'))
+  if(isPurchase && t.status!=='done' && t.status!=='rejected')
     ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#0891B2,#0E7490)" onclick="closeM('m-detail');openPurchaseStage('${t.ticket_id}')">${L('🛒 อัปเดตสถานะ','🛒 Update Status')}</button>`;
   // ย้ายงานซ่อม → โครงการ (เฉพาะงาน repair ที่ยังไม่ปิด/ยังไม่ถูกปฏิเสธ — งานบานปลาย)
   if(viewWorkType==='repair' && (t.status==='pending'||t.status==='assigned'||t.status==='in_progress'))
@@ -5159,6 +5198,7 @@ async function openChatThread(tid){
   chatCurrentTicket=tid; chatLastMsgId=''; chatClearAttach();
   document.getElementById('chat-ph').style.display='none';
   document.getElementById('chat-conv').style.display='flex';
+  const _cw=document.querySelector('#page-chat .chat-wrap'); if(_cw) _cw.classList.add('show-conv');
   const tk=chatTicketInfo(tid);
   let head='<span class="ch-id">'+tid+'</span>';
   if(tk){
@@ -5251,7 +5291,8 @@ async function sendAdminMessage(){
   else { toast(L('ส่งไม่สำเร็จ','Send failed'),'❌','error'); inp.value=msg; }
   btn.disabled=false; inp.focus();
 }
-function renderChatPage(){ chatNotifyAsk(); loadChatThreads(); }
+function chatBackToList(){ const cw=document.querySelector('#page-chat .chat-wrap'); if(cw) cw.classList.remove('show-conv'); chatCurrentTicket=null; renderChatList(); }
+function renderChatPage(){ chatNotifyAsk(); const cw=document.querySelector('#page-chat .chat-wrap'); if(cw) cw.classList.remove('show-conv'); loadChatThreads(); }
 function startChatPoll(){
   stopChatPoll();
   chatPollTimer=setInterval(()=>{ if(currentPage==='chat'){ if(chatCurrentTicket) pollChatMessages(); loadChatThreads(); } },4000);
