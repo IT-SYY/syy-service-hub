@@ -614,6 +614,12 @@ body.tv #tv-fx{display:block;}
 .tvb-card.tvb-low .meta{margin-top:3px;}
 .tvb-card.tvb-low::before,.tvb-card.tvb-low::after{display:none;}  /* ไม่มี corner bracket */
 .dept-low{background:rgba(148,163,184,0.16)!important;color:#9FB0C4!important;box-shadow:none!important;font-weight:600!important;}
+/* แถบงานระยะยาว (โครงการ/เคลม) — หมุนเวียนทีละใบ ไม่เลื่อนเร็ว ไม่กระพริบ */
+.tvb-longrotate{flex-shrink:0;margin-top:9px;padding-top:9px;border-top:1px dashed rgba(255,255,255,0.09);}
+.tvb-longrotate::before{content:'⏳ งานระยะยาว · หมุนเวียน';display:block;font-size:8.5px;font-weight:700;color:#6B7A90;letter-spacing:.6px;margin-bottom:6px;padding-left:2px;}
+.tvb-longrotate .lr-item{display:none;}
+.tvb-longrotate .lr-item.on{display:block;animation:lrFade .7s ease;}
+@keyframes lrFade{from{opacity:0;transform:translateY(4px);}to{opacity:.58;transform:none;}}
 /* DETAIL OVERLAY */
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
 .tvd-overlay.show{display:flex;animation:tvdFade .25s ease;}
@@ -807,6 +813,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span data-th="งานโครงการ" data-en="Projects">งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="งานจัดซื้อ" data-en="Procurement">งานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-sec" data-th="การจัดการ" data-en="Management">Management</div>
     <div class="nav-item" id="nav-genlog" style="display:none;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)" onclick="openExternal('https://it-syy.github.io/Generator-System/')"><span class="nav-icon">⛽</span><span style="color:#F59E0B;font-weight:700">GENERATOR FUEL LOG</span></div>
@@ -836,6 +843,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <option value="Engineering">Engineering</option>
       <option value="Landscape & Garden">L&amp;G</option>
       <option value="Environment">Environment</option>
+      <option value="Asset">Asset</option>
+      <option value="จัดซื้อ">จัดซื้อ</option>
     </select>
   </div>
   <div class="sidebar-ver">v3.1 · Auto refresh 30s</div>
@@ -980,6 +989,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <button class="btn-primary" id="btn-add-project" style="display:none;background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="openAddProject()" data-th="+ เพิ่มงานโครงการ" data-en="+ Add Project">+ เพิ่มงานโครงการ</button>
         <button class="btn-primary" id="btn-pm-plans" style="display:none;background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="openPmPlans()" data-th="🗓️ จัดการแผน PM" data-en="🗓️ Manage PM Plans">🗓️ จัดการแผน PM</button>
         <button class="btn-primary" id="btn-add-claim" style="display:none;background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="openAddClaim()" data-th="+ เพิ่มงานเคลม" data-en="+ Add Claim">+ เพิ่มงานเคลม</button>
+        <button class="btn-primary" id="btn-add-purchase" style="display:none;background:linear-gradient(135deg,#0891B2,#0E7490)" onclick="openAddPurchase()" data-th="+ เปิดงานจัดซื้อ" data-en="+ Add Procurement">+ เปิดงานจัดซื้อ</button>
         <button class="btn-secondary2" onclick="loadData()" data-th="↻ รีเฟรช" data-en="↻ Refresh">↻ รีเฟรช</button>
         <button class="btn-primary" onclick="openExportModal()">📄 Export PDF</button>
         <button class="btn-secondary2" onclick="openExportModal()">📊 Export Excel</button>
@@ -1060,6 +1070,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
       <div class="report-grid" id="report-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
       <div class="report-card" id="pm-report-card" style="margin-top:10px"></div>
       <div class="report-card" id="claim-report-card" style="margin-top:10px"></div>
+      <div class="report-card" id="purchase-report-card" style="margin-top:10px"></div>
       <div class="report-card" id="recurring-card" style="margin-top:10px">
         <div class="report-ttl">🔁 จุดที่ซ่อมซ้ำซาก <span style="font-weight:400;font-size:11px;color:var(--text3)">(จุดเดิม + ประเภทเดิม ซ่อม ≥3 ครั้งใน 90 วัน — ควรพิจารณาแก้ที่ต้นเหตุ)</span></div>
         <div id="recurring-body"></div>
@@ -1180,6 +1191,65 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
   </div>
 </div>
 
+<div class="overlay" id="m-addpurchase">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-ttl"><span data-th="🛒 เปิดงานจัดซื้อ (จาก PR)" data-en="🛒 Add Procurement (from PR)">🛒 เปิดงานจัดซื้อ (จาก PR)</span><button class="modal-x" onclick="closeM('m-addpurchase')">×</button></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl"><span data-th="สาขา" data-en="Branch">สาขา</span> <span style="color:var(--red)">*</span></label>
+        <select class="modal-sel" id="ap-branch"><option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="แผนกผู้ขอ" data-en="Requester Dept.">แผนกผู้ขอ</label><input class="modal-sel" id="ap-dept" data-th-ph="เช่น Housekeeping" data-en-ph="e.g. Housekeeping" placeholder="เช่น Housekeeping"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="เลขที่ PR" data-en="PR No.">เลขที่ PR</label><input class="modal-sel" id="ap-prno" data-th-ph="เช่น PR-2026-001" data-en-ph="e.g. PR-2026-001" placeholder="เช่น PR-2026-001"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="งบประมาณ (บาท)" data-en="Budget (THB)">งบประมาณ (บาท)</label><input class="modal-sel" id="ap-budget" data-th-ph="ถ้ามี" data-en-ph="if any" placeholder="ถ้ามี"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="รายการที่ขอซื้อ" data-en="Items">รายการที่ขอซื้อ</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ap-item" data-th-ph="เช่น เครื่องปรับอากาศ 2 เครื่อง" data-en-ph="e.g. 2 air conditioners" placeholder="เช่น เครื่องปรับอากาศ 2 เครื่อง"></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="รายละเอียด/เหตุผล" data-en="Details/Reason">รายละเอียด/เหตุผล</label><textarea class="modal-ta" id="ap-desc" data-th-ph="เหตุผลการจัดซื้อ ผู้อนุมัติ ฯลฯ..." data-en-ph="Reason, approver, etc..." placeholder="เหตุผลการจัดซื้อ ผู้อนุมัติ ฯลฯ..."></textarea></div>
+    <div class="modal-field"><label class="modal-lbl" data-th="ความสำคัญ" data-en="Priority">ความสำคัญ</label>
+      <select class="modal-sel" id="ap-priority"><option value="low" data-th="ปกติ" data-en="Normal">ปกติ</option><option value="med" data-th="สำคัญ" data-en="High">สำคัญ</option><option value="high" data-th="เร่งด่วน" data-en="Urgent">เร่งด่วน</option></select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-lbl" data-th="📄 แนบไฟล์ PR ที่อนุมัติแล้ว (PDF/รูป)" data-en="📄 Attach approved PR">📄 แนบไฟล์ PR ที่อนุมัติแล้ว (PDF/รูป)</label>
+      <button type="button" class="btn-cancel" style="width:100%;border-color:#0891B2;color:#0E7490" onclick="document.getElementById('ap-doc').click()" data-th="+ เลือกไฟล์ PR" data-en="+ Select PR file">+ เลือกไฟล์ PR</button>
+      <input type="file" id="ap-doc" accept="application/pdf,image/*" style="display:none" onchange="apPickDoc(this)">
+      <div id="ap-doc-preview" style="margin-top:6px"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-lbl" data-th="📷 แนบรูปประกอบ (สูงสุด 3)" data-en="📷 Attach photos (max 3)">📷 แนบรูปประกอบ (สูงสุด 3)</label>
+      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('ap-photos').click()" data-th="+ เลือกรูป" data-en="+ Select photos">+ เลือกรูป</button>
+      <input type="file" id="ap-photos" accept="image/*" multiple style="display:none" onchange="apPickPhotos(this)">
+      <div id="ap-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-addpurchase')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#0891B2,#0E7490)" id="btn-ap-ok" onclick="doAddPurchase()" data-th="🛒 เปิดงานจัดซื้อ" data-en="🛒 Create">🛒 เปิดงานจัดซื้อ</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-purchasestage">
+  <div class="modal">
+    <div class="modal-ttl"><span data-th="🛒 อัปเดตสถานะจัดซื้อ" data-en="🛒 Update Procurement">🛒 อัปเดตสถานะจัดซื้อ</span><button class="modal-x" onclick="closeM('m-purchasestage')">×</button></div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="สถานะปัจจุบัน" data-en="Current Status">สถานะปัจจุบัน</span> <span style="color:var(--red)">*</span></label>
+      <select class="modal-sel" id="ps-stage">
+        <option value="รับ PR" data-th="1. รับ PR (อนุมัติแล้ว)" data-en="1. PR received">1. รับ PR (อนุมัติแล้ว)</option>
+        <option value="ขอใบเสนอราคา" data-th="2. ขอใบเสนอราคา" data-en="2. Requesting quotation">2. ขอใบเสนอราคา</option>
+        <option value="ออก PO" data-th="3. ออก PO / สั่งซื้อ" data-en="3. PO issued">3. ออก PO / สั่งซื้อ</option>
+        <option value="รอสินค้า" data-th="4. รอสินค้า" data-en="4. Awaiting delivery">4. รอสินค้า</option>
+        <option value="รับสินค้า" data-th="5. รับสินค้า" data-en="5. Goods received">5. รับสินค้า</option>
+        <option value="ส่งมอบ" data-th="6. ส่งมอบผู้ขอ" data-en="6. Delivered">6. ส่งมอบผู้ขอ</option>
+        <option value="ปิดงาน" data-th="7. เสร็จสิ้น / ปิดงาน" data-en="7. Completed / Closed">7. เสร็จสิ้น / ปิดงาน</option>
+      </select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="ps-note" data-th-ph="เช่น สั่งซื้อจากร้าน ABC, คาดว่าของถึง..." data-en-ph="e.g. Ordered from ABC, ETA..." placeholder="เช่น สั่งซื้อจากร้าน ABC, คาดว่าของถึง..."></textarea></div>
+    <div class="modal-field">
+      <label class="modal-lbl" data-th="📷 แนบรูปยืนยัน (เช่น PO, ใบส่งของ)" data-en="📷 Attach confirmation">📷 แนบรูปยืนยัน (เช่น PO, ใบส่งของ)</label>
+      <button type="button" class="btn-cancel" style="width:100%" onclick="document.getElementById('ps-photos').click()" data-th="+ เลือกรูป (สูงสุด 3)" data-en="+ Select photos">+ เลือกรูป (สูงสุด 3)</button>
+      <input type="file" id="ps-photos" accept="image/*" multiple style="display:none" onchange="psPickPhotos(this)">
+      <div id="ps-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-purchasestage')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok" style="background:linear-gradient(135deg,#0891B2,#0E7490)" id="btn-ps-ok" onclick="doPurchaseStage()" data-th="🛒 บันทึกสถานะ" data-en="🛒 Save">🛒 บันทึกสถานะ</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="m-errorlog">
   <div class="modal" style="max-width:720px">
     <div class="modal-ttl">🩺 Error Log & Health Check<button class="modal-x" onclick="closeM('m-errorlog')">×</button></div>
@@ -1212,7 +1282,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-field"><label class="modal-lbl"><span data-th="ชื่องานบำรุงรักษา" data-en="Maintenance Name">ชื่องานบำรุงรักษา</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pf-name" data-th-ph="เช่น ล้างแอร์ทุกห้องพัก, ตรวจเครื่องสำรองไฟ" data-en-ph="e.g. Clean all room A/C, check UPS" placeholder="เช่น ล้างแอร์ทุกห้องพัก, ตรวจเครื่องสำรองไฟ"></div>
     <div style="display:flex;gap:8px">
       <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="ทีม" data-en="Team">ทีม</label>
-        <select class="modal-sel" id="pf-team"><option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option></select>
+        <select class="modal-sel" id="pf-team"><option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option><option value="จัดซื้อ">จัดซื้อ</option></select>
       </div>
       <div class="modal-field" style="flex:1"><label class="modal-lbl" data-th="สาขา" data-en="Branch">สาขา</label>
         <select class="modal-sel" id="pf-branch"><option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
@@ -1242,7 +1312,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="modal-field"><label class="modal-lbl"><span data-th="หัวข้องาน" data-en="Project Title">หัวข้องาน</span> <span style="color:var(--red)">*</span></label><input class="modal-sel" id="ap-title" data-th-ph="เช่น ติดตั้งระบบกล้อง CCTV โซนล็อบบี้" data-en-ph="e.g. Install CCTV in lobby zone" placeholder="เช่น ติดตั้งระบบกล้อง CCTV โซนล็อบบี้"></div>
     <div class="modal-field"><label class="modal-lbl"><span data-th="ทีมรับผิดชอบ" data-en="Responsible Team">ทีมรับผิดชอบ</span> <span style="color:var(--red)">*</span></label>
       <select class="modal-sel" id="ap-team">
-        <option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option>
+        <option value="IT Support">IT Support</option><option value="Engineering">Engineering</option><option value="Landscape & Garden">Landscape & Garden</option><option value="Environment">Environment</option><option value="จัดซื้อ">จัดซื้อ</option>
       </select>
     </div>
     <div class="modal-field"><label class="modal-lbl"><span data-th="สาขา" data-en="Branch">สาขา</span> <span style="color:var(--red)">*</span></label>
@@ -1269,6 +1339,8 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <option value="Engineering" data-th="Engineering (ช่างเทคนิค)" data-en="Engineering">Engineering (ช่างเทคนิค)</option>
         <option value="Landscape & Garden" data-th="Landscape & Garden (สวน)" data-en="Landscape & Garden">Landscape & Garden (สวน)</option>
         <option value="Environment" data-th="Environment (สิ่งแวดล้อม)" data-en="Environment">Environment (สิ่งแวดล้อม)</option>
+        <option value="Asset" data-th="Asset (ทรัพย์สิน)" data-en="Asset">Asset (ทรัพย์สิน)</option>
+        <option value="จัดซื้อ" data-th="จัดซื้อ (Procurement)" data-en="Procurement">จัดซื้อ (Procurement)</option>
       </select>
     </div>
     <div class="modal-field"><label class="modal-lbl"><span data-th="โอนไปสาขา" data-en="Transfer to Branch">โอนไปสาขา</span> <span style="color:var(--text3);font-weight:400" data-th="(เว้นไว้ = สาขาเดิม)" data-en="(blank = same branch)">(เว้นไว้ = สาขาเดิม)</span></label>
@@ -1514,6 +1586,13 @@ const CLAIM_LABEL_TH={'รับเรื่อง':'รับเรื่อง
 const CLAIM_LABEL_EN={'รับเรื่อง':'Received (approved)','ประสานร้าน':'Coordinating / Procurement','ส่งของซ่อม':'Sent to shop','ระหว่างซ่อม':'Under repair / claim','รับของกลับ':'Received back','ส่งคืน':'Returned / installed','ปิดงาน':'Completed / Closed'};
 function claimLabel(v){ const k=normClaimStage(v); return curLang==='en'?(CLAIM_LABEL_EN[k]||k):(CLAIM_LABEL_TH[k]||k); }
 function claimStageIdx(v){ return CLAIM_STAGES.indexOf(normClaimStage(v)); }
+// ===== งานจัดซื้อ (Purchase) — ใช้ field claim_stage ร่วมกัน, work_type='purchase' =====
+const PURCHASE_STAGES = ['รับ PR','ขอใบเสนอราคา','ออก PO','รอสินค้า','รับสินค้า','ส่งมอบ','ปิดงาน'];
+const PURCHASE_LABEL_TH={'รับ PR':'รับ PR (อนุมัติแล้ว)','ขอใบเสนอราคา':'ขอใบเสนอราคา','ออก PO':'ออก PO / สั่งซื้อ','รอสินค้า':'รอสินค้า','รับสินค้า':'รับสินค้า','ส่งมอบ':'ส่งมอบผู้ขอ','ปิดงาน':'เสร็จสิ้น / ปิดงาน'};
+const PURCHASE_LABEL_EN={'รับ PR':'PR received (approved)','ขอใบเสนอราคา':'Requesting quotation','ออก PO':'PO issued / Ordered','รอสินค้า':'Awaiting delivery','รับสินค้า':'Goods received','ส่งมอบ':'Delivered to requester','ปิดงาน':'Completed / Closed'};
+function normPurchaseStage(v){ v=String(v||'').trim(); return v||'รับ PR'; }
+function purchaseLabel(v){ const k=normPurchaseStage(v); return curLang==='en'?(PURCHASE_LABEL_EN[k]||k):(PURCHASE_LABEL_TH[k]||k); }
+function purchaseStageIdx(v){ return PURCHASE_STAGES.indexOf(normPurchaseStage(v)); }
 // งานที่ผู้แจ้งทวงถามแล้วทีมยังไม่ตอบสนอง (followup_at ใหม่กว่า followup_ack)
 function hasPendingFollowup(t){
   if(!t.followup_at || !String(t.followup_at).trim()) return false;
@@ -1525,7 +1604,7 @@ function hasPendingFollowup(t){
 // ป้ายประเภทงาน (ใช้ในหน้า inbox ที่รวมทุกประเภท)
 function wtypeBadge(t){
   const raw=String(t.work_type||'').toLowerCase();
-  const wt=(raw==='project'||raw==='pm'||raw==='claim')?raw:'repair';
+  const wt=(raw==='project'||raw==='pm'||raw==='claim'||raw==='purchase')?raw:'repair';
   const map={
     repair:{l:L('ซ่อม','Repair'),c:'#0EA5E9'},
     project:{l:L('โครงการ','Project'),c:'#7C3AED'},
@@ -1543,7 +1622,7 @@ function refreshDynamicLang(){
     const pt=document.getElementById('page-title'); if(pt && tt[currentPage]) pt.textContent=tt[currentPage];
     // หัวข้อ toolbar ของหน้า tickets/projects/pm/claim/inbox
     const ttl=document.getElementById('tickets-title');
-    if(ttl){ ttl.textContent=(currentPage==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)'):(currentPage==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management'):(currentPage==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)'):(currentPage==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)'):L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
+    if(ttl){ ttl.textContent=(currentPage==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)'):(currentPage==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management'):(currentPage==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)'):(currentPage==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)'):(currentPage==='purchase')?L('🛒 งานจัดซื้อ (Procurement)','🛒 Procurement'):L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
   }catch(e){}
   // re-render เนื้อหาที่มีข้อความ JS (ถ้าโหลดข้อมูลแล้ว)
   try{ if(typeof tickets!=='undefined' && tickets.length){ if(typeof renderAll==='function') renderAll(); } }catch(e){}
@@ -1557,11 +1636,13 @@ function toggleTV(){
   if(on){
     try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}catch(e){}
     tvKpiPrev=[];tvCntPrev=[];
+    tvLongIdx=0; tvLongTimer=setInterval(()=>{tvLongIdx++;tvRotateLong();},90000);   // หมุนเวียนงานระยะยาวทุก 1.5 นาที
     tvBuildFX();
     renderTVBoard();
     tvClock=setInterval(updateTVClock,1000);
   }else{
     clearInterval(tvClock);tvClock=null;
+    clearInterval(tvLongTimer);tvLongTimer=null;
     tvLastStatus={};tvLastSnap={}; tvCloseDetail();
     tvStopScrollers(); tvDestroyFX();
     ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
@@ -1575,6 +1656,15 @@ function updateTVClock(){
 let tvLastStatus={}, tvDetailTimer=null;
 let tvLastSnap={}, tvKpiPrev=[], tvCntPrev=[];
 let tvScrollers=[], tvScrollRAF=null, tvScrollPaused=false, tvManualUntil=0, tvFxRAF=null;
+let tvLongIdx=0, tvLongTimer=null;
+// หมุนเวียนแสดงงานโครงการ/เคลมทีละใบ (เปลี่ยนทุก ~1.5 นาที — เป็นงานรอนาน ไม่ต้องวนบ่อย)
+function tvRotateLong(){
+  document.querySelectorAll('.tvb-longrotate').forEach(wrap=>{
+    const items=wrap.querySelectorAll('.lr-item'); if(!items.length) return;
+    const idx=tvLongIdx % items.length;
+    items.forEach((it,i)=>it.classList.toggle('on', i===idx));
+  });
+}
 const TVCOL={
   pending:{cc:'#FBBF24',dim:'rgba(251,191,36,0.10)',ic:'⏳',th:'รอดำเนินการ'},
   in_progress:{cc:'#A78BFA',dim:'rgba(167,139,250,0.10)',ic:'🔄',th:'กำลังดำเนินการ'},
@@ -1671,15 +1761,17 @@ function tvCard(t,pal,flash,attn){
   else {uc=pal.c;wash=pal.wash;bd=pal.bd;dim=pal.dim;dot='';}
   const who=t.assigned_to?allAssignees(t).join(', '):'ยังไม่มอบหมาย';
   const dc=ticketColor(t);
-  const dept=t.team||t.department||({project:'งานโครงการ',pm:'งาน PM',claim:'งานเคลม'}[String(t.work_type||'').toLowerCase()]||'อื่นๆ');
+  const dept=t.team||t.department||({project:'งานโครงการ',pm:'งาน PM',claim:'งานเคลม',purchase:'งานจัดซื้อ'}[String(t.work_type||'').toLowerCase()]||'อื่นๆ');
   const pct=parseInt(t.progress)||0;
-  const isLongJob=['project','claim'].includes(String(t.work_type||'').toLowerCase());
+  const isLongJob=['project','claim','purchase'].includes(String(t.work_type||'').toLowerCase());
   const ring=(t.status==='in_progress'&&!isLongJob)?'<div class="ring" style="--pct:'+pct+'"><span>'+pct+'</span></div>':'';
-  const hasFollowup=(parseInt(t.followup_count)||0)>0 && String(t.followup_ack||'').toLowerCase()!=='true' && t.status!=='done';
-  const blink=hasFollowup||attn;
+  const hasFollowup=(parseInt(t.followup_count)||0)>0 && String(t.followup_ack||'').toLowerCase()!=='true' && t.status!=='done' && !isLongJob;
+  const blink=(hasFollowup||attn) && !isLongJob;     // งานระยะยาวไม่กระพริบ (กันลายตา)
   const flags=[];
-  if(hasFollowup) flags.push('<span class="tvb-flag ff-followup">🔔 ทวงถาม'+((parseInt(t.followup_count)||0)>1?' '+(parseInt(t.followup_count)||0)+'×':'')+'</span>');
-  if(attn) flags.push('<span class="tvb-flag ff-update">📈 อัปเดต</span>');
+  if(!isLongJob){
+    if(hasFollowup) flags.push('<span class="tvb-flag ff-followup">🔔 ทวงถาม'+((parseInt(t.followup_count)||0)>1?' '+(parseInt(t.followup_count)||0)+'×':'')+'</span>');
+    if(attn) flags.push('<span class="tvb-flag ff-update">📈 อัปเดต</span>');
+  }
   const deptHtml=isLongJob
     ? '<span class="dept dept-low">'+(String(t.work_type).toLowerCase()==='project'?'📁 โครงการ':'📦 เคลม')+'</span>'
     : '<span class="dept" style="--dc:'+dc+'">'+dept+'</span>';
@@ -1716,17 +1808,20 @@ function renderTVBoard(){
     done:   {c:'#10B981',c2:'#059669',wash:'rgba(16,185,129,0.10)',bd:'rgba(16,185,129,0.28)',dim:'rgba(16,185,129,0.24)'}
   };
   const refOf=t=>t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
-  const isLong=t=>['project','claim'].includes(String(t.work_type||'repair').toLowerCase());   // งานระยะยาว: โครงการ/เคลม
+  const isLong=t=>['project','claim','purchase'].includes(String(t.work_type||'repair').toLowerCase());   // งานระยะยาว: โครงการ/เคลม
   const isUrgent=t=>t.status!=='done' && !isLong(t) && lateLevel(elapsedSince(refOf(t)),t.priority).level==='danger';   // งานระยะยาวไม่ pin
   const card1=(t,pal)=>tvCard(t,pal,changed.has(t.ticket_id),attn.has(t.ticket_id));
   const mk=(list,pal)=>{
     if(!list.length) return '<div class="tvb-empty">— ไม่มีงาน —</div>';
     const urg=list.filter(isUrgent);
     const rest=list.filter(t=>!isUrgent(t));
-    const ordered=rest.filter(t=>!isLong(t)).concat(rest.filter(isLong)).slice(0,40);   // งานปกติก่อน · งานระยะยาวไปท้ายเสมอ
+    const normal=rest.filter(t=>!isLong(t)).slice(0,40);   // งานซ่อม/PM — เลื่อนเร็วปกติ
+    const longs=rest.filter(isLong);                       // งานโครงการ/เคลม — หมุนเวียนช้าทีละใบ
     const pinHTML=urg.length?'<div class="tvb-pin">'+urg.map(t=>card1(t,pal)).join('')+'</div>':'';
-    const inner=ordered.length?ordered.map(t=>card1(t,pal)).join(''):(urg.length?'':'<div class="tvb-empty">— ไม่มีงาน —</div>');
-    return pinHTML+'<div class="tvb-scroll-wrap"><div class="tvb-scroll">'+inner+'</div></div>';
+    const scrollInner=normal.length?normal.map(t=>card1(t,pal)).join(''):((urg.length||longs.length)?'':'<div class="tvb-empty">— ไม่มีงาน —</div>');
+    const scrollHTML='<div class="tvb-scroll-wrap"><div class="tvb-scroll">'+scrollInner+'</div></div>';
+    const longHTML=longs.length?'<div class="tvb-longrotate" data-n="'+longs.length+'">'+longs.map((t,i)=>'<div class="lr-item'+(i===0?' on':'')+'">'+card1(t,pal)+'</div>').join('')+'</div>':'';
+    return pinHTML+scrollHTML+longHTML;
   };
   const colHTML=(pal,icon,title,list)=>
     '<div class="tvb-col" style="--cc:'+pal.c+';--cc2:'+pal.c2+';--cc-wash:'+pal.wash+';--cc-bd:'+pal.bd+'">'+
@@ -1770,6 +1865,7 @@ function renderTVBoard(){
   tvCntPrev=[pend.length,prog.length,doneToday.length];
   // กระดานเลื่อนอัตโนมัติ (flip-board) — เลื่อนเฉพาะส่วนที่ล้นกรอบ งานด่วนค้างบนสุด
   requestAnimationFrame(tvSetupScrollers);
+  requestAnimationFrame(tvRotateLong);   // คงตำแหน่งหมุนเวียนงานระยะยาวตาม index ปัจจุบัน
   // กราฟ
   ['tvStatus','tvDaily'].forEach(k=>{if(charts[k]){charts[k].destroy();delete charts[k];}});
   const leg=document.getElementById('tv-leg');
@@ -1818,6 +1914,7 @@ function tvShowDetail(id){
   const ref=t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
   const m=elapsedSince(ref);
   const isClaim=String(t.work_type).toLowerCase()==='claim';
+  const isPurchase=String(t.work_type).toLowerCase()==='purchase';
   // timeline จาก timestamp
   const tl=[];
   if(t.created_at) tl.push({t:t.created_at,ic:'#60A5FA',x:'📨 แจ้งงาน'});
@@ -1828,12 +1925,12 @@ function tvShowDetail(id){
   if(t.resolved_at) tl.push({t:t.resolved_at,ic:'#34D399',x:'✅ ปิดงาน'});
   tl.sort((a,c)=>dmyKey(a.t).localeCompare(dmyKey(c.t)));
   const tlHtml=tl.map(e=>'<div class="ti"><span class="dot" style="background:'+e.ic+';color:'+e.ic+'"></span><div><div class="tc">'+e.x+'</div><div class="tt2">'+e.t+'</div></div></div>').join('');
-  const stageRow=isClaim?'<div class="it"><div class="l">ขั้นตอนเคลม</div><div class="v" style="color:#FBBF24">📦 '+claimLabel(t.claim_stage)+'</div></div>':(t.status==='in_progress'&&t.progress!==''&&t.progress!=null?'<div class="it"><div class="l">ความคืบหน้า</div><div class="v" style="color:#A78BFA">'+t.progress+'%</div></div>':'');
+  const stageRow=isClaim?'<div class="it"><div class="l">ขั้นตอนเคลม</div><div class="v" style="color:#FBBF24">📦 '+claimLabel(t.claim_stage)+'</div></div>':isPurchase?'<div class="it"><div class="l">ขั้นตอนจัดซื้อ</div><div class="v" style="color:#22D3EE">🛒 '+purchaseLabel(t.claim_stage)+'</div></div>':(t.status==='in_progress'&&t.progress!==''&&t.progress!=null?'<div class="it"><div class="l">ความคืบหน้า</div><div class="v" style="color:#A78BFA">'+t.progress+'%</div></div>':'');
   const img=(t.image_url?String(t.image_url).split(',')[0].trim():'');
   document.getElementById('tvd-card-body').innerHTML=
     '<button class="tvd-close" onclick="tvCloseDetail()">✕</button>'+
     '<h2>'+t.ticket_id+'<span class="tvd-badge" style="background:'+st[1]+'22;color:'+st[1]+'">'+st[0]+'</span><span class="tvd-badge" style="background:'+pri[1]+'22;color:'+pri[1]+'">'+pri[0]+'</span></h2>'+
-    '<div class="tvd-sub">'+(t.category||'-')+(isClaim?' · งานส่งซ่อม/เคลม':'')+'</div>'+
+    '<div class="tvd-sub">'+(t.category||'-')+(isClaim?' · งานส่งซ่อม/เคลม':isPurchase?' · งานจัดซื้อ':'')+'</div>'+
     '<div class="tvd-grid">'+
       '<div class="it"><div class="l">📍 สถานที่</div><div class="v">'+place+'</div></div>'+
       '<div class="it"><div class="l">👤 ผู้แจ้ง</div><div class="v">'+(t.reported_by||t.displayName||'-')+'</div></div>'+
@@ -2537,13 +2634,14 @@ function filterFollowup(){ return tickets.filter(t=>hasPendingFollowup(t) && pas
 function getDashboardBase(){ return filterByWorkType('repair'); }
 
 // สีประจำแผนกช่าง (ตรงกับ Code.gs + ฟอร์ม) — ใช้กับงานซ่อมเท่านั้น
-const TEAM_COLORS={'IT Support':'#CA8A04','Engineering':'#DC2626','Landscape & Garden':'#16A34A','Environment':'#1D4ED8','Asset':'#C026D3'};
+const TEAM_COLORS={'IT Support':'#CA8A04','Engineering':'#DC2626','Landscape & Garden':'#16A34A','Environment':'#1D4ED8','Asset':'#C026D3','จัดซื้อ':'#0891B2'};
 // คืนสีของ ticket: งานโครงการ/PM/เคลม ใช้สีประเภทงาน, งานซ่อมใช้สีประจำแผนก
 function ticketColor(t){
   const wt=String(t.work_type||'repair').toLowerCase();
   if(wt==='project') return '#7C3AED';
   if(wt==='pm') return '#0EA5E9';
   if(wt==='claim') return '#EA580C';
+  if(wt==='purchase') return '#0891B2';
   return TEAM_COLORS[t.team]||TEAM_COLORS[t.department]||'#64748B';
 }
 // กรองงานตามประเภทที่ระบุ (repair/project) + สาขา/ทีม/สิทธิ์ — ใช้ร่วมกับ getBase และการนับ badge
@@ -2552,7 +2650,7 @@ function filterByWorkType(wtype){
   return tickets.filter(t=>{
     // กรองประเภทงาน: repair / project / pm — งานเก่าที่ไม่มีค่า = repair
     const raw=String(t.work_type||'').toLowerCase();
-    const wt = (raw==='project'||raw==='pm'||raw==='claim') ? raw : 'repair';
+    const wt = (raw==='project'||raw==='pm'||raw==='claim'||raw==='purchase') ? raw : 'repair';
     if(wt!==wtype) return false;
     return passesScope_(t, myName);
   });
@@ -2670,6 +2768,7 @@ function renderPendingBadge(){
   setNavBadge('project-badge', waiting('project'));
   setNavBadge('pm-badge', waiting('pm'));
   setNavBadge('claim-badge', waiting('claim'));
+  setNavBadge('purchase-badge', waiting('purchase'));
 }
 function setNavBadge(id,n){
   const b=document.getElementById(id); if(!b) return;
@@ -2839,6 +2938,8 @@ function mkCard(t){
   }else if(t.status==='in_progress'){
     if(String(t.work_type).toLowerCase()==='claim')
       btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
+    else if(String(t.work_type).toLowerCase()==='purchase')
+      btns+=`<button class="btn-done2" style="background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
     else
       btns+=`<button class="btn-done2" style="background:#F59E0B" onclick="event.stopPropagation();openProgress('${t.ticket_id}')">📊 %</button><button class="btn-done2" onclick="event.stopPropagation();openDone('${t.ticket_id}')">${L('🏁 ปิดงาน','🏁 Close')}</button>`;
   }
@@ -2954,7 +3055,7 @@ function gotoFollowup(){
   const bb=document.getElementById('back-btn'); if(bb) bb.style.display='inline-block';
   const sb=document.getElementById('sidebar'); if(sb) sb.classList.remove('open');
   // ซ่อนปุ่มเฉพาะหน้า (โครงการ/PM/เคลม)
-  ['btn-add-project','btn-pm-plans','btn-add-claim'].forEach(id=>{const b=document.getElementById(id);if(b)b.style.display='none';});
+  ['btn-add-project','btn-pm-plans','btn-add-claim','btn-add-purchase'].forEach(id=>{const b=document.getElementById(id);if(b)b.style.display='none';});
   // ล้างตัวกรอง
   ['f-status','f-priority','f-category'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='all';});
   const si=document.getElementById('search-input'); if(si) si.value='';
@@ -3046,6 +3147,7 @@ function renderTicketsPage(_keepPage){
     if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button>`;
     if(t.status==='in_progress'){
       if(String(t.work_type).toLowerCase()==='claim') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
+      if(String(t.work_type).toLowerCase()==='purchase') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
       else btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openDone('${t.ticket_id}')">${L('🏁 ปิดงาน','🏁 Close')}</button>`;
     }
     btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">${L('ดู','View')}</button>`;
@@ -3368,6 +3470,7 @@ function renderReport(){
   renderLeaderboard();
   renderPmReport();
   renderClaimReport();
+  renderPurchaseReport();
   const b=getBase();
   const done=b.filter(t=>t.status==='done');
   document.getElementById('report-grid').innerHTML=`
@@ -3658,6 +3761,30 @@ function renderClaimReport(){
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:11px;text-align:left"><th style="padding:6px 8px">Ticket</th><th style="padding:6px 8px">รายการ</th><th style="padding:6px 8px">สาขา</th><th style="padding:6px 8px">สถานะปัจจุบัน</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
+// ===== รายงานงานจัดซื้อ =====
+function renderPurchaseReport(){
+  const card=document.getElementById('purchase-report-card'); if(!card) return;
+  const items=filterByWorkType('purchase').filter(t=>t.status!=='rejected');
+  if(!items.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const active=items.filter(t=>t.status!=='done');
+  const doneN=items.filter(t=>t.status==='done').length;
+  const cnt=s=>items.filter(t=>normPurchaseStage(t.claim_stage)===s && t.status!=='done').length;
+  const stat=(n,l,c)=>`<div style="flex:1;min-width:90px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:${c}">${n}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`;
+  const rows=active.slice().sort((a,b)=>purchaseStageIdx(a.claim_stage)-purchaseStageIdx(b.claim_stage)).slice(0,12).map(t=>{
+    const stg=purchaseLabel(t.claim_stage);
+    return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:monospace;font-size:11px">${t.ticket_id}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${t.building||t.category||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${t.branch||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:#0891B2;font-weight:700">🛒 ${stg}</td></tr>`;
+  }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3)">ไม่มีงานจัดซื้อที่กำลังดำเนินการ</td></tr>';
+  card.innerHTML=`<div class="report-title">🛒 งานจัดซื้อ${currentBranch!=='all'?' · '+currentBranch:''}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">
+      ${stat(items.length,'ทั้งหมด','var(--blue)')}
+      ${stat(active.length,'กำลังดำเนินการ','#0891B2')}
+      ${stat(cnt('รอสินค้า'),'รอสินค้า','#F59E0B')}
+      ${stat(cnt('ออก PO'),'สั่งซื้อแล้ว','#8B5CF6')}
+      ${stat(doneN,'เสร็จสิ้น','#10B981')}
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:11px;text-align:left"><th style="padding:6px 8px">Ticket</th><th style="padding:6px 8px">รายการ</th><th style="padding:6px 8px">สาขา</th><th style="padding:6px 8px">สถานะปัจจุบัน</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
 // ===== รายงาน PM (กำหนดการบำรุงรักษา) =====
 async function renderPmReport(){
   const card=document.getElementById('pm-report-card'); if(!card) return;
@@ -3719,6 +3846,121 @@ function acPickDoc(input){
   reader.readAsDataURL(f);
 }
 function acClearDoc(){ acDocFile=null; document.getElementById('ac-doc-preview').innerHTML=''; document.getElementById('ac-doc').value=''; }
+// ===== งานจัดซื้อ (Purchase) — mirror เคลม, ใช้ claim_stage + update_claim_stage ร่วม =====
+let apPhotos=[], apDocFile=null, purchasePhotos=[];
+function apPickPhotos(input){
+  const files=Array.from(input.files||[]);
+  (async()=>{ for(const f of files){ if(apPhotos.length>=3){toast(L('แนบได้สูงสุด 3 รูป','Max 3 photos'),'⚠️','info');break;} try{ apPhotos.push(await compressToDataURL(f)); }catch(e){} } input.value=''; renderApPreviews(); })();
+}
+function apRemovePhoto(i){ apPhotos.splice(i,1); renderApPreviews(); }
+function renderApPreviews(){
+  const box=document.getElementById('ap-previews'); if(!box)return;
+  box.innerHTML=apPhotos.map((d,i)=>'<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)"><button type="button" onclick="apRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>').join('');
+}
+function apPickDoc(input){
+  const f=input.files&&input.files[0]; if(!f)return;
+  if(f.size>10*1024*1024){toast(L('ไฟล์ใหญ่เกิน 10MB','File exceeds 10MB'),'⚠️','info');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    apDocFile={name:f.name,mime:f.type||'application/pdf',base64:String(reader.result).split(',')[1]};
+    const isPdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);
+    document.getElementById('ap-doc-preview').innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#ECFEFF;border:1px solid #A5F3FC;border-radius:8px"><span style="font-size:18px">'+(isPdf?'📕':'🖼️')+'</span><span style="flex:1;font-size:12px;color:#0E7490;word-break:break-all">'+f.name+'</span><span style="cursor:pointer;color:#0891B2;font-weight:700" onclick="apClearDoc()">✕</span></div>';
+  };
+  reader.readAsDataURL(f);
+}
+function apClearDoc(){ apDocFile=null; document.getElementById('ap-doc-preview').innerHTML=''; document.getElementById('ap-doc').value=''; }
+function openAddPurchase(){
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  ['ap-dept','ap-prno','ap-budget','ap-item','ap-desc'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('ap-priority').value='low';
+  apPhotos=[]; apDocFile=null; renderApPreviews(); apClearDoc();
+  if(currentBranch!=='all') document.getElementById('ap-branch').value=currentBranch;
+  document.getElementById('m-addpurchase').classList.add('show');
+}
+async function doAddPurchase(){
+  const item=document.getElementById('ap-item').value.trim();
+  if(!item){toast(L('กรุณากรอกรายการที่ขอซื้อ','Please enter items'),'⚠️','info');return;}
+  const prno=document.getElementById('ap-prno').value.trim();
+  const budget=document.getElementById('ap-budget').value.trim();
+  const desc=document.getElementById('ap-desc').value.trim();
+  const branch=document.getElementById('ap-branch').value;
+  const dept=document.getElementById('ap-dept').value.trim();
+  const priority=document.getElementById('ap-priority').value;
+  const fullDesc='🛒 งานจัดซื้อ (จาก PR)\n📋 รายการ: '+item+'\n🧾 เลขที่ PR: '+(prno||'-')+'\n💰 งบประมาณ: '+(budget||'-')+'\n──────────\n'+(desc||'-');
+  const btn=document.getElementById('btn-ap-ok');btn.disabled=true;btn.textContent='กำลังสร้าง...';
+  const tkId='TK-'+Date.now();
+  const imgUrls=[];
+  if(apPhotos.length){
+    btn.textContent='อัปโหลดรูป '+apPhotos.length+' ใบ...';
+    const ups=await Promise.all(apPhotos.map((p,i)=>gasPost({action:'upload_image',ticket_id:tkId,base64:p.split(',')[1],mimeType:'image/jpeg',fileName:tkId+'_'+(i+1)+'.jpg',skip_sheet:true}).catch(()=>({ok:false}))));
+    ups.forEach(u=>{ if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl); });
+  }
+  let docUrl='';
+  if(apDocFile){
+    btn.textContent='อัปโหลดไฟล์ PR...';
+    try{ const dr=await gasPost({action:'upload_image',skip_sheet:true,column:'doc_url',fileName:apDocFile.name,mimeType:apDocFile.mime,base64:apDocFile.base64}); docUrl=(dr.data&&(dr.data.url||dr.data.imageUrl))||''; }catch(e){}
+  }
+  btn.textContent='กำลังสร้าง...';
+  const liff_data={
+    ticket_id:tkId, work_type:'purchase', claim_stage:'รับ PR', category:'งานจัดซื้อ',
+    team:'จัดซื้อ', branch:branch, building:item, room:prno, description:fullDesc,
+    priority:priority, reporter_dept:dept||'จัดซื้อ', image_url:imgUrls.join(','), doc_url:docUrl,
+    displayName:(currentUser&&currentUser.name)||'จัดซื้อ', userId:(currentUser&&currentUser.userId)||''
+  };
+  try{
+    const r=await gasPost({liff_data:liff_data,access_token:authToken()});
+    if(r.ok){closeM('m-addpurchase');toast(L('เปิดงานจัดซื้อแล้ว','Procurement created'),'🛒','success');setTimeout(loadData,r.soft?1200:400);}
+    else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
+    else toast(L('สร้างไม่สำเร็จ: ','Create failed: ')+(r.error||''),'❌','info');
+  }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info');}
+  btn.disabled=false;btn.textContent='🛒 เปิดงานจัดซื้อ';
+}
+function psPickPhotos(input){
+  const files=Array.from(input.files||[]);
+  (async()=>{ for(const f of files){ if(purchasePhotos.length>=3){toast(L('แนบได้สูงสุด 3 รูป','Max 3 photos'),'⚠️','info');break;} try{ purchasePhotos.push(await compressToDataURL(f)); }catch(e){} } input.value=''; renderPsPreviews(); })();
+}
+function psRemovePhoto(i){ purchasePhotos.splice(i,1); renderPsPreviews(); }
+function renderPsPreviews(){
+  const box=document.getElementById('ps-previews'); if(!box)return;
+  box.innerHTML=purchasePhotos.map((d,i)=>'<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)"><button type="button" onclick="psRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>').join('');
+}
+function openPurchaseStage(id){
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  currentId=id;
+  const t=tickets.find(x=>x.ticket_id===id);
+  document.getElementById('ps-stage').value=(t&&t.claim_stage)||'รับ PR';
+  document.getElementById('ps-note').value='';
+  purchasePhotos=[]; renderPsPreviews();
+  document.getElementById('m-purchasestage').classList.add('show');
+}
+async function doPurchaseStage(){
+  const stage=document.getElementById('ps-stage').value;
+  const note=document.getElementById('ps-note').value.trim();
+  const t=tickets.find(x=>x.ticket_id===currentId); if(!t)return;
+  const btn=document.getElementById('btn-ps-ok');if(btn.disabled)return;btn.disabled=true;const _o=btn.textContent;btn.textContent=L('กำลังบันทึก...','Saving...');
+  const imgUrls=[];
+  if(purchasePhotos.length){
+    btn.textContent='อัปโหลดรูป '+purchasePhotos.length+' ใบ...';
+    const ups=await Promise.all(purchasePhotos.map((p,i)=>gasPost({action:'upload_image',ticket_id:currentId,base64:p.split(',')[1],mimeType:'image/jpeg',fileName:currentId+'_purchase_'+(i+1)+'_'+Date.now()+'.jpg',skip_sheet:true}).catch(()=>({ok:false}))));
+    ups.forEach(u=>{ if(u.ok && u.data && u.data.imageUrl) imgUrls.push(u.data.imageUrl); });
+  }
+  btn.textContent=L('กำลังบันทึก...','Saving...');
+  const isClose=(stage==='ปิดงาน');
+  const body=isClose
+    ? {action:'done',ticket_id:currentId,notes:'[จัดซื้อ] '+(note||'เสร็จสิ้น'),access_token:authToken()}
+    : {action:'update_claim_stage',ticket_id:currentId,claim_stage:stage,note:note,image_url:imgUrls.join(','),access_token:authToken()};
+  try{
+    const r=await gasPost(body);
+    if(r.ok){
+      if(isClose){ t.status='done'; t.claim_stage='ปิดงาน'; }
+      else { t.claim_stage=stage; if(t.status==='pending'||t.status==='assigned') t.status='in_progress'; }
+      closeM('m-purchasestage');renderAll();
+      toast(L('อัปเดตสถานะจัดซื้อแล้ว: ','Procurement updated: ')+stage,'🛒','success');
+      setTimeout(loadData,800);
+    } else toast(L('บันทึกไม่สำเร็จ','Save failed'),'❌','error');
+  }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','error');}
+  btn.disabled=false;btn.textContent=_o;
+}
 function openAddClaim(){
   if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   ['ac-device','ac-model','ac-serial','ac-usage','ac-desc','ac-dept'].forEach(id=>document.getElementById(id).value='');
@@ -4199,7 +4441,7 @@ function openDetail(id){
       <div><div class="detail-lbl">${L('แผนกผู้แจ้ง','Reporter Dept.')}</div><div class="detail-val">${t.reporter_dept||'—'}</div></div>
       ${String(t.work_type).toLowerCase()==='claim'?`<div><div class="detail-lbl">${L('สถานะเคลม','Claim Status')}</div><div class="detail-val" style="color:#EA580C;font-weight:700">📦 ${claimLabel(t.claim_stage)}</div></div>`:''}
       ${(parseInt(t.followup_count,10)>0)?`<div style="grid-column:1/-1"><div class="detail-lbl" style="color:#D97706">🔔 ${L('การทวงถามจากผู้แจ้ง','Reporter Follow-ups')} (${parseInt(t.followup_count,10)} ${L('ครั้ง','time(s)')})</div><div class="detail-val">${t.followup_msg?'💬 '+esc(t.followup_msg):L('ขอติดตามสถานะงาน','Requested a status update')}${t.followup_at?'<br><span style="font-size:11px;color:var(--text3)">'+L('ทวงล่าสุด','Last followed up')+': '+String(t.followup_at).substring(0,16)+'</span>':''}${hasPendingFollowup(t)?'<br><span style="font-size:11px;color:#D97706;font-weight:700">⚠️ '+L('ยังไม่ได้ตอบสนอง — อัปเดตสถานะเพื่อแจ้งผู้แจ้ง','Not yet responded — update status to acknowledge')+'</span>':'<br><span style="font-size:11px;color:var(--green)">✓ '+L('ตอบสนองแล้ว','Responded')+'</span>'}</div></div>`:''}
-      ${t.doc_url?`<div style="grid-column:1/-1"><div class="detail-lbl">${L('เอกสารส่งซ่อม/เคลม','Claim Document')}</div><div class="detail-val">${String(t.doc_url).split(',').filter(Boolean).map((u,i)=>`<a href="${u}" target="_blank" style="color:#0EA5E9;text-decoration:underline">📄 ${L('เปิดเอกสาร','Open doc')}${i+1}</a>`).join(' · ')}</div></div>`:''}
+      ${t.doc_url?`<div style="grid-column:1/-1"><div class="detail-lbl">${isPurchase?L('ไฟล์ PR / เอกสารจัดซื้อ','PR / Procurement doc'):L('เอกสารส่งซ่อม/เคลม','Claim Document')}</div><div class="detail-val">${String(t.doc_url).split(',').filter(Boolean).map((u,i)=>`<a href="${u}" target="_blank" style="color:#0EA5E9;text-decoration:underline">📄 ${L('เปิดเอกสาร','Open doc')}${i+1}</a>`).join(' · ')}</div></div>`:''}
       <div><div class="detail-lbl">${L('วันที่แจ้ง','Reported')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
       <div><div class="detail-lbl">${L('ผู้รับงาน','Assignee')}</div><div class="detail-val">${t.assigned_to||L('ยังไม่มอบหมาย','Unassigned')}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ '+L('รอง','Secondary')+': '+t.assigned_secondary+'</span>':''}</div></div>
       <div><div class="detail-lbl">${L('มอบหมายเมื่อ','Assigned at')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
@@ -4227,6 +4469,7 @@ function openDetail(id){
     </div>`;
   const ac=document.getElementById('m-detail-actions');
   const isClaim = String(t.work_type).toLowerCase()==='claim';
+  const isPurchase = String(t.work_type).toLowerCase()==='purchase';
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">${L('ปิด','Close')}</button>`;
   if(t.status==='pending') ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">${L('❌ ปฏิเสธ','❌ Reject')}</button>`;
   else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">${L('↩️ เปิดงานใหม่','↩️ Reopen')}</button>`;
@@ -4235,6 +4478,8 @@ function openDetail(id){
   // งานเคลม: ใช้ปุ่มอัปเดตสถานะอย่างเดียว (รวมการปิดงานในตัว) — แสดงเมื่อมีผู้รับผิดชอบแล้ว
   if(isClaim && (t.status==='assigned'||t.status==='in_progress'))
     ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#EA580C,#C2410C)" onclick="closeM('m-detail');openClaimStage('${t.ticket_id}')">${L('📦 อัปเดตสถานะ','📦 Update Status')}</button>`;
+  if(isPurchase && (t.status==='assigned'||t.status==='in_progress'))
+    ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#0891B2,#0E7490)" onclick="closeM('m-detail');openPurchaseStage('${t.ticket_id}')">${L('🛒 อัปเดตสถานะ','🛒 Update Status')}</button>`;
   // ย้ายงานซ่อม → โครงการ (เฉพาะงาน repair ที่ยังไม่ปิด/ยังไม่ถูกปฏิเสธ — งานบานปลาย)
   if(viewWorkType==='repair' && (t.status==='pending'||t.status==='assigned'||t.status==='in_progress'))
     ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)" onclick="closeM('m-detail');moveToProject('${t.ticket_id}')">${L('📁 ย้ายเป็นงานโครงการ','📁 Move to Project')}</button>`;
@@ -4766,8 +5011,8 @@ function showPage(p,el,fromPop){
   inboxMode = (p==='inbox');   // โหมดงานรอมอบหมายทั้งหมด
   if(p!=='_followup') followupMode = false;  // ออกจากโหมดทวงถามเมื่อไปหน้าอื่น
   // งานโครงการ/PM/เคลม/inbox ใช้หน้าเดียวกับ tickets แต่กรองต่างกัน
-  const domPage = (p==='projects'||p==='pm'||p==='claim'||p==='inbox') ? 'tickets' : p;
-  viewWorkType = (p==='projects') ? 'project' : (p==='pm' ? 'pm' : (p==='claim' ? 'claim' : 'repair'));
+  const domPage = (p==='projects'||p==='pm'||p==='claim'||p==='purchase'||p==='inbox') ? 'tickets' : p;
+  viewWorkType = (p==='projects') ? 'project' : (p==='pm' ? 'pm' : (p==='claim' ? 'claim' : (p==='purchase' ? 'purchase' : 'repair')));
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+domPage).classList.add('active');
@@ -4791,7 +5036,8 @@ function showPage(p,el,fromPop){
   if(addBtn) addBtn.style.display = (p==='projects')?'inline-block':'none';
   if(pmBtn)  pmBtn.style.display  = (p==='pm')?'inline-block':'none';
   const claimBtn=document.getElementById('btn-add-claim'); if(claimBtn) claimBtn.style.display=(p==='claim')?'inline-block':'none';
-  if(tt){ tt.textContent = (p==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)') : (p==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management') : (p==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)') : (p==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)') : L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
+  const purBtn=document.getElementById('btn-add-purchase'); if(purBtn) purBtn.style.display=(p==='purchase')?'inline-block':'none';
+  if(tt){ tt.textContent = (p==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)') : (p==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management') : (p==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)') : (p==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)') : (p==='purchase')?L('🛒 งานจัดซื้อ (Procurement)','🛒 Procurement') : L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
   if(!fromPop && p!==currentPage){ try{ history.pushState({page:p},'','#'+p); }catch(e){} }
   currentPage=p;
   const sb=document.getElementById('sidebar');
@@ -4799,7 +5045,7 @@ function showPage(p,el,fromPop){
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
   if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
-  if(p==='tickets'||p==='projects'||p==='pm'||p==='claim'||p==='inbox') renderTicketsPage();
+  if(p==='tickets'||p==='projects'||p==='pm'||p==='claim'||p==='purchase'||p==='inbox') renderTicketsPage();
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
   if(p==='report') renderReport();
