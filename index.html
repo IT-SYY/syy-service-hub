@@ -243,6 +243,10 @@
       <button type="button" id="btn-claim-mode" onclick="selectClaimMode()" style="width:100%;padding:14px;border:2px solid #EA580C;border-radius:12px;background:#FFF7ED;color:#C2410C;font-size:15px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
         📦 ส่งเคลม / ส่งซ่อมนอก
       </button>
+      <div style="font-size:12px;color:var(--text-muted);margin:10px 0 8px">หรือแจ้งงานจัดซื้อ (ทีมจัดซื้อ)</div>
+      <button type="button" id="btn-purchase-mode" onclick="selectPurchaseMode()" style="width:100%;padding:14px;border:2px solid #0891B2;border-radius:12px;background:#ECFEFF;color:#0E7490;font-size:15px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
+        🛒 แจ้งงานจัดซื้อ
+      </button>
     </div>
   </div>
 </div>
@@ -266,6 +270,22 @@
     <div class="field" style="margin-bottom:0">
       <label>เลขครุภัณฑ์/Serial <span class="en">Asset/Serial No. (ถ้ามี)</span></label>
       <input type="text" id="claim-serial" placeholder="เช่น SYY-AC-0042 หรือ S/N">
+    </div>
+  </div>
+
+  <div class="card" id="purchase-detail-card" style="display:none;border:2px solid #A5F3FC">
+    <div class="card-title"><span style="background:#CFFAFE;color:#0E7490">🛒</span> รายละเอียดงานจัดซื้อ</div>
+    <div class="field">
+      <label>รายการที่ขอซื้อ <span class="en">Item</span><span class="req">*</span></label>
+      <input type="text" id="purchase-item" placeholder="เช่น คอมพิวเตอร์ 5 เครื่อง, หมึกพิมพ์, อะไหล่ปั๊มน้ำ">
+    </div>
+    <div class="field">
+      <label>จำนวน / งบประมาณ <span class="en">Qty / Budget</span></label>
+      <input type="text" id="purchase-qty" placeholder="เช่น 5 เครื่อง งบ 75,000 บาท">
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>เหตุผล / รายละเอียดเพิ่มเติม <span class="en">Reason</span><span class="req">*</span></label>
+      <input type="text" id="purchase-reason" placeholder="เช่น ทดแทนเครื่องเดิมที่เสีย, เพิ่มจุดบริการ">
     </div>
   </div>
   <div class="card" id="category-card">
@@ -316,7 +336,7 @@
 
     <!-- CLAIM DOCUMENT UPLOAD (เฉพาะงานส่งซ่อม/เคลมนอก) -->
     <div class="field" id="claim-doc-block" style="display:none">
-      <label>📄 แนบเอกสารส่งซ่อม/เคลม <span class="en">Document (PDF/รูป)</span></label>
+      <label id="claim-doc-label-wrap">📄 <span id="claim-doc-label">แนบเอกสารส่งซ่อม/เคลม</span> <span class="en">(PDF/รูป)</span></label>
       <div class="photo-area" style="border-color:#EA580C" onclick="document.getElementById('doc-input').click()">
         <div class="photo-icon">📄</div>
         <div class="photo-text">กดเพื่อแนบเอกสารส่งซ่อม<br><strong>Tap to attach document</strong></div>
@@ -388,7 +408,7 @@ const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน uploa
 
 // ===== STATE =====
 let state = {
-  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, videoFile:null, claim_device:'', claim_model:'', claim_usage:'', claim_serial:'', priority:'low',
+  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, videoFile:null, claim_device:'', claim_model:'', claim_usage:'', claim_serial:'', purchase_item:'', purchase_qty:'', purchase_reason:'', priority:'low',
   building:'', room:'', description:'', department:'',
   photos:[], uploadedUrls:[],
   userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
@@ -540,9 +560,26 @@ function selectTeam(name, code) {
   // ออกจากโหมดเคลม
   const cb=document.getElementById('btn-claim-mode'); if(cb){cb.style.background='#FFF7ED';cb.style.color='#C2410C';}
   document.getElementById('claim-detail-card').style.display='none';
+  var _pc0=document.getElementById('purchase-detail-card'); if(_pc0)_pc0.style.display='none';
+  var _pb0=document.getElementById('btn-purchase-mode'); if(_pb0){_pb0.style.background='#ECFEFF';_pb0.style.color='#0E7490';}
   document.getElementById('category-card').style.display='';
   toggleClaimDocUI();
   renderCategories(code);
+}
+// เลือกโหมดจัดซื้อ → ทีมจัดซื้อ + ฟอร์มเฉพาะ
+function selectPurchaseMode() {
+  document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('selected'));
+  state.team = 'จัดซื้อ';
+  state.teamCode = 'purchase';
+  state._claimTeam = '';
+  state.work_type = 'purchase';
+  state.category = 'งานจัดซื้อ';
+  var cb=document.getElementById('btn-claim-mode'); if(cb){cb.style.background='#FFF7ED';cb.style.color='#C2410C';}
+  var pb=document.getElementById('btn-purchase-mode'); if(pb){pb.style.background='#0891B2';pb.style.color='#fff';}
+  document.getElementById('claim-detail-card').style.display='none';
+  var pc=document.getElementById('purchase-detail-card'); if(pc)pc.style.display='';
+  document.getElementById('category-card').style.display='none';
+  toggleClaimDocUI();
 }
 // เลือกโหมดส่งเคลม/ซ่อมนอก → ทีม Asset + ฟอร์มเฉพาะ
 function selectClaimMode() {
@@ -553,6 +590,8 @@ function selectClaimMode() {
   state.work_type = 'claim';
   state.category = 'ส่งซ่อม/เคลมนอก';
   const cb=document.getElementById('btn-claim-mode'); if(cb){cb.style.background='#EA580C';cb.style.color='#fff';}
+  var pb=document.getElementById('btn-purchase-mode'); if(pb){pb.style.background='#ECFEFF';pb.style.color='#0E7490';}
+  var pc=document.getElementById('purchase-detail-card'); if(pc)pc.style.display='none';
   // step 2: แสดงการ์ดรายละเอียดเคลม ซ่อนการ์ดประเภทงาน
   document.getElementById('claim-detail-card').style.display='';
   document.getElementById('category-card').style.display='none';
@@ -581,11 +620,13 @@ function selectCat(name, el, wtype) {
 }
 // แสดง/ซ่อนช่องแนบเอกสารส่งซ่อม (เฉพาะงานเคลม) + ซ่อน building/room
 function toggleClaimDocUI(){
-  const isClaim = (state.work_type === 'claim');
+  const special = (state.work_type === 'claim' || state.work_type === 'purchase');
   const blk = document.getElementById('claim-doc-block');
-  if (blk) blk.style.display = isClaim ? 'block' : 'none';
+  if (blk) blk.style.display = special ? 'block' : 'none';
+  const lbl = document.getElementById('claim-doc-label');
+  if (lbl) lbl.textContent = (state.work_type === 'purchase') ? 'แนบใบขอซื้อ (PR) / เอกสาร' : 'แนบเอกสารส่งซ่อม/เคลม';
   const locRow = document.getElementById('location-row');
-  if (locRow) locRow.style.display = isClaim ? 'none' : 'flex';
+  if (locRow) locRow.style.display = special ? 'none' : 'flex';
 }
 // แนบเอกสารส่งซ่อม/เคลม (PDF หรือรูป) — เก็บเป็น base64 รออัปโหลดตอนส่ง
 function handleDoc(input){
@@ -956,6 +997,14 @@ function validateStep() {
     if (!state.claim_usage)  { alert('กรุณากรอกสถานที่ใช้งาน\nPlease enter usage location.'); return false; }
     return true;
   }
+  if (state.step === 2 && state.work_type === 'purchase') {
+    state.purchase_item   = document.getElementById('purchase-item').value.trim();
+    state.purchase_qty    = document.getElementById('purchase-qty').value.trim();
+    state.purchase_reason = document.getElementById('purchase-reason').value.trim();
+    if (!state.purchase_item)   { alert('กรุณากรอกรายการที่ขอซื้อ\nPlease enter item.'); return false; }
+    if (!state.purchase_reason) { alert('กรุณากรอกเหตุผล/รายละเอียด\nPlease enter reason.'); return false; }
+    return true;
+  }
   if (state.step === 2 && !state.category) {
     alert('กรุณาเลือกประเภทงาน\nPlease select a category.'); return false;
   }
@@ -966,7 +1015,8 @@ function validateStep() {
     state.department  = document.getElementById('field-dept').value;
     // งานเคลม: ใช้สถานที่ใช้งานเป็น building ไม่ต้องเลือกอาคารซ้ำ
     if (state.work_type === 'claim' && !state.building) state.building = state.claim_usage || '-';
-    if (state.work_type !== 'claim' && !state.building) { alert('กรุณาเลือกอาคาร/โซน\nPlease select a building.'); return false; }
+    if (state.work_type === 'purchase' && !state.building) state.building = state.purchase_item || 'งานจัดซื้อ';
+    if (state.work_type !== 'claim' && state.work_type !== 'purchase' && !state.building) { alert('กรุณาเลือกอาคาร/โซน\nPlease select a building.'); return false; }
     if (!state.description) { alert('กรุณาอธิบายปัญหา\nPlease describe the issue.'); return false; }
   }
   return true;
@@ -1004,6 +1054,13 @@ function buildSummary() {
       ? '<span style="color:#16A34A;font-weight:700">✅ แนบแล้ว: '+state.docFile.name+'</span>'
       : '<span style="color:#DC2626;font-weight:700">⚠️ ยังไม่ได้แนบเอกสาร</span>';
     html += '<div class="summary-row"><span class="summary-label">📄 เอกสารส่งซ่อม</span><span class="summary-value">'+docHtml+'</span></div>';
+  }
+  if (state.work_type === 'purchase') {
+    html += '<div class="summary-row"><span class="summary-label">📋 รายการ</span><span class="summary-value">'+(state.purchase_item||'-')+'</span></div>';
+    if (state.purchase_qty) html += '<div class="summary-row"><span class="summary-label">💰 จำนวน/งบ</span><span class="summary-value">'+state.purchase_qty+'</span></div>';
+    html += '<div class="summary-row"><span class="summary-label">📝 เหตุผล</span><span class="summary-value">'+(state.purchase_reason||'-')+'</span></div>';
+    const prHtml = state.docFile ? '<span style="color:#16A34A;font-weight:700">✅ แนบแล้ว: '+state.docFile.name+'</span>' : '<span style="color:#6B7280">— ไม่ได้แนบ —</span>';
+    html += '<div class="summary-row"><span class="summary-label">📄 ใบขอซื้อ (PR)</span><span class="summary-value">'+prHtml+'</span></div>';
   }
   html += '<div class="summary-row"><span class="summary-label">รูปภาพ / Photos</span><span class="summary-value">'+photoHtml+'</span></div>';
   document.getElementById('summary-content').innerHTML = html;
@@ -1088,13 +1145,15 @@ async function submitForm() {
     team_code:         state.teamCode,
     category:          state.category,
     work_type:         state.work_type || 'repair',
-    claim_stage:       state.work_type === 'claim' ? 'รับเรื่อง' : '',
+    claim_stage:       state.work_type === 'claim' ? 'รับเรื่อง' : (state.work_type === 'purchase' ? 'รับ PR' : ''),
     doc_url:           docUrl,
     priority:          state.priority,
     building:          state.building,
     room:              state.room,
     description:       state.work_type==='claim'
       ? ('📦 ส่งเคลม/ซ่อมนอก\n🔧 อุปกรณ์: '+(state.claim_device||'-')+'\n📋 รุ่น/Model: '+(state.claim_model||'-')+'\n📍 สถานที่ใช้งาน: '+(state.claim_usage||'-')+(state.claim_serial?'\n🏷️ เลขครุภัณฑ์/SN: '+state.claim_serial:'')+'\n──────────\n'+state.description)
+      : state.work_type==='purchase'
+      ? ('🛒 งานจัดซื้อ\n📋 รายการ: '+(state.purchase_item||'-')+(state.purchase_qty?'\n💰 จำนวน/งบ: '+state.purchase_qty:'')+'\n📝 เหตุผล: '+(state.purchase_reason||'-')+'\n──────────\n'+state.description)
       : state.description,
     department:        state.department,
     userId:            state.userId,
