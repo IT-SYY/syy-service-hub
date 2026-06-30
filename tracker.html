@@ -707,7 +707,7 @@ function mkTicketCard(t) {
         <button class="followup-send" onclick="event.stopPropagation();doFollowup('${t.ticket_id}',true)">${L('💬 ส่ง','💬 Send')}</button>
       </div>
       <button class="followup-nudge" onclick="event.stopPropagation();doFollowup('${t.ticket_id}',false)">⏰ ${L('ทวงถามงาน (กระตุ้นให้ทีมอัปเดต)','Nudge the team for an update')}</button>
-      <button class="followup-nudge" style="border-color:#3B82F6;color:#2563EB;background:rgba(59,130,246,0.08);margin-top:7px" onclick="event.stopPropagation();openTrackerChat('${t.ticket_id}')">💬 ${L('แชตกับทีมงาน (เรียลไทม์)','Chat with team (live)')}</button>
+      <button class="followup-nudge" style="border-color:#16A34A;color:#16A34A;background:rgba(22,163,74,0.08);margin-top:7px" onclick="event.stopPropagation();openTrackerChat('${t.ticket_id}')">💬 ${L('แชตกับทีมงาน (เรียลไทม์)','Chat with team (live)')}</button>
     </div>`:''}
   </div>`;
 }
@@ -1040,7 +1040,7 @@ function lateLevel(min, priority) {
 }
 // ===== CHAT (ผู้แจ้งติดตามงานกับทีมงาน) =====
 let tcTicket=null, tcLastId='', tcMsgs=[], tcTimer=null;
-async function tcApi(body){ try{ const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)}); return await r.json(); }catch(e){ return {success:false}; } }
+async function tcApi(body){ try{ const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),10000); const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body),signal:ctrl.signal}); clearTimeout(to); return await r.json(); }catch(e){ return {success:false}; } }
 function tcEsc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function openTrackerChat(tid){
   if(tcTimer){ clearInterval(tcTimer); tcTimer=null; }   // กัน interval ซ้อนจากห้องก่อน
@@ -1086,7 +1086,7 @@ function tcLightbox(src){
 }
 function tcAttachHtml(m){
   let h='';
-  if(m.image_url){ const u=tcEsc(tcGDrive(m.image_url)); h+='<div class="tcm-img"><img src="'+u+'" onclick="event.stopPropagation();tcLightbox(this.src)" loading="lazy"></div>'; }
+  if(m.image_url){ const u=tcEsc(tcGDrive(m.image_url)); h+='<div class="tcm-img"><img src="'+u+'" onclick="event.stopPropagation();openImgList(\''+u+'\',0)" loading="lazy"></div>'; }
   if(m.file_url) h+='<a class="tcm-file" href="'+tcEsc(m.file_url)+'" target="_blank">📎 '+tcEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
   return h;
 }
