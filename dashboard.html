@@ -698,6 +698,7 @@ body.tv #tv-fx{display:block;}
   .chat-thread .ct-cat{font-size:13px;}
   .chat-msg .cm-img img{max-width:70vw;}
 }
+.report-row:hover{background:var(--bg3,rgba(125,125,125,0.08));}
 /* DETAIL OVERLAY */
 
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
@@ -3858,7 +3859,7 @@ function renderClaimReport(){
   const stat=(n,l,c)=>`<div style="flex:1;min-width:90px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:${c}">${n}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`;
   const rows=active.slice().sort((a,b)=>claimStageIdx(a.claim_stage)-claimStageIdx(b.claim_stage)).slice(0,12).map(t=>{
     const stg=claimLabel(t.claim_stage);
-    return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:monospace;font-size:11px">${t.ticket_id}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${t.category||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${t.branch||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:#EA580C;font-weight:700">📦 ${stg}</td></tr>`;
+    return `<tr class="report-row" onclick="openDetail('${t.ticket_id}')" style="cursor:pointer"><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:monospace;font-size:11px">${t.ticket_id}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${t.category||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${t.branch||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:#EA580C;font-weight:700">📦 ${stg}</td></tr>`;
   }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3)">ไม่มีงานเคลมที่กำลังดำเนินการ</td></tr>';
   card.innerHTML=`<div class="report-title">📦 งานส่งซ่อม/เคลมนอก${currentBranch!=='all'?' · '+currentBranch:''}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">
@@ -3882,7 +3883,7 @@ function renderPurchaseReport(){
   const stat=(n,l,c)=>`<div style="flex:1;min-width:90px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:${c}">${n}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`;
   const rows=active.slice().sort((a,b)=>purchaseStageIdx(a.claim_stage)-purchaseStageIdx(b.claim_stage)).slice(0,12).map(t=>{
     const stg=purchaseLabel(t.claim_stage);
-    return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:monospace;font-size:11px">${t.ticket_id}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${t.building||t.category||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${t.branch||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:#0891B2;font-weight:700">🛒 ${stg}</td></tr>`;
+    return `<tr class="report-row" onclick="openDetail('${t.ticket_id}')" style="cursor:pointer"><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:monospace;font-size:11px">${t.ticket_id}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${t.building||t.category||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${t.branch||'-'}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:#0891B2;font-weight:700">🛒 ${stg}</td></tr>`;
   }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3)">ไม่มีงานจัดซื้อที่กำลังดำเนินการ</td></tr>';
   card.innerHTML=`<div class="report-title">🛒 งานจัดซื้อ${currentBranch!=='all'?' · '+currentBranch:''}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">
@@ -5143,7 +5144,7 @@ async function chatApi(body){
 function chatTicketInfo(tid){ return (typeof tickets!=='undefined'?tickets:[]).find(t=>t.ticket_id===tid)||null; }
 function updateChatBadge(){
   let n=0; chatThreadsCache.forEach(t=>{ n+=chatUnreadN(t); });
-  const b=document.getElementById('chat-badge'); if(b){ b.textContent=n>99?'99+':n; b.style.display=n>0?'':'none'; }
+  const b=document.getElementById('chat-badge'); if(b){ b.textContent=n>99?'99+':n; b.style.display=n>0?'inline-block':'none'; }
 }
 function chatNotifyAsk(){ try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch(e){} }
 function chatNotify(tid, msg){
@@ -5236,9 +5237,20 @@ async function pollChatMessages(reset){
     if(chatMsgsCache.length){ chatSetRead(chatCurrentTicket, chatMsgsCache[chatMsgsCache.length-1].msg_id, chatMsgsCache.length); updateChatBadge(); renderChatList(); }
   } finally { chatPollBusy=false; }
 }
+function chatLightbox(src){
+  let lb=document.getElementById('chat-lightbox');
+  if(!lb){
+    lb=document.createElement('div'); lb.id='chat-lightbox';
+    lb.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:none;align-items:center;justify-content:center;cursor:zoom-out;padding:24px';
+    lb.innerHTML='<img style="max-width:96%;max-height:96%;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.5)"><div style="position:absolute;top:18px;right:24px;color:#fff;font-size:34px;line-height:1;cursor:pointer">×</div>';
+    lb.onclick=function(){ lb.style.display='none'; };
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src=src; lb.style.display='flex';
+}
 function chatAttachHtml(m){
   let h='';
-  if(m.image_url) h+='<div class="cm-img"><img src="'+chatEsc(chatGDrive(m.image_url))+'" onclick="window.open(this.src,\'_blank\')" loading="lazy"></div>';
+  if(m.image_url){ const u=chatEsc(chatGDrive(m.image_url)); h+='<div class="cm-img"><img src="'+u+'" onclick="event.stopPropagation();chatLightbox(this.src)" loading="lazy"></div>'; }
   if(m.file_url) h+='<a class="cm-file" href="'+chatEsc(m.file_url)+'" target="_blank">📎 '+chatEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
   return h;
 }
