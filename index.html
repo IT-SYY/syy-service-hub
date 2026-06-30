@@ -243,9 +243,9 @@
       <button type="button" id="btn-claim-mode" onclick="selectClaimMode()" style="width:100%;padding:14px;border:2px solid #EA580C;border-radius:12px;background:#FFF7ED;color:#C2410C;font-size:15px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
         📦 ส่งเคลม / ส่งซ่อมนอก
       </button>
-      <div style="font-size:12px;color:var(--text-muted);margin:10px 0 8px">หรือติดตามงานจัดซื้อ (ทีมจัดซื้อ)</div>
+      <div style="font-size:12px;color:var(--text-muted);margin:10px 0 8px">หรือแจ้งงานจัดซื้อ (ทีมจัดซื้อ)</div>
       <button type="button" id="btn-purchase-mode" onclick="selectPurchaseMode()" style="width:100%;padding:14px;border:2px solid #0891B2;border-radius:12px;background:#ECFEFF;color:#0E7490;font-size:15px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
-        🛒 ติดตามงานจัดซื้อ
+        🛒 แจ้งงานจัดซื้อ
       </button>
     </div>
   </div>
@@ -274,22 +274,22 @@
   </div>
 
   <div class="card" id="purchase-detail-card" style="display:none;border:2px solid #A5F3FC">
-    <div class="card-title"><span style="background:#CFFAFE;color:#0E7490">🛒</span> รายละเอียดงานจัดซื้อ</div>
+    <div class="card-title"><span style="background:#CFFAFE;color:#0E7490">🛒</span> ติดตามงานจัดซื้อ (จาก PR)</div>
     <div class="field">
-      <label>หมายเลข PR <span class="en">PR No.</span></label>
-      <input type="text" id="purchase-pr" placeholder="เช่น PR-2026-001">
+      <label>เลขที่ใบขอซื้อ (PR) <span class="en">PR No.</span></label>
+      <input type="text" id="purchase-prno" placeholder="เช่น PR-2026-001">
     </div>
     <div class="field">
-      <label>รายการที่ขอซื้อ <span class="en">Items</span><span class="req">*</span></label>
-      <input type="text" id="purchase-item" placeholder="เช่น เครื่องปรับอากาศ 2 เครื่อง">
+      <label>รายการจัดซื้อ <span class="en">Item</span><span class="req">*</span></label>
+      <input type="text" id="purchase-item" placeholder="เช่น คอมพิวเตอร์ 5 เครื่อง, หมึกพิมพ์">
     </div>
     <div class="field">
-      <label>งบประมาณ (บาท) <span class="en">Budget (THB)</span></label>
-      <input type="text" id="purchase-qty" placeholder="ถ้ามี">
+      <label>งบประมาณ <span class="en">Budget</span></label>
+      <input type="text" id="purchase-budget" placeholder="เช่น 75,000 บาท">
     </div>
     <div class="field" style="margin-bottom:0">
-      <label>รายละเอียด/เหตุผล <span class="en">Details/Reason</span><span class="req">*</span></label>
-      <input type="text" id="purchase-reason" placeholder="เหตุผลการจัดซื้อ ผู้อนุมัติ ฯลฯ...">
+      <label>รายละเอียด / หมายเหตุ <span class="en">Details</span></label>
+      <input type="text" id="purchase-reason" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
     </div>
   </div>
   <div class="card" id="category-card">
@@ -412,7 +412,7 @@ const MAX_SIZE   = 20 * 1024 * 1024; // 20MB (จะ compress ก่อน uploa
 
 // ===== STATE =====
 let state = {
-  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, videoFile:null, claim_device:'', claim_model:'', claim_usage:'', claim_serial:'', purchase_item:'', purchase_pr:'', purchase_qty:'', purchase_reason:'', priority:'low',
+  step:1, branch:'', team:'', teamCode:'', category:'', work_type:'repair', _claimTeam:'', docFile:null, videoFile:null, claim_device:'', claim_model:'', claim_usage:'', claim_serial:'', purchase_item:'', purchase_prno:'', purchase_budget:'', purchase_reason:'', priority:'low',
   building:'', room:'', description:'', department:'',
   photos:[], uploadedUrls:[],
   userId:'', displayName:'', pictureUrl:'', groupId:'', liffReady:false
@@ -1002,12 +1002,12 @@ function validateStep() {
     return true;
   }
   if (state.step === 2 && state.work_type === 'purchase') {
+    state.purchase_prno   = document.getElementById('purchase-prno').value.trim();
     state.purchase_item   = document.getElementById('purchase-item').value.trim();
-    state.purchase_pr     = document.getElementById('purchase-pr').value.trim();
-    state.purchase_qty    = document.getElementById('purchase-qty').value.trim();
+    state.purchase_budget = document.getElementById('purchase-budget').value.trim();
     state.purchase_reason = document.getElementById('purchase-reason').value.trim();
-    if (!state.purchase_item)   { alert('กรุณากรอกรายการที่ขอซื้อ\nPlease enter item.'); return false; }
-    if (!state.purchase_reason) { alert('กรุณากรอกเหตุผล/รายละเอียด\nPlease enter reason.'); return false; }
+    if (!state.purchase_item) { alert('กรุณากรอกรายการจัดซื้อ\nPlease enter item.'); return false; }
+    state.room = state.purchase_prno || '';
     return true;
   }
   if (state.step === 2 && !state.category) {
@@ -1061,10 +1061,10 @@ function buildSummary() {
     html += '<div class="summary-row"><span class="summary-label">📄 เอกสารส่งซ่อม</span><span class="summary-value">'+docHtml+'</span></div>';
   }
   if (state.work_type === 'purchase') {
-    if (state.purchase_pr) html += '<div class="summary-row"><span class="summary-label">🔢 หมายเลข PR</span><span class="summary-value">'+state.purchase_pr+'</span></div>';
+    if (state.purchase_prno) html += '<div class="summary-row"><span class="summary-label">🧾 เลขที่ PR</span><span class="summary-value">'+state.purchase_prno+'</span></div>';
     html += '<div class="summary-row"><span class="summary-label">📋 รายการ</span><span class="summary-value">'+(state.purchase_item||'-')+'</span></div>';
-    if (state.purchase_qty) html += '<div class="summary-row"><span class="summary-label">💰 งบประมาณ</span><span class="summary-value">'+state.purchase_qty+'</span></div>';
-    html += '<div class="summary-row"><span class="summary-label">📝 เหตุผล</span><span class="summary-value">'+(state.purchase_reason||'-')+'</span></div>';
+    if (state.purchase_budget) html += '<div class="summary-row"><span class="summary-label">💰 งบประมาณ</span><span class="summary-value">'+state.purchase_budget+'</span></div>';
+    if (state.purchase_reason) html += '<div class="summary-row"><span class="summary-label">📝 รายละเอียด</span><span class="summary-value">'+state.purchase_reason+'</span></div>';
     const prHtml = state.docFile ? '<span style="color:#16A34A;font-weight:700">✅ แนบแล้ว: '+state.docFile.name+'</span>' : '<span style="color:#6B7280">— ไม่ได้แนบ —</span>';
     html += '<div class="summary-row"><span class="summary-label">📄 ใบขอซื้อ (PR)</span><span class="summary-value">'+prHtml+'</span></div>';
   }
@@ -1159,7 +1159,7 @@ async function submitForm() {
     description:       state.work_type==='claim'
       ? ('📦 ส่งเคลม/ซ่อมนอก\n🔧 อุปกรณ์: '+(state.claim_device||'-')+'\n📋 รุ่น/Model: '+(state.claim_model||'-')+'\n📍 สถานที่ใช้งาน: '+(state.claim_usage||'-')+(state.claim_serial?'\n🏷️ เลขครุภัณฑ์/SN: '+state.claim_serial:'')+'\n──────────\n'+state.description)
       : state.work_type==='purchase'
-      ? ('🛒 งานจัดซื้อ'+(state.purchase_pr?'\n🔢 หมายเลข PR: '+state.purchase_pr:'')+'\n📋 รายการ: '+(state.purchase_item||'-')+(state.purchase_qty?'\n💰 งบประมาณ: '+state.purchase_qty:'')+'\n📝 เหตุผล: '+(state.purchase_reason||'-')+'\n──────────\n'+state.description)
+      ? ('🛒 งานจัดซื้อ (ติดตามจาก PR)\n🧾 เลขที่ PR: '+(state.purchase_prno||'-')+'\n📋 รายการ: '+(state.purchase_item||'-')+'\n💰 งบประมาณ: '+(state.purchase_budget||'-')+'\n──────────\n'+(state.purchase_reason||state.description||'-'))
       : state.description,
     department:        state.department,
     userId:            state.userId,
