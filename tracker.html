@@ -258,6 +258,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
   <div class="filter-tab" data-f="claim" onclick="setFilter('claim',this)">
     <span data-th="📦 ส่งซ่อม/เคลม" data-en="📦 Claim">📦 ส่งซ่อม/เคลม</span> <span class="filter-tab-count" id="fc-claim">0</span>
   </div>
+  <div class="filter-tab" data-f="purchase" onclick="setFilter('purchase',this)">
+    <span data-th="🛒 งานจัดซื้อ" data-en="🛒 Procurement">🛒 งานจัดซื้อ</span> <span class="filter-tab-count" id="fc-purchase">0</span>
+  </div>
 </div>
 
 <!-- CONTENT -->
@@ -544,6 +547,7 @@ function getFiltered() {
     const sm = currentFilter === 'all'
       || (currentFilter === 'pending' && (t.status === 'pending' || t.status === 'assigned'))
       || (currentFilter === 'claim' && String(t.work_type).toLowerCase() === 'claim')
+      || (currentFilter === 'purchase' && String(t.work_type).toLowerCase() === 'purchase')
       || t.status === currentFilter;
     const q = searchQuery;
     const statusThai = {pending:'รอดำเนินการ',assigned:'มอบหมายแล้ว',in_progress:'กำลังซ่อม กำลังดำเนินการ',done:'เสร็จสิ้น เสร็จ',rejected:'ปฏิเสธ'}[t.status]||'';
@@ -600,6 +604,7 @@ function updateCounts() {
   document.getElementById('fc-inprog').textContent = all.filter(t=>t.status==='in_progress').length;
   document.getElementById('fc-done').textContent = all.filter(t=>t.status==='done').length;
   var _cc=document.getElementById('fc-claim'); if(_cc) _cc.textContent = all.filter(t=>String(t.work_type).toLowerCase()==='claim').length;
+  var _cp=document.getElementById('fc-purchase'); if(_cp) _cp.textContent = all.filter(t=>String(t.work_type).toLowerCase()==='purchase').length;
 }
 
 function updateStats() {
@@ -1068,9 +1073,20 @@ async function tcPoll(reset){
   } finally { tcBusy=false; }
 }
 function tcGDrive(u){ u=String(u||''); const m=u.match(/\/file\/d\/([^/]+)/)||u.match(/[?&]id=([^&]+)/); return m?('https://drive.google.com/uc?id='+m[1]+'&export=download'):u; }
+function tcLightbox(src){
+  let lb=document.getElementById('tc-lightbox');
+  if(!lb){
+    lb=document.createElement('div'); lb.id='tc-lightbox';
+    lb.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:none;align-items:center;justify-content:center;cursor:zoom-out;padding:20px';
+    lb.innerHTML='<img style="max-width:96%;max-height:96%;border-radius:10px"><div style="position:absolute;top:16px;right:20px;color:#fff;font-size:32px;line-height:1">×</div>';
+    lb.onclick=function(){ lb.style.display='none'; };
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src=src; lb.style.display='flex';
+}
 function tcAttachHtml(m){
   let h='';
-  if(m.image_url) h+='<div class="tcm-img"><img src="'+tcEsc(tcGDrive(m.image_url))+'" onclick="window.open(this.src,\'_blank\')" loading="lazy"></div>';
+  if(m.image_url){ const u=tcEsc(tcGDrive(m.image_url)); h+='<div class="tcm-img"><img src="'+u+'" onclick="event.stopPropagation();tcLightbox(this.src)" loading="lazy"></div>'; }
   if(m.file_url) h+='<a class="tcm-file" href="'+tcEsc(m.file_url)+'" target="_blank">📎 '+tcEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
   return h;
 }
