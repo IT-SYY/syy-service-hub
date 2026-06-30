@@ -494,7 +494,7 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-logo{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#06C755,#04903C);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 22px rgba(6,199,85,0.55);}
 .tvb-brand .tt{font-size:19px;font-weight:700;letter-spacing:.3px;}
 .tvb-brand .ss{font-size:11px;color:#8FA0BE;}
-.tvb-kpis{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.tvb-kpis{flex:1;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
 .tvb-kpi{position:relative;border-radius:18px;padding:12px 18px;display:flex;align-items:center;gap:14px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.09);backdrop-filter:blur(8px);}
 .tvb-kpi::after{content:'';position:absolute;right:-28px;top:-28px;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle,var(--kc,#60A5FA),transparent 70%);opacity:.20;pointer-events:none;}
 .tvb-kpi .kic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;background:var(--kc-dim,rgba(96,165,250,0.16));border:1px solid var(--kc,#60A5FA);box-shadow:0 0 16px -3px var(--kc,#60A5FA);flex-shrink:0;z-index:1;}
@@ -534,7 +534,15 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-more{font-size:13px;color:#7A87A0;text-align:center;padding:7px;font-weight:600;}
 .tvb-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#5C6A85;text-align:center;padding:18px;}
 /* SIDE */
-.tvb-side{grid-area:side;display:grid;grid-template-rows:auto auto 1fr;gap:14px;min-height:0;}
+.tvb-side{grid-area:side;display:grid;grid-template-rows:auto auto auto 1fr;gap:13px;min-height:0;}
+.tvb-lb{display:flex;flex-direction:column;gap:9px;margin-top:4px;}
+.tvb-lb-item{display:flex;align-items:center;gap:9px;font-size:13px;}
+.tvb-lb-item .lb-md{width:22px;text-align:center;font-size:15px;flex-shrink:0;}
+.tvb-lb-item .lb-rk{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.1);font-size:10px;font-weight:800;color:#94A3B8;}
+.tvb-lb-item .lb-nm{flex:0 0 auto;max-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#EAF0FB;font-weight:600;}
+.tvb-lb-item .lb-bar{flex:1;height:7px;background:rgba(255,255,255,0.07);border-radius:5px;overflow:hidden;}
+.tvb-lb-item .lb-bar span{display:block;height:100%;background:linear-gradient(90deg,#34D399,#22D3EE);border-radius:5px;transition:width .5s;}
+.tvb-lb-item .lb-ct{flex-shrink:0;font-family:'JetBrains Mono',monospace;font-weight:800;color:#34D399;min-width:20px;text-align:right;}
 .tvb-panel{border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;min-height:0;background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(6px);}
 .tvb-panel .ttl{font-size:13px;font-weight:700;color:#C3CEE2;margin-bottom:11px;display:flex;align-items:center;gap:7px;}
 .tvb-gauge{display:flex;align-items:center;gap:18px;}
@@ -572,7 +580,7 @@ body.tv #tv-board>*{position:relative;z-index:1;}
   .tvb-brand .tt{font-size:15px !important;}
   .tvb-brand .ss{font-size:10px !important;}
   .tvb-logo{width:38px !important;height:38px !important;font-size:20px !important;}
-  .tvb-kpis{grid-template-columns:repeat(2,1fr) !important;gap:8px !important;}
+  .tvb-kpis{grid-template-columns:repeat(3,1fr) !important;gap:8px !important;}
   .tvb-kpi{padding:9px 12px !important;border-radius:14px !important;}
   .tvb-kpi .n{font-size:24px !important;}
   .tvb-kpi .l{font-size:10px !important;}
@@ -582,7 +590,7 @@ body.tv #tv-board>*{position:relative;z-index:1;}
   .tvb-clock .d{margin-top:0 !important;}
   .tvb-flow{grid-template-columns:1fr !important;gap:10px !important;}
   .tvb-col{min-height:260px !important;max-height:65vh !important;}
-  .tvb-side{grid-template-rows:auto auto auto !important;gap:10px !important;}
+  .tvb-side{grid-template-rows:repeat(4,auto) !important;gap:10px !important;}
   .tvb-colhead{padding:10px 14px !important;}
   .tvb-colhead .ct{font-size:14px !important;}
 }
@@ -920,7 +928,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('projects',this)"><span class="nav-icon">📁</span><span data-th="งานโครงการ" data-en="Projects">งานโครงการ</span><span class="nav-badge" id="project-badge">0</span></div>
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
-    <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="งานจัดซื้อ" data-en="Procurement">งานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="ติดตามงานจัดซื้อ" data-en="Track Procurement">ติดตามงานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
     <div class="nav-item" onclick="showPage('chat',this)"><span class="nav-icon">💬</span><span data-th="แชตติดตามงาน" data-en="Chat">แชตติดตามงาน</span><span class="nav-badge" id="chat-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-sec" data-th="การจัดการ" data-en="Management">Management</div>
@@ -1753,7 +1761,7 @@ function refreshDynamicLang(){
     const pt=document.getElementById('page-title'); if(pt && tt[currentPage]) pt.textContent=tt[currentPage];
     // หัวข้อ toolbar ของหน้า tickets/projects/pm/claim/inbox
     const ttl=document.getElementById('tickets-title');
-    if(ttl){ ttl.textContent=(currentPage==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)'):(currentPage==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management'):(currentPage==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)'):(currentPage==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)'):(currentPage==='purchase')?L('🛒 งานจัดซื้อ (Procurement)','🛒 Procurement'):L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
+    if(ttl){ ttl.textContent=(currentPage==='inbox')?L('📥 งานรอมอบหมายทั้งหมด (ทุกประเภท)','📥 Assignment Inbox (all types)'):(currentPage==='projects')?L('📁 จัดการงานโครงการ','📁 Project Management'):(currentPage==='pm')?L('🔧 งานบำรุงรักษาตามแผน (PM)','🔧 Preventive Maintenance (PM)'):(currentPage==='claim')?L('📦 งานส่งซ่อม/เคลมนอก (Asset)','📦 Claim / External Repair (Asset)'):(currentPage==='purchase')?L('🛒 ติดตามงานจัดซื้อ','🛒 Track Procurement'):L('🎫 จัดการ Ticket ซ่อมบำรุง','🎫 Maintenance Tickets'); }
   }catch(e){}
   // re-render เนื้อหาที่มีข้อความ JS (ถ้าโหลดข้อมูลแล้ว)
   try{ if(typeof tickets!=='undefined' && tickets.length){ if(typeof renderAll==='function') renderAll(); } }catch(e){}
@@ -1922,6 +1930,13 @@ function renderTVBoard(){
   const today=(()=>{const n=new Date(),p=x=>String(x).padStart(2,'0');return p(n.getDate())+'/'+p(n.getMonth()+1)+'/'+n.getFullYear();})();
   const doneToday=b.filter(t=>t.status==='done'&&String(t.resolved_at||'').startsWith(today));
   const done=b.filter(t=>t.status==='done');
+  // ===== สถิติเพิ่มเติมสำหรับ TV =====
+  const doneRated=done.filter(t=>slaOf(t));
+  const onTime=doneRated.filter(t=>slaOf(t)==='on_time').length;
+  const slaPct=doneRated.length?Math.round(onTime/doneRated.length*100):100;
+  const techCount={};
+  doneToday.forEach(t=>{ const a=(t.assigned_to||'').trim(); if(a) techCount[a]=(techCount[a]||0)+1; });
+  const topTechs=Object.entries(techCount).sort((x,y)=>y[1]-x[1]).slice(0,5);
   // ตรวจงานที่ "เพิ่งขยับสถานะ/อัปเดต/ถูกทวง" → flash + กระพริบ + เสียง
   const firstTv=Object.keys(tvLastStatus).length===0;
   const changed=new Set(), attn=new Set();
@@ -1940,6 +1955,7 @@ function renderTVBoard(){
   const refOf=t=>t.status==='in_progress'?(t.accepted_at||t.assigned_at||t.created_at):t.created_at;
   const isLong=t=>['project','claim','purchase'].includes(String(t.work_type||'repair').toLowerCase());   // งานระยะยาว: โครงการ/เคลม
   const isUrgent=t=>t.status!=='done' && !isLong(t) && lateLevel(elapsedSince(refOf(t)),t.priority).level==='danger';   // งานระยะยาวไม่ pin
+  const overdue=pend.concat(prog).filter(isUrgent).length;
   const card1=(t,pal)=>tvCard(t,pal,changed.has(t.ticket_id),attn.has(t.ticket_id));
   const mk=(list,pal)=>{
     if(!list.length) return '<div class="tvb-empty">— ไม่มีงาน —</div>';
@@ -1960,6 +1976,8 @@ function renderTVBoard(){
     '</div>';
   // KPI
   const kc=(v,c,cdim,ic,l)=>'<div class="tvb-kpi" style="--kc:'+c+';--kc-dim:'+cdim+'"><div class="kic">'+ic+'</div><div class="kt"><div class="n">'+v+'</div><div class="l">'+l+'</div></div></div>';
+  const lbMax=topTechs.length?topTechs[0][1]:1;
+  const lbHTML=topTechs.length?topTechs.map((e,i)=>{const nm=e[0],ct=e[1];const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'<span class="lb-rk">'+(i+1)+'</span>';return '<div class="tvb-lb-item"><span class="lb-md">'+medal+'</span><span class="lb-nm">'+nm+'</span><div class="lb-bar"><span style="width:'+Math.round(ct/lbMax*100)+'%"></span></div><span class="lb-ct">'+ct+'</span></div>';}).join(''):'<div class="tvb-empty" style="padding:12px 10px">ยังไม่มีงานปิดวันนี้</div>';
   // ฟีดกิจกรรมล่าสุด
   const feed=buildTvFeed(b).slice(0,7).map(f=>'<div class="tvb-feed-item" style="--fc:'+f.c+'"><span class="ic">'+f.ic+'</span><span class="tx">'+f.tx+'</span><span class="tm">'+f.tm+'</span></div>').join('')||'<div class="tvb-empty" style="padding:10px">ยังไม่มีกิจกรรม</div>';
   board.innerHTML=
@@ -1970,6 +1988,8 @@ function renderTVBoard(){
         kc(pend.length,'#F59E0B','rgba(245,158,11,0.16)','⏳','รอดำเนินการ')+
         kc(prog.length,'#8B5CF6','rgba(139,92,246,0.16)','🔄','กำลังดำเนินการ')+
         kc(doneToday.length,'#10B981','rgba(16,185,129,0.16)','✅','เสร็จวันนี้')+
+        kc(slaPct+'%',slaPct>=80?'#22D3EE':slaPct>=60?'#FBBF24':'#F87171','rgba(34,211,238,0.16)','🎯','SLA ตรงเวลา')+
+        kc(overdue,overdue>0?'#F87171':'#34D399','rgba(248,113,113,0.16)','🔴','เกินกำหนด')+
       '</div>'+
       '<div class="tvb-clock"><div class="t" id="tvb-time">'+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())+'</div><div class="d">'+today+' <span class="tvb-live">LIVE</span></div></div>'+
     '</div>'+
@@ -1981,6 +2001,7 @@ function renderTVBoard(){
     '<div class="tvb-side">'+
       '<div class="tvb-panel"><div class="ttl">📊 ภาพรวมสถานะงาน</div><div class="tvb-gauge"><div class="cv"><canvas id="tv-chart-status"></canvas><div class="ctr"><b>'+(pend.length+prog.length+done.length)+'</b><s>งานรวม</s></div></div><div class="tvb-leg" id="tv-leg"></div></div></div>'+
       '<div class="tvb-panel"><div class="ttl">📈 งานแจ้งใหม่ 7 วัน</div><div class="tvb-spark"><canvas id="tv-chart-daily"></canvas></div></div>'+
+      '<div class="tvb-panel"><div class="ttl">🏆 อันดับทีมงานวันนี้</div><div class="tvb-lb">'+lbHTML+'</div></div>'+
       '<div class="tvb-panel tvb-ticker"><div class="ttl">⚡ กิจกรรมล่าสุด</div><div class="tvb-feed">'+feed+'</div></div>'+
     '</div>';
   // อัปเดตสถานะ/สแนปช็อตล่าสุด + เล่นเสียงถ้ามีการขยับ
