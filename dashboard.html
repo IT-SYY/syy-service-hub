@@ -534,7 +534,20 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-more{font-size:13px;color:#7A87A0;text-align:center;padding:7px;font-weight:600;}
 .tvb-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#5C6A85;text-align:center;padding:18px;}
 /* SIDE */
-.tvb-side{grid-area:side;display:grid;grid-template-rows:auto auto auto 1fr;gap:13px;min-height:0;}
+.tvb-side{grid-area:side;display:grid;grid-template-rows:auto auto auto auto auto 1fr;gap:11px;min-height:0;overflow-y:auto;}
+.tvb-panel .ttl{display:flex;align-items:center;justify-content:space-between;}
+.tvb-panel .ttl-sub{font-size:11px;font-weight:700;color:#22D3EE;background:rgba(34,211,238,0.12);padding:2px 8px;border-radius:8px;}
+.tvb-tm{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.tvb-tm-item{display:flex;align-items:center;gap:8px;font-size:12.5px;}
+.tvb-tm-item .tm-nm{flex:0 0 auto;max-width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#CBD5E1;font-weight:600;}
+.tvb-tm-item .tm-bar{flex:1;height:8px;background:rgba(255,255,255,0.07);border-radius:5px;overflow:hidden;}
+.tvb-tm-item .tm-bar span{display:block;height:100%;border-radius:5px;transition:width .5s;}
+.tvb-tm-item .tm-ct{flex-shrink:0;font-family:'JetBrains Mono',monospace;font-weight:800;color:#EAF0FB;min-width:18px;text-align:right;}
+.tvb-pm{display:flex;flex-direction:column;gap:7px;margin-top:4px;}
+.tvb-pm-item{display:flex;align-items:center;gap:8px;font-size:12.5px;}
+.tvb-pm-item .pm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tvb-pm-item .pm-nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#CBD5E1;}
+.tvb-pm-item .pm-due{flex-shrink:0;font-size:11px;font-weight:800;}
 .tvb-lb{display:flex;flex-direction:column;gap:9px;margin-top:4px;}
 .tvb-lb-item{display:flex;align-items:center;gap:9px;font-size:13px;}
 .tvb-lb-item .lb-md{width:22px;text-align:center;font-size:15px;flex-shrink:0;}
@@ -590,7 +603,7 @@ body.tv #tv-board>*{position:relative;z-index:1;}
   .tvb-clock .d{margin-top:0 !important;}
   .tvb-flow{grid-template-columns:1fr !important;gap:10px !important;}
   .tvb-col{min-height:260px !important;max-height:65vh !important;}
-  .tvb-side{grid-template-rows:repeat(4,auto) !important;gap:10px !important;}
+  .tvb-side{grid-template-rows:repeat(6,auto) !important;gap:10px !important;}
   .tvb-colhead{padding:10px 14px !important;}
   .tvb-colhead .ct{font-size:14px !important;}
 }
@@ -1778,6 +1791,10 @@ function toggleTV(){
     tvLongIdx=0; tvLongTimer=setInterval(()=>{tvLongIdx++;tvRotateLong();},90000);   // หมุนเวียนงานระยะยาวทุก 1.5 นาที
     tvBuildFX();
     renderTVBoard();
+    // โหลดแผน PM สำหรับแผง "PM ใกล้ครบกำหนด" (ถ้ายังไม่มี)
+    if(!pmPlansCache || !pmPlansCache.length){
+      fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})}).then(r=>r.json()).then(r=>{ if(r&&r.plans){ pmPlansCache=r.plans; if(document.body.classList.contains('tv')) renderTVBoard(); } }).catch(()=>{});
+    }
     tvClock=setInterval(updateTVClock,1000);
   }else{
     clearInterval(tvClock);tvClock=null;
@@ -1937,6 +1954,16 @@ function renderTVBoard(){
   const techCount={};
   doneToday.forEach(t=>{ const a=(t.assigned_to||'').trim(); if(a) techCount[a]=(techCount[a]||0)+1; });
   const topTechs=Object.entries(techCount).sort((x,y)=>y[1]-x[1]).slice(0,5);
+  // เวลาเฉลี่ยปิดงานวันนี้
+  const closeMins=doneToday.map(t=>parseInt(t.duration_min||t.completion_min||0,10)).filter(v=>v>0);
+  const avgClose=closeMins.length?Math.round(closeMins.reduce((a,c)=>a+c,0)/closeMins.length):0;
+  // งานค้างแยกตามทีม
+  const teamStats={};
+  pend.concat(prog).forEach(t=>{ const tm=t.team||t.department||'อื่นๆ'; teamStats[tm]=(teamStats[tm]||0)+1; });
+  const teamTop=Object.entries(teamStats).sort((x,y)=>y[1]-x[1]).slice(0,5);
+  const teamMax=teamTop.length?teamTop[0][1]:1;
+  // PM ใกล้ครบกำหนด
+  const pmDue=(pmPlansCache||[]).filter(p=>p.active!==false).slice().sort((a,c)=>(a.days_until||0)-(c.days_until||0)).slice(0,4);
   // ตรวจงานที่ "เพิ่งขยับสถานะ/อัปเดต/ถูกทวง" → flash + กระพริบ + เสียง
   const firstTv=Object.keys(tvLastStatus).length===0;
   const changed=new Set(), attn=new Set();
@@ -1978,6 +2005,8 @@ function renderTVBoard(){
   const kc=(v,c,cdim,ic,l)=>'<div class="tvb-kpi" style="--kc:'+c+';--kc-dim:'+cdim+'"><div class="kic">'+ic+'</div><div class="kt"><div class="n">'+v+'</div><div class="l">'+l+'</div></div></div>';
   const lbMax=topTechs.length?topTechs[0][1]:1;
   const lbHTML=topTechs.length?topTechs.map((e,i)=>{const nm=e[0],ct=e[1];const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'<span class="lb-rk">'+(i+1)+'</span>';return '<div class="tvb-lb-item"><span class="lb-md">'+medal+'</span><span class="lb-nm">'+nm+'</span><div class="lb-bar"><span style="width:'+Math.round(ct/lbMax*100)+'%"></span></div><span class="lb-ct">'+ct+'</span></div>';}).join(''):'<div class="tvb-empty" style="padding:12px 10px">ยังไม่มีงานปิดวันนี้</div>';
+  const teamHTML=teamTop.length?teamTop.map(e=>{const nm=e[0],ct=e[1];const col=TEAM_COLORS[nm]||TEAM_COLORS[nm&&nm.trim()]||'#64748B';return '<div class="tvb-tm-item"><span class="tm-nm">'+nm+'</span><div class="tm-bar"><span style="width:'+Math.round(ct/teamMax*100)+'%;background:'+col+'"></span></div><span class="tm-ct">'+ct+'</span></div>';}).join(''):'<div class="tvb-empty" style="padding:12px 10px">ไม่มีงานค้าง</div>';
+  const pmHTML=pmDue.length?pmDue.map(p=>{const d=p.days_until||0;const col=d<0?'#F87171':d<=7?'#FBBF24':'#34D399';const txt=d<0?('เลย '+Math.abs(d)+' วัน'):(d===0?'วันนี้':('อีก '+d+' วัน'));return '<div class="tvb-pm-item"><span class="pm-dot" style="background:'+col+'"></span><span class="pm-nm">'+(p.name||'-')+'</span><span class="pm-due" style="color:'+col+'">'+txt+'</span></div>';}).join(''):'<div class="tvb-empty" style="padding:12px 10px">ไม่มีแผน PM ใกล้ครบ</div>';
   // ฟีดกิจกรรมล่าสุด
   const feed=buildTvFeed(b).slice(0,7).map(f=>'<div class="tvb-feed-item" style="--fc:'+f.c+'"><span class="ic">'+f.ic+'</span><span class="tx">'+f.tx+'</span><span class="tm">'+f.tm+'</span></div>').join('')||'<div class="tvb-empty" style="padding:10px">ยังไม่มีกิจกรรม</div>';
   board.innerHTML=
@@ -2001,7 +2030,9 @@ function renderTVBoard(){
     '<div class="tvb-side">'+
       '<div class="tvb-panel"><div class="ttl">📊 ภาพรวมสถานะงาน</div><div class="tvb-gauge"><div class="cv"><canvas id="tv-chart-status"></canvas><div class="ctr"><b>'+(pend.length+prog.length+done.length)+'</b><s>งานรวม</s></div></div><div class="tvb-leg" id="tv-leg"></div></div></div>'+
       '<div class="tvb-panel"><div class="ttl">📈 งานแจ้งใหม่ 7 วัน</div><div class="tvb-spark"><canvas id="tv-chart-daily"></canvas></div></div>'+
-      '<div class="tvb-panel"><div class="ttl">🏆 อันดับทีมงานวันนี้</div><div class="tvb-lb">'+lbHTML+'</div></div>'+
+      '<div class="tvb-panel"><div class="ttl">🏆 อันดับทีมงานวันนี้'+(avgClose>0?'<span class="ttl-sub">⏱ เฉลี่ย '+fmtMins(avgClose)+'</span>':'')+'</div><div class="tvb-lb">'+lbHTML+'</div></div>'+
+      '<div class="tvb-panel"><div class="ttl">🏢 งานค้างตามทีม</div><div class="tvb-tm">'+teamHTML+'</div></div>'+
+      '<div class="tvb-panel"><div class="ttl">🔧 PM ใกล้ครบกำหนด</div><div class="tvb-pm">'+pmHTML+'</div></div>'+
       '<div class="tvb-panel tvb-ticker"><div class="ttl">⚡ กิจกรรมล่าสุด</div><div class="tvb-feed">'+feed+'</div></div>'+
     '</div>';
   // อัปเดตสถานะ/สแนปช็อตล่าสุด + เล่นเสียงถ้ามีการขยับ
