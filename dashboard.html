@@ -144,7 +144,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:7px;}
-.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 11px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
+.kpi-card{background:linear-gradient(158deg,var(--bg2),rgba(255,255,255,0.012));border:1px solid var(--border);border-radius:16px;padding:15px 17px;position:relative;overflow:hidden;cursor:pointer;transition:transform .26s cubic-bezier(.34,1.2,.4,1),box-shadow .26s,border-color .26s;box-shadow:var(--shadow);}
 .exec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
 .exec-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);}
 .exec-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
@@ -152,14 +152,18 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .exec-num{font-size:19px;font-weight:800;color:var(--text);line-height:1.1;font-family:'JetBrains Mono',monospace;}
 .exec-lbl{font-size:11px;color:var(--text3);margin-top:1px;}
 @media(max-width:700px){.exec-grid{grid-template-columns:repeat(2,1fr);}}
-.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;}
-.kpi-card.all::before{background:var(--blue);}
-.kpi-card.pending::before{background:var(--orange);}
-.kpi-card.inprog::before{background:var(--purple);}
-.kpi-card.done::before{background:var(--green);}
-.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
-.kpi-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.kpi-card:hover{transform:translateY(-4px);box-shadow:0 18px 42px -18px rgba(0,0,0,0.55);}
+.kpi-card.all:hover{border-color:var(--blue);}
+.kpi-card.pending:hover{border-color:var(--orange);}
+.kpi-card.inprog:hover{border-color:var(--purple);}
+.kpi-card.done:hover{border-color:var(--green);}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;opacity:0.9;}
+.kpi-card.all::before{background:linear-gradient(90deg,var(--blue),transparent);}
+.kpi-card.pending::before{background:linear-gradient(90deg,var(--orange),transparent);}
+.kpi-card.inprog::before{background:linear-gradient(90deg,var(--purple),transparent);}
+.kpi-card.done::before{background:linear-gradient(90deg,var(--green),transparent);}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.kpi-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05);}
 .kpi-card.all .kpi-icon{background:var(--blue-dim);}
 .kpi-card.pending .kpi-icon{background:var(--orange-dim);}
 .kpi-card.inprog .kpi-icon{background:var(--purple-dim);}
@@ -169,13 +173,13 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kpi-card.pending .kpi-badge{background:var(--orange-dim);color:var(--orange);}
 .kpi-card.inprog .kpi-badge{background:var(--purple-dim);color:var(--purple);}
 .kpi-card.done .kpi-badge{background:var(--green-dim);color:var(--green);}
-.kpi-num{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:1px;}
+.kpi-num{font-size:33px;font-weight:800;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:3px;letter-spacing:-0.02em;}
 .kpi-card.all .kpi-num{color:var(--blue);}
 .kpi-card.pending .kpi-num{color:var(--orange);}
 .kpi-card.inprog .kpi-num{color:var(--purple);}
 .kpi-card.done .kpi-num{color:var(--green);}
-.kpi-label{font-size:11px;color:var(--text2);font-weight:500;}
-.kpi-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+.kpi-label{font-size:12.5px;color:var(--text);font-weight:600;letter-spacing:-0.01em;}
+.kpi-sub{font-size:10.5px;color:var(--text3);margin-top:3px;}
 .kpi-new{display:none;position:absolute;top:8px;left:8px;background:var(--red);color:#FFF;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
 .kpi-new.show{display:block;}
@@ -220,7 +224,8 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:600;}
 .kb-new{background:var(--red);color:#FFF;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;animation:blink 1s infinite;}
 .kb-pri{font-size:10px;font-weight:700;margin-left:auto;}
-.kb-desc{font-size:12px;color:var(--text);font-weight:500;line-height:1.45;margin-bottom:6px;}
+.kb-cat{font-size:14.5px;color:var(--text);font-weight:700;line-height:1.35;margin-bottom:5px;letter-spacing:-0.01em;}
+.kb-desc{font-size:11.5px;color:var(--text3);font-weight:400;line-height:1.45;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .followup-flag{background:rgba(245,158,11,0.13);border:1.5px solid rgba(245,158,11,0.5);color:#D97706;font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;margin-bottom:6px;animation:fuBlink 1.1s ease-in-out infinite;}
 .followup-alert{grid-column:1/-1;display:flex;align-items:center;gap:11px;background:rgba(239,68,68,0.06);color:var(--red);padding:9px 16px;border:2px solid var(--red);border-radius:10px;margin-top:1px;cursor:pointer;transition:all 0.15s;animation:alertBlink 1.6s ease-in-out infinite;}
 .followup-alert:hover{background:rgba(239,68,68,0.13);}
@@ -2973,7 +2978,7 @@ function renderCharts(){
   const cs=Object.entries(cats).sort((a,c)=>c[1]-a[1]).slice(0,6);
   if(charts.c) charts.c.destroy();
   charts.c=new Chart(document.getElementById('chart-cat').getContext('2d'),{
-    type:'bar',data:{labels:cs.map(([k])=>k),datasets:[{data:cs.map(([,v])=>v),backgroundColor:'rgba(59,130,246,0.2)',borderColor:'#3B82F6',borderWidth:1.5,borderRadius:4}]},
+    type:'bar',data:{labels:cs.map(([k])=>k),datasets:[{data:cs.map(([,v])=>v),backgroundColor:'rgba(96,165,250,0.85)',borderColor:'transparent',borderWidth:0,borderRadius:7,barThickness:'flex',maxBarThickness:38}]},
     options:{responsive:true,onClick:(e,els)=>{if(!els.length)return;gotoTickets({category:cs[els[0].index][0]});},plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94A3B8',font:{family:'Prompt',size:9}},grid:{color:'#F1F5F9'}},y:{ticks:{color:'#94A3B8',stepSize:1},grid:{color:'#F1F5F9'}}}}
   });
   const days=[],cnts=[],dayFull=[];
@@ -3142,13 +3147,14 @@ function mkCard(t){
       <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
       ${ratingHtml}
     </div>
-    <div class="kb-desc">${desc||L('ไม่มีรายละเอียด','No details')}</div>
+    <div class="kb-cat">${esc(t.category||t.building||L('งานซ่อมทั่วไป','General task'))}</div>
+    ${desc&&desc.trim()?`<div class="kb-desc">${desc}</div>`:''}
     ${hasPendingFollowup(t)?`<div class="followup-flag">🔔 ${L('ผู้แจ้งทวงถาม','Reporter followed up')}${parseInt(t.followup_count,10)>1?' ('+parseInt(t.followup_count,10)+')':''}${t.followup_msg?'<div class="followup-flag-msg">💬 '+esc(String(t.followup_msg).substring(0,80))+'</div>':''}</div>`:''}
     ${mkCardImage(t)}
     ${timerHtml}
     ${(t.status==='in_progress' && (parseInt(t.progress)||0)>0)?`<div class="kb-prog"><div class="kb-prog-bar"><span style="width:${parseInt(t.progress)||0}%"></span></div><span class="kb-prog-txt">${parseInt(t.progress)||0}%</span></div>`:''}
     <div class="kb-meta">
-      <span><span style="display:inline-block;padding:1px 7px;border-radius:4px;background:${ticketColor(t)};color:#fff;font-size:10px;font-weight:700;margin-right:4px">${t.team||t.department||'—'}</span> 📍 ${loc||L('ไม่ระบุ','N/A')} &nbsp;·&nbsp; 🏷️ ${t.category||L('ไม่ระบุ','N/A')}</span>
+      <span><span style="display:inline-block;padding:1px 7px;border-radius:4px;background:${ticketColor(t)};color:#fff;font-size:10px;font-weight:700;margin-right:4px">${t.team||t.department||'—'}</span> 📍 ${loc||L('ไม่ระบุ','N/A')}</span>
       <span>${assigneeBadge} &nbsp;·&nbsp; 🕐 ${ts}</span>
     </div>
     <div class="kb-actions">${btns}</div>
