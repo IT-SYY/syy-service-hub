@@ -1072,7 +1072,15 @@ async function tcPoll(reset){
     if(reset||added) tcRender();
   } finally { tcBusy=false; }
 }
-function tcGDrive(u){ u=String(u||''); const m=u.match(/\/file\/d\/([^/]+)/)||u.match(/[?&]id=([^&]+)/); return m?('https://drive.google.com/uc?id='+m[1]+'&export=download'):u; }
+function tcGDrive(u){
+  u=String(u||'');
+  const m=u.match(/\/file\/d\/([^/]+)/);
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1600';
+  const m2=u.match(/[?&]id=([^&]+)/);
+  if(m2 && /export=download/.test(u)) return 'https://drive.google.com/thumbnail?id='+m2[1]+'&sz=w1600';
+  return u;
+}
+function tcGDriveView(u){ u=String(u||''); const m=u.match(/\/file\/d\/([^/]+)/)||u.match(/[?&]id=([^&]+)/); return m?('https://drive.google.com/file/d/'+m[1]+'/view'):u; }
 function tcLightbox(src){
   let lb=document.getElementById('tc-lightbox');
   if(!lb){
@@ -1087,7 +1095,7 @@ function tcLightbox(src){
 function tcAttachHtml(m){
   let h='';
   if(m.image_url){ const u=tcEsc(tcGDrive(m.image_url)); h+='<div class="tcm-img"><img src="'+u+'" onclick="event.stopPropagation();openImgList(\''+u+'\',0)" loading="lazy"></div>'; }
-  if(m.file_url) h+='<a class="tcm-file" href="'+tcEsc(m.file_url)+'" target="_blank">📎 '+tcEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
+  if(m.file_url) h+='<a class="tcm-file" href="'+tcEsc(tcGDriveView(m.file_url))+'" target="_blank" rel="noopener">📎 '+tcEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
   return h;
 }
 function tcRender(){
