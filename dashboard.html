@@ -3064,13 +3064,15 @@ function mkCard(t){
   let btns='';
   if(t.status==='pending'){
     if(String(t.work_type).toLowerCase()==='claim')
-      btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
+      btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
     else if(String(t.work_type).toLowerCase()==='purchase')
-      btns+=`<button class="btn-done2" style="background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
+      btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-done2" style="background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
     else
       btns+=`<button class="btn-assign" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button>`;
   }else if(t.status==='assigned'){
     btns+=`<button class="btn-accept" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button>`;
+    if(String(t.work_type).toLowerCase()==='claim') btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
+    else if(String(t.work_type).toLowerCase()==='purchase') btns+=`<button class="btn-done2" style="background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
   }else if(t.status==='in_progress'){
     if(String(t.work_type).toLowerCase()==='claim')
       btns+=`<button class="btn-done2" style="background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
@@ -3281,10 +3283,13 @@ function renderTicketsPage(_keepPage){
     
     let btns='';
     const _wt=String(t.work_type).toLowerCase();
-    if(_wt==='claim' && t.status!=='done' && t.status!=='rejected'){
-      btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
-    }else if(_wt==='purchase' && t.status!=='done' && t.status!=='rejected'){
-      btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
+    if(_wt==='claim' || _wt==='purchase'){
+      if(t.status==='pending') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button>`;
+      else if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button>`;
+      if(t.status!=='done' && t.status!=='rejected'){
+        if(_wt==='claim') btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#EA580C" onclick="event.stopPropagation();openClaimStage('${t.ticket_id}')">${L('📦 สถานะ','📦 Status')}</button>`;
+        else btns+=`<button class="btn-done2" style="padding:3px 8px;font-size:10px;background:#0891B2" onclick="event.stopPropagation();openPurchaseStage('${t.ticket_id}')">${L('🛒 สถานะ','🛒 Status')}</button>`;
+      }
     }else{
       if(t.status==='pending') btns+=`<button class="btn-assign" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button>`;
       if(t.status==='assigned') btns+=`<button class="btn-accept" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button>`;
@@ -3926,6 +3931,7 @@ function renderPurchaseReport(){
     <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:11px;text-align:left"><th style="padding:6px 8px">Ticket</th><th style="padding:6px 8px">รายการ</th><th style="padding:6px 8px">สาขา</th><th style="padding:6px 8px">สถานะปัจจุบัน</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 // ===== รายงาน PM (กำหนดการบำรุงรักษา) =====
+function gotoPMPage(){ const n=Array.from(document.querySelectorAll('.nav-item')).find(x=>(x.getAttribute('onclick')||'').indexOf("showPage('pm'")>=0); if(n) n.click(); }
 async function renderPmReport(){
   const card=document.getElementById('pm-report-card'); if(!card) return;
   card.innerHTML='<div class="report-title">🔧 กำหนดการบำรุงรักษา (PM)</div><div style="color:var(--text3);font-size:12px;padding:6px">⏳ กำลังโหลด...</div>';
@@ -3945,7 +3951,7 @@ async function renderPmReport(){
   let rows=upcoming.map(p=>{
     const di=p.days_until, c=di<0?'#EF4444':di<=7?'#F59E0B':'#10B981';
     const st=di<0?('เลย '+Math.abs(di)+' วัน'):di===0?'วันนี้':('อีก '+di+' วัน');
-    return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${p.name}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${p.branch} · ${p.team}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${p.next_due}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:${c};font-weight:700">${st}</td></tr>`;
+    return `<tr class="report-row" style="cursor:pointer" onclick="gotoPMPage()"><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${p.name}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3)">${p.branch} · ${p.team}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border)">${p.next_due}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border);color:${c};font-weight:700">${st}</td></tr>`;
   }).join('');
   if(!upcoming.length) rows='<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3)">ยังไม่มีแผน PM</td></tr>';
   card.innerHTML=`<div class="report-title">🔧 กำหนดการบำรุงรักษา (PM)${currentBranch!=='all'?' · '+currentBranch:''}</div>
@@ -4565,6 +4571,8 @@ function mkProgressBar(t){
 function openDetail(id){
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
+  const isPurchase=String(t.work_type).toLowerCase()==='purchase';
+  const isClaim=String(t.work_type).toLowerCase()==='claim';
   const sc=t.status==='pending'?'s-pending':t.status==='assigned'?'s-assigned':t.status==='in_progress'?'s-inprog':t.status==='done'?'s-done':'s-rejected';
   const sl=statusLabel(t.status);
   document.getElementById('m-detail-content').innerHTML=`
@@ -4608,10 +4616,9 @@ function openDetail(id){
       </div>`:''}
     </div>`;
   const ac=document.getElementById('m-detail-actions');
-  const isClaim = String(t.work_type).toLowerCase()==='claim';
-  const isPurchase = String(t.work_type).toLowerCase()==='purchase';
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">${L('ปิด','Close')}</button>`;
   if(t.status==='pending' && !isClaim && !isPurchase) ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">${L('❌ ปฏิเสธ','❌ Reject')}</button>`;
+  else if(t.status==='pending' && (isClaim||isPurchase)) ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">${L('🔧 มอบหมายผู้รับผิดชอบ','🔧 Assign')}</button>`;
   else if(t.status==='rejected') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="closeM('m-detail');reopenTicket('${t.ticket_id}')">${L('↩️ เปิดงานใหม่','↩️ Reopen')}</button>`;
   else if(t.status==='assigned') ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="closeM('m-detail');openAccept('${t.ticket_id}')">${L('⚡ รับ/ปฏิเสธ','⚡ Accept/Reject')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button>`;
   else if(t.status==='in_progress' && !isClaim) ab+=`<button class="btn-ok" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="closeM('m-detail');openProgress('${t.ticket_id}')">${L('📊 อัปเดต %','📊 Update %')}</button><button class="btn-ok green" onclick="closeM('m-detail');openDone('${t.ticket_id}')">${L('🏁 ปิดงาน','🏁 Close')}</button>`;
@@ -5154,7 +5161,19 @@ function chatRead(){ try{return JSON.parse(localStorage.getItem('chatReadV2')||'
 function chatSetRead(tid,msgId,count){ const m=chatRead(); m[tid]={id:msgId,count:count||0}; try{localStorage.setItem('chatReadV2',JSON.stringify(m));}catch(e){} }
 function chatUnreadN(t){ const rd=chatRead()[t.ticket_id]; if(t.last_sender!=='reporter') return 0; return Math.max(0,(t.count||0)-((rd&&rd.count)||0)); }
 function chatStatusLabel(s){ return ({pending:'⏳ รอรับ',assigned:'📌 มอบหมาย',in_progress:'🔧 กำลังทำ',done:'✅ เสร็จ',rejected:'❌ ปฏิเสธ'}[String(s||'').toLowerCase()]||s||''); }
-function chatGDrive(u){ u=String(u||''); const m=u.match(/\/file\/d\/([^/]+)/)||u.match(/[?&]id=([^&]+)/); return m?('https://drive.google.com/uc?id='+m[1]+'&export=download'):u; }
+function chatGDrive(u){
+  u=String(u||'');
+  const m=u.match(/\/file\/d\/([^/]+)/);
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1600';      // share link → thumbnail (แสดงใน <img> ได้)
+  const m2=u.match(/[?&]id=([^&]+)/);
+  if(m2 && /export=download/.test(u)) return 'https://drive.google.com/thumbnail?id='+m2[1]+'&sz=w1600';
+  return u;   // URL จาก upload_image แสดงได้อยู่แล้ว (เหมือนรูปใน ticket) คืนตรงๆ
+}
+function chatGDriveView(u){   // สำหรับเปิดไฟล์/PDF แบบดูในเบราว์เซอร์ (ไม่ดาวน์โหลด)
+  u=String(u||'');
+  const m=u.match(/\/file\/d\/([^/]+)/)||u.match(/[?&]id=([^&]+)/);
+  return m?('https://drive.google.com/file/d/'+m[1]+'/view'):u;
+}
 function playChatSound(){
   try{
     const ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -5290,7 +5309,7 @@ function chatLightbox(src){
 function chatAttachHtml(m){
   let h='';
   if(m.image_url){ const u=chatEsc(chatGDrive(m.image_url)); h+='<div class="cm-img"><img src="'+u+'" onclick="event.stopPropagation();openImgViewer(\''+u+'\')" loading="lazy"></div>'; }
-  if(m.file_url) h+='<a class="cm-file" href="'+chatEsc(m.file_url)+'" target="_blank">📎 '+chatEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
+  if(m.file_url) h+='<a class="cm-file" href="'+chatEsc(chatGDriveView(m.file_url))+'" target="_blank" rel="noopener">📎 '+chatEsc(m.file_name||L('ไฟล์แนบ','File'))+'</a>';
   return h;
 }
 function renderChatMessages(){
