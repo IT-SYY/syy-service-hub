@@ -751,6 +751,18 @@ body.tv #tv-fx{display:block;}
 .donut-center{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
 .donut-center b{display:block;font-size:23px;font-weight:800;color:var(--green);line-height:1;font-family:'JetBrains Mono',monospace;}
 .donut-center s{display:block;font-size:9px;color:var(--text3);text-decoration:none;margin-top:2px;}
+.dtl-tl{position:relative;padding-left:18px;}
+.dtl-tl::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:linear-gradient(180deg,#A78BFA,rgba(167,139,250,0.15));border-radius:2px;}
+.dtl-item{position:relative;padding-bottom:14px;}
+.dtl-item:last-child{padding-bottom:0;}
+.dtl-dot{position:absolute;left:-16px;top:3px;width:10px;height:10px;border-radius:50%;background:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,0.18);}
+.dtl-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.dtl-pct{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;color:#fff;background:#7C3AED;padding:1px 8px;border-radius:20px;}
+.dtl-actor{font-weight:700;font-size:12.5px;color:var(--text);}
+.dtl-time{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:auto;}
+.dtl-note{font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.45;}
+.dtl-imgs{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+.dtl-img{width:46px;height:46px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--border);}
 /* DETAIL OVERLAY */
 
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
@@ -1939,7 +1951,7 @@ function tvCard(t,pal,flash,attn){
     '<div class="edge"></div>'+(blink?'<div class="attn-ring"></div>':'')+ring+
     '<div class="id"><span class="tid">'+dot+t.ticket_id+'</span><span class="cat">· '+(t.category||'')+'</span></div>'+
     '<div class="meta">'+deptHtml+'<span class="m">📍 '+(place||'-')+'</span></div>'+
-    '<div class="a"><span>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(showPill&&m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':(t.status==='done'&&t.rating?'<span class="pill">⭐ '+t.rating+'</span>':''))+'</div>'+
+    '<div class="a"><span'+(t.assigned_to?' style="color:#FB923C;font-weight:700"':'')+'>'+(t.assigned_to?'👤 '+who:'⏳ '+who)+'</span>'+(showPill&&m!==null?'<span class="pill">'+fmtDuration(m)+'</span>':(t.status==='done'&&t.rating?'<span class="pill">⭐ '+t.rating+'</span>':''))+'</div>'+
     (flags.length?'<div class="tvb-flags">'+flags.join('')+'</div>':'')+
   '</div>';
 }
@@ -4626,6 +4638,23 @@ function mkProgressBar(t){
     </div>
     <div style="font-size:11px;color:var(--text3);margin-top:3px">${L('ดูไทม์ไลน์ทั้งหมดได้ในหน้าติดตามงาน','See full timeline in tracker page')}</div></div>`;
 }
+async function loadDetailTimeline(ticketId){
+  const box=document.getElementById('m-detail-timeline');
+  if(!box) return;
+  box.innerHTML='<div style="color:var(--text3);font-size:12px;padding:4px 0">'+L('กำลังโหลดไทม์ไลน์...','Loading timeline...')+'</div>';
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_progress',ticket_id:ticketId})})).json();
+    const items=(r&&r.items)?r.items.filter(function(it){return (it.note&&String(it.note).trim())||parseInt(it.percent,10)>=0;}):[];
+    if(!items.length){ box.innerHTML=''; return; }
+    const rows=items.slice().reverse().map(function(it){
+      const pct=parseInt(it.percent,10);
+      const pctB=(isFinite(pct)&&pct>=0)?'<span class="dtl-pct">'+pct+'%</span>':'';
+      const imgs=it.image_url?String(it.image_url).split(',').filter(Boolean).map(function(u){return '<img src="'+u+'" onclick="openImgViewer(\''+u+'\')" class="dtl-img">';}).join(''):'';
+      return '<div class="dtl-item"><div class="dtl-dot"></div><div class="dtl-body"><div class="dtl-top">'+pctB+'<span class="dtl-actor">'+esc(it.actor||L('ทีมงาน','Staff'))+'</span><span class="dtl-time">'+String(it.timestamp||'').substring(0,16)+'</span></div>'+(it.note?'<div class="dtl-note">'+esc(it.note)+'</div>':'')+(imgs?'<div class="dtl-imgs">'+imgs+'</div>':'')+'</div></div>';
+    }).join('');
+    box.innerHTML='<div class="detail-lbl" style="margin-bottom:8px;color:#A78BFA">📊 '+L('ไทม์ไลน์ความคืบหน้า','Progress Timeline')+' ('+items.length+')</div><div class="dtl-tl">'+rows+'</div>';
+  }catch(e){ box.innerHTML=''; }
+}
 function openDetail(id){
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
@@ -4660,6 +4689,7 @@ function openDetail(id){
       ${slaOf(t)?`<div><div class="detail-lbl">🎯 SLA</div><div class="detail-val" style="color:${slaOf(t)==='on_time'?'var(--green)':'var(--red)'};font-weight:700">${slaOf(t)==='on_time'?L('✓ ตรงเวลา','✓ On time'):L('✗ เกินกำหนด','✗ Overdue')} <span style="font-weight:400;color:var(--text3);font-size:11px">(${L('เป้า','target')} ${fmtMins(SLA_TARGETS[t.priority]||SLA_TARGETS.low)})</span></div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">${L('รายละเอียด','Details')}</div><div class="detail-val">${t.description||'—'}</div></div>
       ${mkProgressBar(t)}
+      <div id="m-detail-timeline" style="grid-column:1/-1"></div>
       ${mkDetailImages(t)}
       ${t.notes?`<div style="grid-column:1/-1"><div class="detail-lbl">${L('หมายเหตุ','Notes')}</div><div class="detail-val">${t.notes}</div></div>`:''}
       ${t.rejected_at?`<div style="grid-column:1/-1;background:var(--red-dim);border-radius:8px;padding:10px"><div class="detail-lbl" style="color:var(--red)">${L('❌ ถูกปฏิเสธเมื่อ','❌ Rejected at')} ${t.rejected_at} ${L('โดย','by')} ${t.rejected_by||'—'}</div><div class="detail-val" style="color:var(--red)">${t.reject_reason||''}</div></div>`:''}
@@ -4673,6 +4703,7 @@ function openDetail(id){
         <div style="font-size:10px;color:var(--text3);margin-top:5px">${L('ผู้แจ้งเห็นในหน้าติดตาม หรือพิมพ์ "สถานะ" ในกลุ่ม LINE แล้วบอทตอบให้ฟรี','Reporter sees it on the tracker, or types "สถานะ" in the LINE group for a free bot reply')}</div>
       </div>`:''}
     </div>`;
+  loadDetailTimeline(t.ticket_id);
   const ac=document.getElementById('m-detail-actions');
   let ab=`<button class="btn-cancel" onclick="closeM('m-detail')">${L('ปิด','Close')}</button>`;
   if(t.status==='pending' && !isClaim && !isPurchase) ab+=`<button class="btn-ok green" onclick="closeM('m-detail');openAssign('${t.ticket_id}')">${L('🔧 มอบหมาย','🔧 Assign')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)" onclick="closeM('m-detail');openTransfer('${t.ticket_id}')">${L('🔀 โอนงาน','🔀 Transfer')}</button><button class="btn-ok" style="background:linear-gradient(135deg,#EF4444,#DC2626)" onclick="closeM('m-detail');rejectPending('${t.ticket_id}')">${L('❌ ปฏิเสธ','❌ Reject')}</button>`;
