@@ -534,7 +534,7 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-more{font-size:13px;color:#7A87A0;text-align:center;padding:7px;font-weight:600;}
 .tvb-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#5C6A85;text-align:center;padding:18px;}
 /* SIDE */
-.tvb-side{grid-area:side;display:grid;grid-template-rows:auto auto auto auto auto 1fr;gap:11px;min-height:0;overflow-y:auto;}
+.tvb-side{grid-area:side;display:flex;flex-direction:column;gap:11px;min-height:0;overflow-y:auto;overflow-x:hidden;}
 .tvb-panel .ttl{display:flex;align-items:center;justify-content:space-between;}
 .tvb-panel .ttl-sub{font-size:11px;font-weight:700;color:#22D3EE;background:rgba(34,211,238,0.12);padding:2px 8px;border-radius:8px;}
 .tvb-tm{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
@@ -556,7 +556,7 @@ body.tv #tv-board>*{position:relative;z-index:1;}
 .tvb-lb-item .lb-bar{flex:1;height:7px;background:rgba(255,255,255,0.07);border-radius:5px;overflow:hidden;}
 .tvb-lb-item .lb-bar span{display:block;height:100%;background:linear-gradient(90deg,#34D399,#22D3EE);border-radius:5px;transition:width .5s;}
 .tvb-lb-item .lb-ct{flex-shrink:0;font-family:'JetBrains Mono',monospace;font-weight:800;color:#34D399;min-width:20px;text-align:right;}
-.tvb-panel{border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;min-height:0;background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(6px);}
+.tvb-panel{border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;flex-shrink:0;background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(6px);overflow:hidden;}
 .tvb-panel .ttl{font-size:13px;font-weight:700;color:#C3CEE2;margin-bottom:11px;display:flex;align-items:center;gap:7px;}
 .tvb-gauge{display:flex;align-items:center;gap:18px;}
 .tvb-gauge .cv{width:112px;height:112px;position:relative;flex-shrink:0;}
@@ -747,6 +747,10 @@ body.tv #tv-fx{display:block;}
   .chat-msg .cm-img img{max-width:70vw;}
 }
 .report-row:hover{background:var(--bg3,rgba(125,125,125,0.08));}
+.donut-wrap{position:relative;}
+.donut-center{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+.donut-center b{display:block;font-size:23px;font-weight:800;color:var(--green);line-height:1;font-family:'JetBrains Mono',monospace;}
+.donut-center s{display:block;font-size:9px;color:var(--text3);text-decoration:none;margin-top:2px;}
 /* DETAIL OVERLAY */
 
 .tvd-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:40px;background:rgba(8,12,20,0.74);backdrop-filter:blur(7px);}
@@ -1044,7 +1048,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
       <!-- CHARTS -->
       <div class="charts-row">
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl" data-th="สถานะงาน" data-en="Job Status">สถานะงาน</div></div><canvas id="chart-status" height="55"></canvas></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl" data-th="สถานะงาน" data-en="Job Status">สถานะงาน</div></div><div class="donut-wrap"><canvas id="chart-status" height="55"></canvas><div class="donut-center"><b id="donut-pct">—</b><s data-th="เสร็จ" data-en="done">เสร็จ</s></div></div></div>
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl" data-th="ประเภทงาน" data-en="Job Category">ประเภทงาน</div></div><canvas id="chart-cat" height="55"></canvas></div>
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl" data-th="งานรายวัน 7 วัน" data-en="Daily (7 days)">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="55"></canvas></div>
       </div>
@@ -1953,14 +1957,14 @@ function renderTVBoard(){
   const slaPct=doneRated.length?Math.round(onTime/doneRated.length*100):100;
   const techCount={};
   doneToday.forEach(t=>{ const a=(t.assigned_to||'').trim(); if(a) techCount[a]=(techCount[a]||0)+1; });
-  const topTechs=Object.entries(techCount).sort((x,y)=>y[1]-x[1]).slice(0,5);
+  const topTechs=Object.entries(techCount).sort((x,y)=>y[1]-x[1]).slice(0,4);
   // เวลาเฉลี่ยปิดงานวันนี้
   const closeMins=doneToday.map(t=>parseInt(t.duration_min||t.completion_min||0,10)).filter(v=>v>0);
   const avgClose=closeMins.length?Math.round(closeMins.reduce((a,c)=>a+c,0)/closeMins.length):0;
   // งานค้างแยกตามทีม
   const teamStats={};
   pend.concat(prog).forEach(t=>{ const tm=t.team||t.department||'อื่นๆ'; teamStats[tm]=(teamStats[tm]||0)+1; });
-  const teamTop=Object.entries(teamStats).sort((x,y)=>y[1]-x[1]).slice(0,5);
+  const teamTop=Object.entries(teamStats).sort((x,y)=>y[1]-x[1]).slice(0,4);
   const teamMax=teamTop.length?teamTop[0][1]:1;
   // PM ใกล้ครบกำหนด
   const pmDue=(pmPlansCache||[]).filter(p=>p.active!==false).slice().sort((a,c)=>(a.days_until||0)-(c.days_until||0)).slice(0,4);
@@ -2917,6 +2921,8 @@ function renderKPI(){
   animateNum('k-pending',pending.length);
   animateNum('k-inprog',inprog.length);
   animateNum('k-done',done.length);
+  const _dpct=b.length?Math.round(done.length/b.length*100):0;
+  const _dp=document.getElementById('donut-pct'); if(_dp) _dp.textContent=_dpct+'%';
 
   // เทรนด์: งานแจ้งใหม่ และงานที่ปิด เทียบ 7 วันล่าสุด vs 7 วันก่อนหน้า
   const createdThis=b.filter(t=>{const x=ms(t.created_at);return isFinite(x)&&x>=now-wk;}).length;
