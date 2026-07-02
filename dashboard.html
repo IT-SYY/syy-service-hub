@@ -5505,6 +5505,14 @@ function showPage(p,el,fromPop){
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
   if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
+  // ล้างตัวกรองที่ค้างจากหน้าก่อน (status/priority/category/ค้นหา/ช่าง/วันที่) เมื่อเข้าหน้ากลุ่ม Ticket ผ่านเมนู
+  // กันบัก: badge นับงานดิบ แต่ตารางกรองด้วยค่าเก่า → ตัวเลขไม่ตรง / ตารางว่างดูเหมือนโหลดค้าง
+  // (gotoTickets/goToMemberTasks ตั้งค่าตัวกรองหลัง showPage อยู่แล้ว จึงไม่ได้รับผลกระทบ)
+  if(domPage==='tickets' && !fromPop){
+    ['f-status','f-priority','f-category'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='all';});
+    const si=document.getElementById('search-input'); if(si) si.value='';
+    memberFilter=''; dateFilter=''; resetTicketPage();
+  }
   if(p==='tickets'||p==='projects'||p==='pm'||p==='claim'||p==='purchase'||p==='inbox') renderTicketsPage();
   if(p==='technicians') renderTechGrid();
   if(p==='history') renderHistory();
