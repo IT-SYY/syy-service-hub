@@ -4728,11 +4728,17 @@ function closeM(id){document.getElementById(id).classList.remove('show'); lastAc
 // มักแปลว่าเซิร์ฟเวอร์ทำสำเร็จแล้ว → คืน soft:true เพื่อให้ผู้เรียกอัปเดตจอ + รีเฟรชยืนยันแทนการขึ้น error
 async function gasPost(body){
   let res;
+  // timeout กันปุ่มค้างเมื่อเซิร์ฟเวอร์แขวน: อัปโหลดไฟล์ให้เวลานานกว่า action ทั่วไป
+  const TIMEOUT = (body && body.action==='upload_image') ? 90000 : 30000;
+  const ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, TIMEOUT) : null;
   try{
-    res = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});
+    res = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined});
   }catch(netErr){
-    return {ok:false, networkError:true, error:netErr.message};   // เครือข่ายล้มจริง
+    if(timer) clearTimeout(timer);
+    return {ok:false, networkError:true, error:netErr.message};   // เครือข่ายล้ม/timeout
   }
+  if(timer) clearTimeout(timer);
   let txt='';
   try{ txt = await res.text(); }catch(e){ txt=''; }
   if(txt){
