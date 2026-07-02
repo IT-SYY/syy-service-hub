@@ -259,21 +259,27 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* BOTTOM ROW */
 .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.tech-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
-.tech-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);transition:all 0.15s;cursor:pointer;}
+/* ===== COMPACT DASHBOARD: ลดกรอบสถานะงาน+สถานะทีม เพิ่มพื้นที่ Ticket ===== */
+#page-dashboard .charts-row{grid-template-columns:150px 1fr 1fr;}   /* donut สถานะงานเล็กลง แถวกราฟเตี้ยลง */
+#page-dashboard .kb-col-body{max-height:max(550px,calc(100vh - 320px));}  /* คอลัมน์ Ticket สูงตามจอ เห็นการ์ดมากขึ้น */
+.tech-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}  /* ชื่อ+ป้ายสถานะช่าง อยู่บรรทัดเดียว */
+@media(max-width:1280px){#page-dashboard .charts-row{grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){#page-dashboard .charts-row{grid-template-columns:1fr;}}
+.tech-list{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
+.tech-item{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);transition:all 0.15s;cursor:pointer;}
 .tech-item:hover{border-color:var(--green);background:var(--green-dim);transform:translateX(2px);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .tech-item-late{border-color:rgba(248,113,113,0.5);background:rgba(248,113,113,0.08);}
 .tech-item-late:hover{border-color:#F87171;background:rgba(248,113,113,0.15);}
 .tech-item-wait{border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.07);}
 .tech-item-wait:hover{border-color:#FBBF24;background:rgba(251,191,36,0.14);}
-.tech-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#FFF;flex-shrink:0;}
+.tech-av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#FFF;flex-shrink:0;}
 .tech-av.av-late{background:linear-gradient(135deg,#EF4444,#DC2626);animation:avPulse 2s infinite;}
 .tech-av.av-wait{background:linear-gradient(135deg,#F59E0B,#D97706);animation:avPulse 2.5s infinite;}
 @keyframes avPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 5px rgba(239,68,68,0)}}
 .tech-info{flex:1;min-width:0;}
-.tech-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.tech-name{font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;}
 .tech-go{color:var(--green);font-weight:700;font-size:15px;}
-.tech-role{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.tech-role{display:none;}
 .tech-badges{display:flex;flex-wrap:wrap;gap:4px;}
 .tech-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;}
 .tech-badge-late{background:rgba(248,113,113,0.15);color:#F87171;border:1px solid rgba(248,113,113,0.4);animation:blink 1.2s infinite;}
@@ -287,7 +293,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .tech-dot.online{background:var(--green);}
 .tech-dot.busy{background:var(--orange);}
 .tech-dot.late{background:#EF4444;animation:blink 1s infinite;}
-.timeline{display:flex;flex-direction:column;margin-top:4px;max-height:220px;overflow-y:auto;}
+.timeline{display:flex;flex-direction:column;margin-top:4px;max-height:170px;overflow-y:auto;}
 .tl-item{display:flex;gap:10px;padding-bottom:10px;position:relative;}
 .tl-item::before{content:'';position:absolute;left:5px;top:14px;bottom:0;width:1px;background:var(--border);}
 .tl-item:last-child::before{display:none;}
