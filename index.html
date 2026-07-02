@@ -1173,20 +1173,42 @@ async function submitForm() {
   };
 
   // ส่ง Ticket ไป GAS แล้ว "รอเลขจริง" กลับมา (server สร้างเลขรันนิ่งตามสาขา+วัน)
-  let finalId = clientRef;
-  try {
-    let res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ liff_data: payload })
-    }).then(r => r.json());
-    if (Array.isArray(res)) res = res[0];
-    if (res && res.ticket_id) finalId = res.ticket_id;
-    console.log('create ticket:', res);
-  } catch (e) { console.log('GAS error:', e); }
+  // ทนทานต่อเน็ตสะดุด/เซิร์ฟเวอร์ช้า: ลองซ้ำอัตโนมัติสูงสุด 3 ครั้ง + timeout ต่อครั้ง
+  // ปลอดภัยจากงานซ้ำ: ใช้ client_ref เดิมทุกครั้ง → เซิร์ฟเวอร์เช็คแล้วคืนเลขเดิม (ไม่สร้างใหม่)
+  let finalId = '';
+  const MAX_TRY = 3;
+  for (let attempt = 1; attempt <= MAX_TRY && !finalId; attempt++) {
+    if (attempt > 1) {
+      document.getElementById('loading-detail').textContent = 'สัญญาณไม่เสถียร กำลังลองใหม่ (ครั้งที่ '+attempt+'/'+MAX_TRY+')...';
+      await new Promise(function(r){ setTimeout(r, 1500 * (attempt - 1)); });   // เว้นช่วงก่อนลองใหม่
+    }
+    try {
+      const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      const timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 45000) : null;
+      let res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ liff_data: payload }),
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(function(r){ return r.json(); });
+      if (timer) clearTimeout(timer);
+      if (Array.isArray(res)) res = res[0];
+      console.log('create ticket (attempt '+attempt+'):', res);
+      if (res && res.ticket_id) { finalId = res.ticket_id; break; }
+      // เซิร์ฟเวอร์ตอบแต่ไม่สำเร็จ (เช่น busy จาก lock) → วนลองใหม่
+    } catch (e) { console.log('GAS error (attempt '+attempt+'):', e); }
+  }
+
+  document.getElementById('overlay-loading').classList.add('hidden');
+
+  if (!finalId) {
+    // ส่งไม่สำเร็จจริงๆ — ต้องบอกตรงๆ ห้ามแสดงว่าสำเร็จ (กันงานหายเงียบ)
+    document.getElementById('btn-next').disabled = false;
+    alert('❌ ส่งข้อมูลไม่สำเร็จ\nSubmission failed.\n\nสัญญาณอินเทอร์เน็ตอาจไม่เสถียร หรือระบบกำลังหนาแน่น\n\nข้อมูลที่กรอกยังอยู่ครบ — กดปุ่ม "ส่งเรื่องแจ้งซ่อม" อีกครั้งเพื่อลองใหม่\n(ระบบกันเรื่องซ้ำให้อัตโนมัติ ไม่ต้องกลัวแจ้งซ้ำ)');
+    return;
+  }
 
   // แสดง Success ด้วยเลข Ticket จริง
-  document.getElementById('overlay-loading').classList.add('hidden');
   document.getElementById('ticket-badge').textContent = finalId;
   window._lastTicketId = finalId;
   window._lastPayload = payload;
