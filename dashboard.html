@@ -624,6 +624,11 @@ body.tv #tv-board>*{position:relative;z-index:1;}
   .tvb-side{grid-template-rows:repeat(6,auto) !important;gap:10px !important;}
   .tvb-colhead{padding:10px 14px !important;}
   .tvb-colhead .ct{font-size:14px !important;}
+  /* มือถือ: ปุ่มออกย่อเป็นวงกลม ✕ เล็ก มุมขวาบน — ไม่ทับแบรนด์/KPI */
+  .tv-exit{top:8px !important;right:8px !important;width:38px;height:38px;padding:0 !important;border-radius:50% !important;font-size:16px !important;display:flex !important;align-items:center;justify-content:center;}
+  .tv-exit .tvx-txt{display:none;}
+  .tvb-brand{padding-right:52px !important;}   /* เว้นที่ให้ปุ่ม ✕ ไม่ทับชื่อระบบ */
+  .tvd-hint{display:none !important;}          /* ป้ายแตะการ์ดออกแบบมาสำหรับจอทีวี — มือถือซ่อน กันบังการ์ด */
 }
 @media(max-width:480px){
   .tvb-kpis{grid-template-columns:1fr 1fr !important;}
@@ -1671,7 +1676,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 <div id="tv-board"></div>
 <div class="tvd-hint">👆 แตะการ์ดงานเพื่อดูรายละเอียด · Tap a card for details</div>
 <div id="tvd-overlay" class="tvd-overlay" onclick="tvCloseDetail(event)"><div class="tvd-card" id="tvd-card-body"></div></div>
-<button class="tv-exit" onclick="toggleTV()">✕ ออกจากโหมดทีวี</button>
+<button class="tv-exit" onclick="toggleTV()">✕<span class="tvx-txt"> ออกจากโหมดทีวี</span></button>
 <div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">สำเร็จ</span></div>
 
 <script>
