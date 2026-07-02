@@ -259,21 +259,39 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* BOTTOM ROW */
 .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.tech-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
-.tech-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);transition:all 0.15s;cursor:pointer;}
+/* ===== COMPACT DASHBOARD + DONUT แบบโหมดทีวี ===== */
+#page-dashboard .charts-row{grid-template-columns:240px 1fr 1fr;}   /* คอลัมน์ gauge กว้างพอสำหรับ donut+legend */
+#page-dashboard .kb-col-body{max-height:max(550px,calc(100vh - 320px));}  /* คอลัมน์ Ticket สูงตามจอ เห็นการ์ดมากขึ้น */
+.tech-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}  /* ชื่อ+ป้ายสถานะช่าง บรรทัดเดียว */
+/* Donut "สถานะงาน" สไตล์เดียวกับโหมดทีวี: วงกลม + เลขรวมตรงกลาง + legend เรียงข้าง */
+.dash-gauge{display:flex;align-items:center;gap:14px;}
+.dash-gauge .dg-cv{width:96px;height:96px;position:relative;flex-shrink:0;}
+.dash-gauge .dg-cv canvas{position:absolute;inset:0;}
+.dash-gauge .dg-ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.dash-gauge .dg-ctr b{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:var(--text);line-height:1;}
+.dash-gauge .dg-ctr s{font-size:9px;color:var(--text3);text-decoration:none;margin-top:2px;letter-spacing:.3px;}
+.dash-leg{display:flex;flex-direction:column;gap:6px;font-size:11.5px;flex:1;min-width:0;}
+.dash-leg .row{display:flex;align-items:center;gap:7px;color:var(--text2);cursor:pointer;transition:color .12s;}
+.dash-leg .row:hover{color:var(--text);}
+.dash-leg .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.dash-leg b{font-family:'JetBrains Mono',monospace;margin-left:auto;color:var(--text);font-size:13px;font-weight:800;}
+@media(max-width:1280px){#page-dashboard .charts-row{grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){#page-dashboard .charts-row{grid-template-columns:1fr;}}
+.tech-list{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
+.tech-item{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);transition:all 0.15s;cursor:pointer;}
 .tech-item:hover{border-color:var(--green);background:var(--green-dim);transform:translateX(2px);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .tech-item-late{border-color:rgba(248,113,113,0.5);background:rgba(248,113,113,0.08);}
 .tech-item-late:hover{border-color:#F87171;background:rgba(248,113,113,0.15);}
 .tech-item-wait{border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.07);}
 .tech-item-wait:hover{border-color:#FBBF24;background:rgba(251,191,36,0.14);}
-.tech-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#FFF;flex-shrink:0;}
+.tech-av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#FFF;flex-shrink:0;}
 .tech-av.av-late{background:linear-gradient(135deg,#EF4444,#DC2626);animation:avPulse 2s infinite;}
 .tech-av.av-wait{background:linear-gradient(135deg,#F59E0B,#D97706);animation:avPulse 2.5s infinite;}
 @keyframes avPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 5px rgba(239,68,68,0)}}
 .tech-info{flex:1;min-width:0;}
-.tech-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.tech-name{font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;}
 .tech-go{color:var(--green);font-weight:700;font-size:15px;}
-.tech-role{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.tech-role{display:none;}
 .tech-badges{display:flex;flex-wrap:wrap;gap:4px;}
 .tech-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;}
 .tech-badge-late{background:rgba(248,113,113,0.15);color:#F87171;border:1px solid rgba(248,113,113,0.4);animation:blink 1.2s infinite;}
@@ -287,7 +305,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .tech-dot.online{background:var(--green);}
 .tech-dot.busy{background:var(--orange);}
 .tech-dot.late{background:#EF4444;animation:blink 1s infinite;}
-.timeline{display:flex;flex-direction:column;margin-top:4px;max-height:220px;overflow-y:auto;}
+.timeline{display:flex;flex-direction:column;margin-top:4px;max-height:170px;overflow-y:auto;}
 .tl-item{display:flex;gap:10px;padding-bottom:10px;position:relative;}
 .tl-item::before{content:'';position:absolute;left:5px;top:14px;bottom:0;width:1px;background:var(--border);}
 .tl-item:last-child::before{display:none;}
@@ -1060,7 +1078,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
       <!-- CHARTS -->
       <div class="charts-row">
-        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl" data-th="สถานะงาน" data-en="Job Status">สถานะงาน</div></div><div class="donut-wrap"><canvas id="chart-status" height="55"></canvas><div class="donut-center"><b id="donut-pct">—</b><s data-th="เสร็จ" data-en="done">เสร็จ</s></div></div></div>
+        <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl" data-th="สถานะงาน" data-en="Job Status">สถานะงาน</div></div><div class="dash-gauge"><div class="dg-cv"><canvas id="chart-status"></canvas><div class="dg-ctr"><b id="donut-total">—</b><s data-th="งานรวม" data-en="total">งานรวม</s></div></div><div class="dash-leg" id="dash-leg"></div></div></div>
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--blue)"></div><div class="chart-ttl" data-th="ประเภทงาน" data-en="Job Category">ประเภทงาน</div></div><canvas id="chart-cat" height="55"></canvas></div>
         <div class="chart-card"><div class="chart-hdr"><div class="chart-dot" style="background:var(--orange)"></div><div class="chart-ttl" data-th="งานรายวัน 7 วัน" data-en="Daily (7 days)">งานรายวัน 7 วัน</div></div><canvas id="chart-daily" height="55"></canvas></div>
       </div>
@@ -2980,13 +2998,18 @@ function setNavBadge(id,n){
 function renderCharts(){
   const b=getDashboardBase();
   if(charts.s) charts.s.destroy();
+  const _st=[['pending','รอ','Pending','#F59E0B'],['assigned','มอบหมาย','Assigned','#8B5CF6'],['in_progress','กำลังซ่อม','In Progress','#3B82F6'],['done','เสร็จ','Done','#10B981']];
+  const _sd=_st.map(x=>b.filter(t=>t.status===x[0]).length);
   charts.s=new Chart(document.getElementById('chart-status').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['รอ','มอบหมาย','กำลังซ่อม','เสร็จ'],
-      datasets:[{data:[b.filter(t=>t.status==='pending').length,b.filter(t=>t.status==='assigned').length,b.filter(t=>t.status==='in_progress').length,b.filter(t=>t.status==='done').length],
-      backgroundColor:['#F59E0B','#8B5CF6','#3B82F6','#10B981'],borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,onClick:(e,els)=>{if(!els.length)return;const map=['pending','pending','in_progress','done'];gotoTickets({status:map[els[0].index]});},plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{family:'Prompt',size:9},padding:6}}},cutout:'68%'}
+    data:{labels:_st.map(x=>x[1]),datasets:[{data:_sd,backgroundColor:_st.map(x=>x[3]),borderWidth:0,hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,onClick:(e,els)=>{if(!els.length)return;const map=['pending','pending','in_progress','done'];gotoTickets({status:map[els[0].index]});},plugins:{legend:{display:false}},cutout:'68%'}
   });
+  // เลขงานรวมตรงกลาง (แบบโหมดทีวี)
+  const _dtot=document.getElementById('donut-total'); if(_dtot) _dtot.textContent=b.length;
+  // legend เรียงข้าง — สี + ชื่อสถานะ + จำนวน (คลิกกรองได้)
+  const _dleg=document.getElementById('dash-leg');
+  if(_dleg) _dleg.innerHTML=_st.map((x,i)=>{const gt=(x[0]==='assigned')?'pending':x[0];return '<div class="row" onclick="gotoTickets({status:\''+gt+'\'})"><span class="sw" style="background:'+x[3]+'"></span>'+L(x[1],x[2])+'<b>'+_sd[i]+'</b></div>';}).join('');
   const cats={};b.forEach(t=>{if(t.category)cats[t.category]=(cats[t.category]||0)+1;});
   const cs=Object.entries(cats).sort((a,c)=>c[1]-a[1]).slice(0,6);
   if(charts.c) charts.c.destroy();
