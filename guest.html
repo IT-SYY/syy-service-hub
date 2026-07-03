@@ -8,28 +8,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --teak:#123B2E;        /* เขียวไม้สักเข้ม — แบรนด์ Santhiya */
-  --teak2:#0C2C22;
-  --sand:#F6F1E7;        /* ทรายอุ่น */
-  --card:#FFFFFF;
-  --gold:#C9A227;        /* ทองสันธิญา */
-  --gold2:#A8871B;
-  --ink:#22302B;
-  --ink2:#5C6B64;
-  --leaf:#2E7D5B;
-  --line:#E7DFCE;
-  --danger:#B91C1C;
+  --teak:#4A2F1B;        /* น้ำตาลไม้สักเข้ม (ป้ายห้อง/หัวเรื่อง) */
+  --teak2:#3A2414;
+  --sand:#6B4A2E;        /* พื้นหลังน้ำตาลอุ่น */
+  --sand2:#7A5637;       /* น้ำตาลอ่อนไล่โทน */
+  --card:#5C3E26;        /* การ์ดน้ำตาลเข้มกว่าพื้นเล็กน้อย */
+  --card2:#664530;
+  --gold:#E8C766;        /* ทองสว่าง (อักษรหลัก) */
+  --gold2:#D4AF37;       /* ทองเข้ม (เน้น) */
+  --ink:#F3E4C4;         /* อักษรหลัก = ทองอ่อน/ครีมทอง */
+  --ink2:#C9AE82;        /* อักษรรอง = ทองหม่น */
+  --leaf:#C9A227;
+  --line:#7A5637;        /* เส้นขอบน้ำตาลอ่อน */
+  --danger:#F87171;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{background:var(--sand);color:var(--ink);font-family:'Prompt',sans-serif;min-height:100%;}
+html,body{background:linear-gradient(170deg,var(--sand),var(--sand2));color:var(--ink);font-family:'Prompt',sans-serif;min-height:100%;}
 body{display:flex;flex-direction:column;align-items:center;}
 .wrap{width:100%;max-width:480px;padding-bottom:48px;}
 
 /* ===== ป้ายห้อง (signature) ===== */
-.plate{background:var(--teak);color:#F4EEDF;padding:26px 22px 22px;position:relative;overflow:hidden;border-radius:0 0 26px 26px;box-shadow:0 8px 24px rgba(18,59,46,.25);}
+.plate{background:linear-gradient(160deg,var(--teak),var(--teak2));color:var(--gold);padding:26px 22px 22px;position:relative;overflow:hidden;border-radius:0 0 26px 26px;box-shadow:0 8px 24px rgba(18,59,46,.25);}
 .plate svg.leafbg{position:absolute;right:-30px;top:-24px;width:220px;opacity:.09;pointer-events:none;}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.brand-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:21px;letter-spacing:2.5px;text-transform:uppercase;color:#EFE6CE;}
+.brand-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:22px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);line-height:1;}
+.brand-full{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:14px;letter-spacing:1px;color:var(--ink2);margin-top:1px;}
 .brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#BBAF8E;margin-top:1px;}
 .lang-tg{display:flex;border:1px solid rgba(244,238,223,.35);border-radius:20px;overflow:hidden;flex-shrink:0;}
 .lang-tg button{background:transparent;border:0;color:#D8CFB5;font-family:'Prompt';font-size:11.5px;font-weight:600;padding:5px 12px;cursor:pointer;}
@@ -43,25 +46,26 @@ body{display:flex;flex-direction:column;align-items:center;}
 
 /* ===== เนื้อหา ===== */
 .sec{padding:0 18px;margin-top:22px;}
-.sec-t{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--teak);display:flex;align-items:baseline;gap:8px;}
+.sec-t{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);display:flex;align-items:baseline;gap:8px;}
 .sec-t small{font-family:'Prompt';font-size:11px;color:var(--ink2);font-weight:400;}
 .req{color:var(--danger);}
 
 /* ปุ่มเลือกปัญหา */
 .issues{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
-.iss{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s;user-select:none;}
+.iss{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px 12px;color:var(--ink);display:flex;align-items:center;gap:10px;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s;user-select:none;}
 .iss:active{transform:scale(.97);}
 .iss .ic{font-size:22px;flex-shrink:0;}
 .iss .tx{font-size:13px;font-weight:500;line-height:1.25;}
-.iss.on{border-color:var(--gold);background:#FFFDF5;box-shadow:0 3px 12px rgba(201,162,39,.22);}
-.iss.on .tx{color:var(--gold2);font-weight:600;}
+.iss.on{border-color:var(--gold);background:var(--card2);box-shadow:0 3px 14px rgba(232,199,102,.28);}
+.iss.on .tx{color:var(--gold);font-weight:600;}
 
 textarea{width:100%;margin-top:12px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;font-family:'Prompt';font-size:14px;color:var(--ink);resize:none;height:88px;outline:none;}
+textarea::placeholder,input::placeholder{color:var(--ink2);opacity:.7;}
 textarea:focus{border-color:var(--gold);}
 
 /* รูปถ่าย */
 .photo-add{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;}
-.ph-btn{width:74px;height:74px;border:1.5px dashed #CBBF9F;border-radius:14px;background:#FFFDF7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink2);font-size:10.5px;cursor:pointer;}
+.ph-btn{width:74px;height:74px;border:1.5px dashed var(--gold2);border-radius:14px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink2);font-size:10.5px;cursor:pointer;}
 .ph-btn .pl{font-size:22px;color:var(--gold);line-height:1;}
 .ph-item{width:74px;height:74px;border-radius:14px;overflow:hidden;position:relative;border:1.5px solid var(--line);}
 .ph-item img{width:100%;height:100%;object-fit:cover;}
@@ -69,21 +73,21 @@ textarea:focus{border-color:var(--gold);}
 
 /* เวลาสะดวก */
 .times{display:flex;flex-direction:column;gap:9px;margin-top:12px;}
-.tm{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .12s;}
+.tm{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .12s;color:var(--ink);}
 .tm .ic{font-size:19px;}
 .tm .tx b{display:block;font-size:13.5px;font-weight:600;}
 .tm .tx s{display:block;font-size:11px;color:var(--ink2);text-decoration:none;margin-top:1px;}
-.tm.on{border-color:var(--gold);background:#FFFDF5;}
+.tm.on{border-color:var(--gold);background:var(--card2);}
 .tm-pick{display:none;gap:8px;margin-top:2px;}
 .tm-pick.show{display:flex;}
-.tm-pick select{flex:1;background:var(--card);border:1.5px solid var(--gold);border-radius:12px;padding:10px;font-family:'Prompt';font-size:13.5px;color:var(--ink);outline:none;}
+.tm-pick select{flex:1;background:var(--card);border:1.5px solid var(--gold);border-radius:12px;padding:10px;font-family:'Prompt';font-size:13.5px;color:var(--gold);outline:none;}
 
 input.gname{width:100%;margin-top:12px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;font-family:'Prompt';font-size:14px;color:var(--ink);outline:none;}
 input.gname:focus{border-color:var(--gold);}
 
 /* ปุ่มส่ง */
 .submit-bar{padding:26px 18px 0;}
-.btn-send{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#FFF;border:0;border-radius:18px;padding:16px;font-family:'Prompt';font-size:16px;font-weight:600;letter-spacing:.4px;cursor:pointer;box-shadow:0 6px 18px rgba(168,135,27,.35);transition:transform .12s;}
+.btn-send{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--teak2);border:0;border-radius:18px;padding:16px;font-family:'Prompt';font-size:16px;font-weight:600;letter-spacing:.4px;cursor:pointer;box-shadow:0 6px 18px rgba(168,135,27,.35);transition:transform .12s;}
 .btn-send:active{transform:scale(.98);}
 .btn-send:disabled{opacity:.55;}
 .note{margin-top:10px;text-align:center;font-size:11px;color:var(--ink2);}
@@ -94,13 +98,13 @@ input.gname:focus{border-color:var(--gold);}
 .spin{width:44px;height:44px;border:4px solid rgba(244,238,223,.25);border-top-color:var(--gold);border-radius:50%;animation:sp 1s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg)}}
 .ovl-t{color:#F4EEDF;font-size:15px;margin-top:18px;text-align:center;}
-.done-card{background:var(--sand);border-radius:22px;padding:30px 24px;width:100%;max-width:360px;text-align:center;animation:up .35s ease;}
+.done-card{background:linear-gradient(165deg,var(--card),var(--teak));border:1px solid var(--gold2);border-radius:22px;padding:30px 24px;width:100%;max-width:360px;text-align:center;animation:up .35s ease;}
 @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
 .done-ic{font-size:44px;}
-.done-h{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--teak);margin-top:8px;}
-.done-id{font-family:'Prompt';font-weight:700;font-size:17px;color:var(--gold2);background:#FFF;border:1.5px dashed var(--gold);border-radius:12px;padding:9px;margin:14px 0 6px;}
+.done-h{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--gold);margin-top:8px;}
+.done-id{font-family:'Prompt';font-weight:700;font-size:17px;color:var(--gold);background:var(--teak2);border:1.5px dashed var(--gold);border-radius:12px;padding:9px;margin:14px 0 6px;}
 .done-s{font-size:13px;color:var(--ink2);line-height:1.55;}
-.btn-track{display:block;margin-top:16px;background:var(--teak);color:#F4EEDF;border-radius:14px;padding:13px;font-size:14px;font-weight:600;text-decoration:none;}
+.btn-track{display:block;margin-top:16px;background:var(--gold);color:var(--teak2);border-radius:14px;padding:13px;font-size:14px;font-weight:600;text-decoration:none;}
 .btn-again{display:block;margin-top:9px;color:var(--ink2);font-size:12.5px;text-decoration:underline;background:none;border:0;font-family:'Prompt';cursor:pointer;width:100%;}
 @media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
 </style>
@@ -114,6 +118,7 @@ input.gname:focus{border-color:var(--gold);}
     <div class="brand">
       <div>
         <div class="brand-name">Santhiya</div>
+        <div class="brand-full">Resort &amp; Spas</div>
         <div class="brand-sub" id="branch-sub">Resorts &amp; Spas</div>
       </div>
       <div class="lang-tg">
@@ -190,13 +195,28 @@ input.gname:focus{border-color:var(--gold);}
 const GAS_URL='https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
 const TRACK_URL='https://it-syy.github.io/syy-service-hub/tracker.html';
 
-// ===== อ่านพารามิเตอร์จาก QR: ?b=SYY&room=301&bld=Villa A =====
+// ===== อ่านพารามิเตอร์จาก QR: ?b=SYY&room=301&bld=Villa%20A =====
+// รหัสสาขา → ชื่อสาขาเต็ม (โชว์ให้ลูกค้าเห็นว่าสแกนถูกที่)
+// ★ แก้ชื่อสาขาจริงตรงนี้ได้เลย (ถ้าไม่แก้ ระบบจะแสดงเป็นรหัสสาขาแทน — ยังใช้งานได้ปกติ)
+const BRANCH_NAMES={
+  STY:'Santhiya Resort & Spa',
+  SYY:'Santhiya Koh Yao Yai Resort & Spa',
+  SPN:'Santhiya Koh Phangan Resort & Spa', SNT:'Santhiya Phuket Natai Resort & Spa', SKC:'Santhiya Koh Chang Resort & Spa'
+};
 const qs=new URLSearchParams(location.search);
-const BRANCH=(qs.get('b')||'SYY').toUpperCase();
-const BLD=qs.get('bld')||'';
-let ROOM=qs.get('room')||'';
-document.getElementById('branch-sub').textContent='Santhiya · '+BRANCH;
-if(ROOM){
+const BRANCHES_VALID=['STY','SYY','SPN','SNT','SKC'];
+let BRANCH=(qs.get('b')||'').toUpperCase().trim();
+const BRANCH_FROM_QR=BRANCHES_VALID.indexOf(BRANCH)>=0;   // QR ระบุสาขาที่ถูกต้องไหม
+if(!BRANCH_FROM_QR) BRANCH='SYY';   // fallback กันข้อมูลหาย (ยังส่งได้ ไม่ค้าง)
+const BLD=(qs.get('bld')||'').trim();
+let ROOM=(qs.get('room')||'').trim();
+const ROOM_FROM_QR=!!ROOM;
+
+// แสดงชื่อสาขา (+ อาคารถ้ามี) ใต้ชื่อโรงแรม
+document.getElementById('branch-sub').textContent=(BRANCH_NAMES[BRANCH]||('Branch '+BRANCH))+(BLD?(' · '+BLD):'');
+
+// ห้อง: มาจาก QR → ล็อก (แก้ไม่ได้ กันแจ้งผิดห้อง); ไม่มี → ให้กรอกเอง
+if(ROOM_FROM_QR){
   const rf=document.getElementById('room-fixed'); rf.textContent=ROOM; rf.classList.remove('hidden');
 }else{
   document.getElementById('room-input').classList.remove('hidden');
