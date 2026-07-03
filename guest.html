@@ -199,9 +199,11 @@ const TRACK_URL='https://it-syy.github.io/syy-service-hub/tracker.html';
 // รหัสสาขา → ชื่อสาขาเต็ม (โชว์ให้ลูกค้าเห็นว่าสแกนถูกที่)
 // ★ แก้ชื่อสาขาจริงตรงนี้ได้เลย (ถ้าไม่แก้ ระบบจะแสดงเป็นรหัสสาขาแทน — ยังใช้งานได้ปกติ)
 const BRANCH_NAMES={
-  STY:'Santhiya Resort & Spa',
-  SYY:'Santhiya Koh Yao Yai Resort & Spa',
-  SPN:'Santhiya Koh Phangan Resort & Spa', SNT:'Santhiya Phuket Natai Resort & Spa', SKC:'Santhiya Koh Chang Resort & Spa'
+  STY:'',   // เช่น 'Santhiya Tree Resort & Spa, Koh Chang'
+  SYY:'',
+  SPN:'',
+  SNT:'',
+  SKC:''
 };
 const qs=new URLSearchParams(location.search);
 const BRANCHES_VALID=['STY','SYY','SPN','SNT','SKC'];
@@ -209,11 +211,12 @@ let BRANCH=(qs.get('b')||'').toUpperCase().trim();
 const BRANCH_FROM_QR=BRANCHES_VALID.indexOf(BRANCH)>=0;   // QR ระบุสาขาที่ถูกต้องไหม
 if(!BRANCH_FROM_QR) BRANCH='SYY';   // fallback กันข้อมูลหาย (ยังส่งได้ ไม่ค้าง)
 const BLD=(qs.get('bld')||'').trim();
+const RTYPE=(qs.get('rt')||'').trim();   // ประเภทห้อง (จาก QR)
 let ROOM=(qs.get('room')||'').trim();
 const ROOM_FROM_QR=!!ROOM;
 
-// แสดงชื่อสาขา (+ อาคารถ้ามี) ใต้ชื่อโรงแรม
-document.getElementById('branch-sub').textContent=(BRANCH_NAMES[BRANCH]||('Branch '+BRANCH))+(BLD?(' · '+BLD):'');
+// แสดงชื่อสาขา (+ อาคาร + ประเภทห้อง ถ้ามี) ใต้ชื่อโรงแรม
+document.getElementById('branch-sub').textContent=(BRANCH_NAMES[BRANCH]||('Branch '+BRANCH))+(BLD?(' · '+BLD):'')+(RTYPE?(' · '+RTYPE):'');
 
 // ห้อง: มาจาก QR → ล็อก (แก้ไม่ได้ กันแจ้งผิดห้อง); ไม่มี → ให้กรอกเอง
 if(ROOM_FROM_QR){
@@ -351,6 +354,7 @@ async function submitGuest(){
   const detail=document.getElementById('detail').value.trim();
   const desc=(detail?detail+'\n':'')
     +'🛎️ แจ้งโดยลูกค้า (Guest self-report)'
+    +(RTYPE?'\n🏨 ประเภทห้อง: '+RTYPE:'')
     +'\n⏰ เวลาที่สะดวก: '+when
     +(gname?'\n👤 ชื่อแขก: '+gname:'');
 
