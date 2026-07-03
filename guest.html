@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Santhiya Guest Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teak:#123B2E;        /* เขียวไม้สักเข้ม — แบรนด์ Santhiya */
+  --teak2:#0C2C22;
+  --sand:#F6F1E7;        /* ทรายอุ่น */
+  --card:#FFFFFF;
+  --gold:#C9A227;        /* ทองสันธิญา */
+  --gold2:#A8871B;
+  --ink:#22302B;
+  --ink2:#5C6B64;
+  --leaf:#2E7D5B;
+  --line:#E7DFCE;
+  --danger:#B91C1C;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--sand);color:var(--ink);font-family:'Prompt',sans-serif;min-height:100%;}
+body{display:flex;flex-direction:column;align-items:center;}
+.wrap{width:100%;max-width:480px;padding-bottom:48px;}
+
+/* ===== ป้ายห้อง (signature) ===== */
+.plate{background:var(--teak);color:#F4EEDF;padding:26px 22px 22px;position:relative;overflow:hidden;border-radius:0 0 26px 26px;box-shadow:0 8px 24px rgba(18,59,46,.25);}
+.plate svg.leafbg{position:absolute;right:-30px;top:-24px;width:220px;opacity:.09;pointer-events:none;}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.brand-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:21px;letter-spacing:2.5px;text-transform:uppercase;color:#EFE6CE;}
+.brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#BBAF8E;margin-top:1px;}
+.lang-tg{display:flex;border:1px solid rgba(244,238,223,.35);border-radius:20px;overflow:hidden;flex-shrink:0;}
+.lang-tg button{background:transparent;border:0;color:#D8CFB5;font-family:'Prompt';font-size:11.5px;font-weight:600;padding:5px 12px;cursor:pointer;}
+.lang-tg button.on{background:var(--gold);color:var(--teak2);}
+.room-row{display:flex;align-items:flex-end;gap:14px;margin-top:20px;}
+.room-num{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:56px;line-height:.9;color:var(--gold);}
+.room-lbl{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:#BBAF8E;padding-bottom:8px;}
+.room-input{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:44px;color:var(--gold);background:transparent;border:0;border-bottom:2px dashed rgba(201,162,39,.5);width:120px;outline:none;}
+.room-input::placeholder{color:rgba(201,162,39,.35);}
+.plate-hello{margin-top:14px;font-size:14px;color:#E4DCC6;font-weight:300;}
+
+/* ===== เนื้อหา ===== */
+.sec{padding:0 18px;margin-top:22px;}
+.sec-t{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--teak);display:flex;align-items:baseline;gap:8px;}
+.sec-t small{font-family:'Prompt';font-size:11px;color:var(--ink2);font-weight:400;}
+.req{color:var(--danger);}
+
+/* ปุ่มเลือกปัญหา */
+.issues{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.iss{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s;user-select:none;}
+.iss:active{transform:scale(.97);}
+.iss .ic{font-size:22px;flex-shrink:0;}
+.iss .tx{font-size:13px;font-weight:500;line-height:1.25;}
+.iss.on{border-color:var(--gold);background:#FFFDF5;box-shadow:0 3px 12px rgba(201,162,39,.22);}
+.iss.on .tx{color:var(--gold2);font-weight:600;}
+
+textarea{width:100%;margin-top:12px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;font-family:'Prompt';font-size:14px;color:var(--ink);resize:none;height:88px;outline:none;}
+textarea:focus{border-color:var(--gold);}
+
+/* รูปถ่าย */
+.photo-add{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;}
+.ph-btn{width:74px;height:74px;border:1.5px dashed #CBBF9F;border-radius:14px;background:#FFFDF7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink2);font-size:10.5px;cursor:pointer;}
+.ph-btn .pl{font-size:22px;color:var(--gold);line-height:1;}
+.ph-item{width:74px;height:74px;border-radius:14px;overflow:hidden;position:relative;border:1.5px solid var(--line);}
+.ph-item img{width:100%;height:100%;object-fit:cover;}
+.ph-x{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:0;font-size:11px;cursor:pointer;line-height:1;}
+
+/* เวลาสะดวก */
+.times{display:flex;flex-direction:column;gap:9px;margin-top:12px;}
+.tm{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .12s;}
+.tm .ic{font-size:19px;}
+.tm .tx b{display:block;font-size:13.5px;font-weight:600;}
+.tm .tx s{display:block;font-size:11px;color:var(--ink2);text-decoration:none;margin-top:1px;}
+.tm.on{border-color:var(--gold);background:#FFFDF5;}
+.tm-pick{display:none;gap:8px;margin-top:2px;}
+.tm-pick.show{display:flex;}
+.tm-pick select{flex:1;background:var(--card);border:1.5px solid var(--gold);border-radius:12px;padding:10px;font-family:'Prompt';font-size:13.5px;color:var(--ink);outline:none;}
+
+input.gname{width:100%;margin-top:12px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;font-family:'Prompt';font-size:14px;color:var(--ink);outline:none;}
+input.gname:focus{border-color:var(--gold);}
+
+/* ปุ่มส่ง */
+.submit-bar{padding:26px 18px 0;}
+.btn-send{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#FFF;border:0;border-radius:18px;padding:16px;font-family:'Prompt';font-size:16px;font-weight:600;letter-spacing:.4px;cursor:pointer;box-shadow:0 6px 18px rgba(168,135,27,.35);transition:transform .12s;}
+.btn-send:active{transform:scale(.98);}
+.btn-send:disabled{opacity:.55;}
+.note{margin-top:10px;text-align:center;font-size:11px;color:var(--ink2);}
+
+/* overlay */
+.ovl{position:fixed;inset:0;background:rgba(18,59,46,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;z-index:50;}
+.hidden{display:none !important;}
+.spin{width:44px;height:44px;border:4px solid rgba(244,238,223,.25);border-top-color:var(--gold);border-radius:50%;animation:sp 1s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ovl-t{color:#F4EEDF;font-size:15px;margin-top:18px;text-align:center;}
+.done-card{background:var(--sand);border-radius:22px;padding:30px 24px;width:100%;max-width:360px;text-align:center;animation:up .35s ease;}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.done-ic{font-size:44px;}
+.done-h{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--teak);margin-top:8px;}
+.done-id{font-family:'Prompt';font-weight:700;font-size:17px;color:var(--gold2);background:#FFF;border:1.5px dashed var(--gold);border-radius:12px;padding:9px;margin:14px 0 6px;}
+.done-s{font-size:13px;color:var(--ink2);line-height:1.55;}
+.btn-track{display:block;margin-top:16px;background:var(--teak);color:#F4EEDF;border-radius:14px;padding:13px;font-size:14px;font-weight:600;text-decoration:none;}
+.btn-again{display:block;margin-top:9px;color:var(--ink2);font-size:12.5px;text-decoration:underline;background:none;border:0;font-family:'Prompt';cursor:pointer;width:100%;}
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ป้ายห้อง -->
+  <div class="plate">
+    <svg class="leafbg" viewBox="0 0 100 100"><path d="M50 5 C20 30 15 65 50 95 C85 65 80 30 50 5 Z M50 15 L50 85 M50 30 L32 45 M50 30 L68 45 M50 50 L30 62 M50 50 L70 62" stroke="#F4EEDF" stroke-width="2" fill="none"/></svg>
+    <div class="brand">
+      <div>
+        <div class="brand-name">Santhiya</div>
+        <div class="brand-sub" id="branch-sub">Resorts &amp; Spas</div>
+      </div>
+      <div class="lang-tg">
+        <button id="lg-en" class="on" onclick="setLang('en')">EN</button>
+        <button id="lg-th" onclick="setLang('th')">ไทย</button>
+      </div>
+    </div>
+    <div class="room-row">
+      <div id="room-fixed" class="room-num hidden">—</div>
+      <input id="room-input" class="room-input hidden" inputmode="numeric" placeholder="000" maxlength="8">
+      <div class="room-lbl" data-en="Room" data-th="ห้องพัก">Room</div>
+    </div>
+    <div class="plate-hello" data-en="How may we take care of you today?" data-th="ให้เราดูแลอะไรคุณดีคะวันนี้">How may we take care of you today?</div>
+  </div>
+
+  <!-- ปัญหา -->
+  <div class="sec">
+    <div class="sec-t"><span data-en="What needs attention?" data-th="พบปัญหาเรื่องใด">What needs attention?</span><span class="req">*</span></div>
+    <div class="issues" id="issues"></div>
+  </div>
+
+  <!-- รายละเอียด -->
+  <div class="sec">
+    <div class="sec-t"><span data-en="Tell us more" data-th="รายละเอียดเพิ่มเติม">Tell us more</span><small data-en="optional" data-th="ไม่บังคับ">optional</small></div>
+    <textarea id="detail" data-enp="e.g. The air conditioner is not cooling…" data-thp="เช่น แอร์ไม่เย็น…" placeholder="e.g. The air conditioner is not cooling…"></textarea>
+    <div class="photo-add" id="photo-add">
+      <div class="ph-btn" onclick="document.getElementById('photo-input').click()"><span class="pl">＋</span><span data-en="Photo" data-th="รูปถ่าย">Photo</span></div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" multiple hidden onchange="handlePhotos(this)">
+  </div>
+
+  <!-- เวลาสะดวก -->
+  <div class="sec">
+    <div class="sec-t"><span data-en="When may we come?" data-th="สะดวกให้เข้าดูแลเมื่อใด">When may we come?</span><span class="req">*</span></div>
+    <div class="times">
+      <div class="tm" data-v="asap" onclick="pickTime(this)"><span class="ic">⚡</span><span class="tx"><b data-en="As soon as possible" data-th="โดยเร็วที่สุด">As soon as possible</b><s data-en="Our team will come right away" data-th="ทีมงานจะรีบไปดูแลทันที">Our team will come right away</s></span></div>
+      <div class="tm" data-v="away" onclick="pickTime(this)"><span class="ic">🚪</span><span class="tx"><b data-en="While I'm away" data-th="ช่วงที่ไม่อยู่ห้อง">While I'm away</b><s data-en="Enter anytime, no need to wait for me" data-th="เข้าดูแลได้เลย ไม่ต้องรอ">Enter anytime, no need to wait for me</s></span></div>
+      <div class="tm" data-v="time" onclick="pickTime(this)"><span class="ic">🕐</span><span class="tx"><b data-en="At a specific time" data-th="นัดเวลา">At a specific time</b><s data-en="Choose a convenient time slot" data-th="เลือกช่วงเวลาที่สะดวก">Choose a convenient time slot</s></span></div>
+      <div class="tm-pick" id="tm-pick">
+        <select id="tm-day"></select>
+        <select id="tm-slot"></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ชื่อ -->
+  <div class="sec">
+    <div class="sec-t"><span data-en="Your name" data-th="ชื่อของคุณ">Your name</span><small data-en="optional" data-th="ไม่บังคับ">optional</small></div>
+    <input class="gname" id="gname" data-enp="So our team can address you properly" data-thp="เพื่อให้ทีมงานเรียกคุณได้ถูกต้อง" placeholder="So our team can address you properly">
+  </div>
+
+  <div class="submit-bar">
+    <button class="btn-send" id="btn-send" onclick="submitGuest()" data-en="Send request" data-th="ส่งเรื่องแจ้ง">Send request</button>
+    <div class="note" data-en="Your request goes directly to our on-duty team." data-th="เรื่องของคุณจะส่งตรงถึงทีมงานที่ปฏิบัติหน้าที่ทันที">Your request goes directly to our on-duty team.</div>
+  </div>
+</div>
+
+<!-- loading -->
+<div class="ovl hidden" id="ovl-load"><div class="spin"></div><div class="ovl-t" id="load-t">Sending your request…</div></div>
+
+<!-- success -->
+<div class="ovl hidden" id="ovl-done">
+  <div class="done-card">
+    <div class="done-ic">🌿</div>
+    <div class="done-h" data-en="We're on it!" data-th="รับเรื่องเรียบร้อยค่ะ">We're on it!</div>
+    <div class="done-id" id="done-id">—</div>
+    <div class="done-s" data-en="Our team has been notified and will take care of it shortly. Thank you for letting us know." data-th="ทีมงานได้รับแจ้งแล้ว และจะรีบเข้าดูแลโดยเร็ว ขอบคุณที่แจ้งให้เราทราบค่ะ">Our team has been notified and will take care of it shortly. Thank you for letting us know.</div>
+    <a class="btn-track" id="btn-track" href="#" data-en="Track my request" data-th="ติดตามเรื่องแจ้ง">Track my request</a>
+    <button class="btn-again" onclick="location.reload()" data-en="Report another issue" data-th="แจ้งเรื่องอื่นเพิ่ม">Report another issue</button>
+  </div>
+</div>
+
+<script>
+const GAS_URL='https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
+const TRACK_URL='https://it-syy.github.io/syy-service-hub/tracker.html';
+
+// ===== อ่านพารามิเตอร์จาก QR: ?b=SYY&room=301&bld=Villa A =====
+const qs=new URLSearchParams(location.search);
+const BRANCH=(qs.get('b')||'SYY').toUpperCase();
+const BLD=qs.get('bld')||'';
+let ROOM=qs.get('room')||'';
+document.getElementById('branch-sub').textContent='Santhiya · '+BRANCH;
+if(ROOM){
+  const rf=document.getElementById('room-fixed'); rf.textContent=ROOM; rf.classList.remove('hidden');
+}else{
+  document.getElementById('room-input').classList.remove('hidden');
+}
+
+// ===== ประเภทปัญหา → ทีม (แขกไม่ต้องรู้จักทีม ระบบจัดให้) =====
+const ISSUES=[
+  {k:'aircon', ic:'❄️', en:'Air conditioning', th:'แอร์/เครื่องปรับอากาศ', team:'Engineering'},
+  {k:'water',  ic:'🚿', en:'Bathroom & water', th:'ห้องน้ำ/น้ำ',           team:'Engineering'},
+  {k:'elec',   ic:'💡', en:'Lights & power',   th:'ไฟฟ้า/หลอดไฟ',          team:'Engineering'},
+  {k:'wifi',   ic:'📶', en:'Wi-Fi & internet', th:'WiFi/อินเทอร์เน็ต',      team:'IT Support'},
+  {k:'tv',     ic:'📺', en:'TV & devices',     th:'ทีวี/อุปกรณ์',           team:'IT Support'},
+  {k:'clean',  ic:'🧹', en:'Housekeeping',     th:'ความสะอาด/แม่บ้าน',      team:'Environment'},
+  {k:'amen',   ic:'🛏️', en:'In-room items',    th:'ของใช้ในห้อง',           team:'Engineering'},
+  {k:'other',  ic:'✨', en:'Something else',   th:'เรื่องอื่นๆ',            team:'Engineering'},
+];
+let issueSel=null;
+const issBox=document.getElementById('issues');
+issBox.innerHTML=ISSUES.map(x=>`<div class="iss" data-k="${x.k}" onclick="pickIssue(this)"><span class="ic">${x.ic}</span><span class="tx" data-en="${x.en}" data-th="${x.th}">${x.en}</span></div>`).join('');
+function pickIssue(el){
+  document.querySelectorAll('.iss').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on'); issueSel=el.dataset.k;
+}
+
+// ===== เวลาสะดวก =====
+let timeSel=null;
+function pickTime(el){
+  document.querySelectorAll('.tm').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on'); timeSel=el.dataset.v;
+  document.getElementById('tm-pick').classList.toggle('show', timeSel==='time');
+}
+// สร้างตัวเลือกวัน + ช่วงเวลา 1 ชม. (08:00–20:00)
+(function(){
+  const dSel=document.getElementById('tm-day'), sSel=document.getElementById('tm-slot');
+  const today=new Date(), tmr=new Date(Date.now()+86400000);
+  const fmt=d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+  dSel.innerHTML=`<option value="today" data-en="Today ${fmt(today)}" data-th="วันนี้ ${fmt(today)}">Today ${fmt(today)}</option><option value="tmr" data-en="Tomorrow ${fmt(tmr)}" data-th="พรุ่งนี้ ${fmt(tmr)}">Tomorrow ${fmt(tmr)}</option>`;
+  let o=''; for(let hh=8; hh<=20; hh++){const a=String(hh).padStart(2,'0')+':00', b=String(hh+1).padStart(2,'0')+':00'; o+=`<option value="${a}-${b}">${a} – ${b}</option>`;}
+  sSel.innerHTML=o;
+})();
+
+// ===== ภาษา =====
+let LANG='en';
+function setLang(l){
+  LANG=l;
+  document.getElementById('lg-en').classList.toggle('on',l==='en');
+  document.getElementById('lg-th').classList.toggle('on',l==='th');
+  document.querySelectorAll('[data-en]').forEach(e=>{const v=e.dataset[l]; if(v!==undefined) e.textContent=v;});
+  document.querySelectorAll('[data-enp]').forEach(e=>{e.placeholder=e.dataset[l+'p']||e.placeholder;});
+  document.documentElement.lang=l;
+}
+// แขกไทยสแกน → เดาจากภาษาเครื่อง
+if((navigator.language||'').toLowerCase().indexOf('th')===0) setLang('th');
+
+// ===== รูปถ่าย (บีบอัดมาตรฐานเดียวกับระบบ: 1280px q0.75 พื้นขาว) =====
+let photos=[];
+async function compressFile(file){
+  const MAXW=1280,Q=0.75;
+  try{
+    const bmp=await createImageBitmap(file);
+    const sc=Math.min(1,MAXW/Math.max(bmp.width,bmp.height));
+    const c=document.createElement('canvas');
+    c.width=Math.round(bmp.width*sc); c.height=Math.round(bmp.height*sc);
+    const x=c.getContext('2d');
+    x.fillStyle='#FFFFFF'; x.fillRect(0,0,c.width,c.height);   // กัน PNG โปร่งใสเป็นสีดำ
+    x.drawImage(bmp,0,0,c.width,c.height);
+    bmp.close&&bmp.close();
+    return c.toDataURL('image/jpeg',Q);
+  }catch(e){
+    return await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>{const im=new Image(); im.onload=()=>{
+        const sc=Math.min(1,MAXW/Math.max(im.width,im.height));
+        const c=document.createElement('canvas'); c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc);
+        const x=c.getContext('2d'); x.fillStyle='#FFFFFF'; x.fillRect(0,0,c.width,c.height); x.drawImage(im,0,0,c.width,c.height);
+        res(c.toDataURL('image/jpeg',Q));
+      }; im.onerror=rej; im.src=r.result;};
+      r.onerror=rej; r.readAsDataURL(file);
+    });
+  }
+}
+async function handlePhotos(input){
+  const files=Array.from(input.files||[]).slice(0,3-photos.length);
+  for(const f of files){
+    try{ photos.push(await compressFile(f)); }catch(e){}
+  }
+  input.value='';
+  renderPhotos();
+}
+function renderPhotos(){
+  const box=document.getElementById('photo-add');
+  box.querySelectorAll('.ph-item').forEach(e=>e.remove());
+  photos.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='ph-item';
+    d.innerHTML=`<img src="${p}"><button class="ph-x" onclick="photos.splice(${i},1);renderPhotos()">✕</button>`;
+    box.appendChild(d);
+  });
+  box.querySelector('.ph-btn').style.display=photos.length>=3?'none':'flex';
+}
+
+// ===== ส่งเรื่อง (retry 3 ครั้ง + client_ref กันซ้ำ — มาตรฐานเดียวกับฟอร์มพนักงาน) =====
+let sending=false;
+async function submitGuest(){
+  if(sending) return;
+  const room=ROOM||document.getElementById('room-input').value.trim();
+  const T=(en,th)=>LANG==='th'?th:en;
+  if(!room){ alert(T('Please enter your room number','กรุณาระบุหมายเลขห้อง')); return; }
+  if(!issueSel){ alert(T('Please choose what needs attention','กรุณาเลือกประเภทปัญหา')); return; }
+  if(!timeSel){ alert(T('Please tell us when we may come','กรุณาเลือกเวลาที่สะดวก')); return; }
+
+  // กันกดรัว/สแปมเบาๆ: เว้น 45 วิระหว่างเรื่อง
+  try{
+    const last=parseInt(localStorage.getItem('syy_guest_last')||'0',10);
+    if(Date.now()-last<45000){ alert(T('Your previous request was just sent. Please wait a moment.','เพิ่งส่งเรื่องไปสักครู่ กรุณารอสักครู่ก่อนส่งใหม่')); return; }
+  }catch(e){}
+
+  sending=true;
+  const btn=document.getElementById('btn-send'); btn.disabled=true;
+  document.getElementById('ovl-load').classList.remove('hidden');
+  document.getElementById('load-t').textContent=T('Sending your request…','กำลังส่งเรื่องแจ้ง…');
+
+  const iss=ISSUES.find(x=>x.k===issueSel);
+  const gname=document.getElementById('gname').value.trim();
+  // เวลาสะดวก → ข้อความชัดๆ ฝังใน description (ทีมเห็นทุกช่องทางโดยไม่ต้องแก้ระบบ)
+  let when;
+  if(timeSel==='asap') when='โดยเร็วที่สุด / ASAP';
+  else if(timeSel==='away') when='เข้าได้เลยช่วงแขกไม่อยู่ห้อง / Enter while guest is away';
+  else{
+    const d=document.getElementById('tm-day'), s=document.getElementById('tm-slot');
+    when='นัดเวลา '+(d.value==='today'?'วันนี้':'พรุ่งนี้')+' '+s.value+' / Appointment '+(d.value==='today'?'today':'tomorrow')+' '+s.value;
+  }
+  const detail=document.getElementById('detail').value.trim();
+  const desc=(detail?detail+'\n':'')
+    +'🛎️ แจ้งโดยลูกค้า (Guest self-report)'
+    +'\n⏰ เวลาที่สะดวก: '+when
+    +(gname?'\n👤 ชื่อแขก: '+gname:'');
+
+  const clientRef='GT-'+Date.now()+'-'+Math.floor(Math.random()*1000);
+  const payload={
+    ticket_id:clientRef, client_ref:clientRef,
+    branch:BRANCH, team:iss.team, work_type:'repair',
+    reporter_dept:'ลูกค้า (Guest)',
+    category:(LANG==='th'?iss.th:iss.en),
+    priority:'high',
+    building:BLD, room:room,
+    description:desc,
+    displayName:gname?(gname+' (Guest '+room+')'):('Guest '+room),
+    userId:'', groupId:'', reporter_group_id:'',
+    image_url:'', video_url:'', doc_url:''
+  };
+
+  // ส่งเรื่อง (retry สูงสุด 3 ครั้ง — client_ref เดิม server กันซ้ำให้)
+  let finalId='';
+  for(let a=1;a<=3&&!finalId;a++){
+    if(a>1){
+      document.getElementById('load-t').textContent=T('Connection unstable, retrying ('+a+'/3)…','สัญญาณไม่เสถียร กำลังลองใหม่ ('+a+'/3)…');
+      await new Promise(r=>setTimeout(r,1500*(a-1)));
+    }
+    try{
+      const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+      const tm=ctrl?setTimeout(()=>ctrl.abort(),45000):null;
+      let res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({liff_data:payload}),signal:ctrl?ctrl.signal:undefined}).then(r=>r.json());
+      if(tm) clearTimeout(tm);
+      if(Array.isArray(res)) res=res[0];
+      if(res&&res.ticket_id) finalId=res.ticket_id;
+    }catch(e){}
+  }
+
+  if(!finalId){
+    document.getElementById('ovl-load').classList.add('hidden');
+    btn.disabled=false; sending=false;
+    alert(T('We could not send your request. Please check your connection and tap "Send request" again — nothing you entered was lost.','ส่งเรื่องไม่สำเร็จ กรุณาตรวจสัญญาณแล้วกด "ส่งเรื่องแจ้ง" อีกครั้ง ข้อมูลที่กรอกยังอยู่ครบ'));
+    return;
+  }
+
+  // อัปโหลดรูป (best effort — พลาดบางรูปเรื่องยังถึงทีมครบ)
+  if(photos.length){
+    document.getElementById('load-t').textContent=T('Uploading photos…','กำลังอัปโหลดรูป…');
+    await Promise.all(photos.map((p,i)=>{
+      const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+      const tm=ctrl?setTimeout(()=>ctrl.abort(),60000):null;
+      return fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'upload_image',ticket_id:finalId,base64:p.split(',')[1],mimeType:'image/jpeg',fileName:finalId+'_g'+(i+1)+'.jpg',column:'image_url'}),
+        signal:ctrl?ctrl.signal:undefined}).then(r=>{if(tm)clearTimeout(tm);return r.json();}).catch(()=>null);
+    }));
+  }
+
+  try{ localStorage.setItem('syy_guest_last',String(Date.now())); }catch(e){}
+  document.getElementById('ovl-load').classList.add('hidden');
+  document.getElementById('done-id').textContent=finalId;
+  document.getElementById('btn-track').href=TRACK_URL+'?q='+encodeURIComponent(finalId);
+  document.getElementById('ovl-done').classList.remove('hidden');
+  sending=false;
+}
+</script>
+</body>
+</html>
