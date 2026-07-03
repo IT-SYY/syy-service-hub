@@ -228,13 +228,15 @@ if(ROOM_FROM_QR){
 // ===== ประเภทปัญหา → ทีม (แขกไม่ต้องรู้จักทีม ระบบจัดให้) =====
 const ISSUES=[
   {k:'aircon', ic:'❄️', en:'Air conditioning', th:'แอร์/เครื่องปรับอากาศ', team:'Engineering'},
-  {k:'water',  ic:'🚿', en:'Bathroom & water', th:'ห้องน้ำ/น้ำ',           team:'Engineering'},
+  {k:'water',  ic:'🚿', en:'Bathroom & plumbing', th:'ห้องน้ำ/ประปา',      team:'Engineering'},
   {k:'elec',   ic:'💡', en:'Lights & power',   th:'ไฟฟ้า/หลอดไฟ',          team:'Engineering'},
   {k:'wifi',   ic:'📶', en:'Wi-Fi & internet', th:'WiFi/อินเทอร์เน็ต',      team:'IT Support'},
-  {k:'tv',     ic:'📺', en:'TV & devices',     th:'ทีวี/อุปกรณ์',           team:'IT Support'},
-  {k:'clean',  ic:'🧹', en:'Housekeeping',     th:'ความสะอาด/แม่บ้าน',      team:'Environment'},
-  {k:'amen',   ic:'🛏️', en:'In-room items',    th:'ของใช้ในห้อง',           team:'Engineering'},
-  {k:'other',  ic:'✨', en:'Something else',   th:'เรื่องอื่นๆ',            team:'Engineering'},
+  {k:'tv',     ic:'📺', en:'TV & electronics', th:'ทีวี/อุปกรณ์',           team:'IT Support'},
+  {k:'clean',  ic:'🧹', en:'Cleaning & housekeeping', th:'ทำความสะอาด/จัดห้อง', team:'Housekeeping'},
+  {k:'amen',   ic:'🛁', en:'Towels & amenities', th:'ผ้า/ของใช้ในห้อง',     team:'Housekeeping'},
+  {k:'food',   ic:'🍽️', en:'Food & beverage',  th:'อาหาร/เครื่องดื่ม',      team:'F&B'},
+  {k:'garden', ic:'🌿', en:'Garden & outdoor', th:'สวน/พื้นที่ภายนอก',      team:'Landscape & Garden'},
+  {k:'other',  ic:'🛎️', en:'Other / ask reception', th:'อื่นๆ / สอบถาม',    team:'Front Office'},
 ];
 let issueSel=null;
 const issBox=document.getElementById('issues');
