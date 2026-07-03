@@ -285,7 +285,7 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .dash-leg .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
 .dash-leg b{font-family:'JetBrains Mono',monospace;margin-left:auto;color:var(--text);font-size:13px;font-weight:800;}
 @media(max-width:1280px){#page-dashboard .charts-row{grid-template-columns:1fr 1fr;}}
-@media(max-width:768px){#page-dashboard .charts-row{grid-template-columns:1fr;}}
+@media(max-width:768px){#page-dashboard .charts-row{grid-template-columns:1fr;}#page-dashboard .kb-col-body{max-height:62vh;}}
 .tech-list{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
 .tech-item{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);transition:all 0.15s;cursor:pointer;}
 .tech-item:hover{border-color:var(--green);background:var(--green-dim);transform:translateX(2px);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
@@ -634,8 +634,8 @@ body.tv #tv-board>*{position:relative;z-index:1;}
   .tvb-colhead{padding:10px 14px !important;}
   .tvb-colhead .ct{font-size:14px !important;}
   /* มือถือ: ปุ่มออกย่อเป็นวงกลม ✕ เล็ก มุมขวาบน — ไม่ทับแบรนด์/KPI */
-  .tv-exit{top:8px !important;right:8px !important;width:38px;height:38px;padding:0 !important;border-radius:50% !important;font-size:16px !important;display:flex !important;align-items:center;justify-content:center;}
-  .tv-exit .tvx-txt{display:none;}
+  body.tv .tv-exit{top:8px !important;right:8px !important;width:38px;height:38px;padding:0 !important;border-radius:50% !important;font-size:16px !important;display:flex !important;align-items:center;justify-content:center;}
+  body.tv .tv-exit .tvx-txt{display:none;}
   .tvb-brand{padding-right:52px !important;}   /* เว้นที่ให้ปุ่ม ✕ ไม่ทับชื่อระบบ */
   .tvd-hint{display:none !important;}          /* ป้ายแตะการ์ดออกแบบมาสำหรับจอทีวี — มือถือซ่อน กันบังการ์ด */
 }
