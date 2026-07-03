@@ -2567,14 +2567,20 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 #page-dashboard .kb-col-body{max-height:max(550px,calc(100vh - 320px));}  /* คอลัมน์ Ticket สูงตามจอ เห็นการ์ดมากขึ้น */
 .tech-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}  /* ชื่อ+ป้ายสถานะช่าง บรรทัดเดียว */
 /* แถบงานลูกค้า */
-.guest-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,#B91C1C,#E11D48);color:#FFF;border-radius:12px;padding:11px 16px;margin-bottom:12px;cursor:pointer;box-shadow:0 4px 16px rgba(225,29,72,.35);animation:gbPulse 1.6s ease-in-out infinite;}
-.guest-banner .gb-bell{font-size:20px;animation:gbRing 1.6s ease-in-out infinite;}
-.guest-banner .gb-tx{font-size:13.5px;font-weight:600;}
-.guest-banner .gb-tx b{font-family:'JetBrains Mono',monospace;font-size:16px;}
-.guest-banner .gb-go{margin-left:auto;font-weight:800;}
-@keyframes gbPulse{0%,100%{box-shadow:0 4px 16px rgba(225,29,72,.35)}50%{box-shadow:0 4px 26px rgba(225,29,72,.6)}}
-@keyframes gbRing{0%,100%{transform:rotate(0)}10%{transform:rotate(-14deg)}20%{transform:rotate(12deg)}30%{transform:rotate(-8deg)}40%{transform:rotate(0)}}
-@media(prefers-reduced-motion:reduce){.guest-banner,.guest-banner .gb-bell{animation:none;}}
+.guest-banner{display:flex;align-items:center;gap:11px;background:linear-gradient(120deg,#991B1B,#C81E1E);color:#FFF;border-radius:12px;padding:11px 16px;margin-bottom:12px;cursor:pointer;border:1px solid rgba(255,255,255,0.12);box-shadow:0 3px 16px rgba(153,27,27,.34);animation:gbGlow 2s ease-in-out infinite;}
+.guest-banner:hover{filter:brightness(1.06);}
+.guest-banner .gb-bell{font-size:19px;animation:gbRing 2s ease-in-out infinite;transform-origin:50% 10%;}
+.guest-banner .gb-tx{font-size:13.5px;font-weight:600;letter-spacing:.2px;}
+.guest-banner .gb-tx b{font-family:'JetBrains Mono',monospace;font-size:16px;background:rgba(255,255,255,0.18);padding:0 7px;border-radius:6px;}
+.guest-banner .gb-go{margin-left:auto;font-weight:800;opacity:.85;}
+/* กระพริบนุ่ม (glow) ตลอดเมื่อมีงานค้าง — สังเกตเห็นแต่ไม่ลายตา */
+@keyframes gbGlow{0%,100%{box-shadow:0 3px 14px rgba(153,27,27,.30);}50%{box-shadow:0 4px 22px rgba(220,38,38,.55);}}
+/* กระดิ่งไกวเป็นจังหวะ (subtle) */
+@keyframes gbRing{0%,55%,100%{transform:rotate(0)}62%{transform:rotate(-13deg)}70%{transform:rotate(11deg)}78%{transform:rotate(-7deg)}86%{transform:rotate(0)}}
+/* แฟลชแรงชั่วขณะเมื่อ "งานใหม่เข้า" (JS ใส่ class 3 วิแล้วถอด) */
+.guest-banner.gb-flash{animation:gbFlash .45s ease-in-out infinite;}
+@keyframes gbFlash{0%,100%{box-shadow:0 3px 16px rgba(220,38,38,.45);filter:brightness(1);}50%{box-shadow:0 6px 30px rgba(248,113,113,.8);filter:brightness(1.16);}}
+@media(prefers-reduced-motion:reduce){.guest-banner,.guest-banner .gb-bell,.guest-banner.gb-flash{animation:none;}}
 /* Donut "สถานะงาน" สไตล์เดียวกับโหมดทีวี: วงกลม + เลขรวมตรงกลาง + legend เรียงข้าง */
 .dash-gauge{display:flex;align-items:center;gap:14px;}
 .dash-gauge .dg-cv{width:96px;height:96px;position:relative;flex-shrink:0;}
@@ -5203,24 +5209,40 @@ function requestNotifyPermission(){
 // ===== แจ้งเตือนงานจากลูกค้า (Guest self-report) =====
 let _lastGuestN=-1;
 function isGuestTicket(t){ return String(t.reporter_dept||'').indexOf('Guest')>=0 || String(t.reporter_dept||'').indexOf('ลูกค้า')>=0; }
+// เสียงเตือนงานลูกค้า "เร่งด่วน" — จังหวะเร็วสูง-ต่ำสลับ (คล้ายสัญญาณเตือนภัย) ฟังแล้วรู้ว่าด่วน
+function playGuestAlert(){
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==='suspended') ac.resume();
+    const now=ac.currentTime;
+    // pattern: โน้ตสูง-ต่ำสลับเร็ว 2 ชุด (E6-A5-E6-A5 ...) = โทนเตือนภัยเร่งด่วน
+    const seq=[1319,880,1319,880,1319,880];
+    const dur=0.10, gap=0.115;
+    // ฟิลเตอร์ตัดความแหลมบาดหู แต่ยังคม
+    const flt=ac.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=3400; flt.connect(ac.destination);
+    seq.forEach(function(f,i){
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type='triangle';   // คมกว่า sine (เร่งด่วน) แต่ไม่บาดหูเท่า square
+      o.frequency.value=f;
+      o.connect(g); g.connect(flt);
+      const t=now+i*gap;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.22,t+0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.start(t); o.stop(t+dur+0.02);
+    });
+  }catch(e){}
+}
 function renderGuestBanner(){
   const bn=document.getElementById('guest-banner'); if(!bn) return;
   const n=getBase().filter(t=>isGuestTicket(t)&&(t.status==='pending'||t.status==='assigned')).length;
   bn.style.display=n>0?'flex':'none';
   const el=document.getElementById('gb-n'); if(el) el.textContent=n;
-  // เสียงเตือนเมื่อ "จำนวนเพิ่มขึ้น" (งานลูกค้าใหม่เข้า) — เบราว์เซอร์อาจบล็อกจนกว่าผู้ใช้แตะหน้าจอ จึงครอบ try
+  // งานลูกค้าใหม่เข้า (จำนวนเพิ่ม) → เสียงเตือนเร่งด่วน + แฟลชแถบ 3 วินาที
   if(_lastGuestN>=0 && n>_lastGuestN){
-    try{
-      const ac=new (window.AudioContext||window.webkitAudioContext)();
-      [880,1175].forEach((f,i)=>{
-        const o=ac.createOscillator(),g=ac.createGain();
-        o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(ac.destination);
-        g.gain.setValueAtTime(0.001,ac.currentTime+i*0.18);
-        g.gain.exponentialRampToValueAtTime(0.25,ac.currentTime+i*0.18+0.02);
-        g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.18+0.16);
-        o.start(ac.currentTime+i*0.18); o.stop(ac.currentTime+i*0.18+0.18);
-      });
-    }catch(e){}
+    playGuestAlert();
+    bn.classList.add('gb-flash');
+    setTimeout(function(){ bn.classList.remove('gb-flash'); }, 3000);
   }
   _lastGuestN=n;
 }
