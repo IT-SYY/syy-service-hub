@@ -2568,13 +2568,16 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .tech-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}  /* ชื่อ+ป้ายสถานะช่าง บรรทัดเดียว */
 /* แถบงานลูกค้า */
 .guest-banner{display:flex;align-items:center;gap:11px;background:linear-gradient(120deg,#991B1B,#C81E1E);color:#FFF;border-radius:12px;padding:11px 16px;margin-bottom:12px;cursor:pointer;border:1px solid rgba(255,255,255,0.12);box-shadow:0 3px 16px rgba(153,27,27,.34);animation:gbGlow 2s ease-in-out infinite;}
-.guest-banner:hover{filter:brightness(1.06);}
+.guest-banner:hover{transform:translateY(-1px);}
 .guest-banner .gb-bell{font-size:19px;animation:gbRing 2s ease-in-out infinite;transform-origin:50% 10%;}
 .guest-banner .gb-tx{font-size:13.5px;font-weight:600;letter-spacing:.2px;}
 .guest-banner .gb-tx b{font-family:'JetBrains Mono',monospace;font-size:16px;background:rgba(255,255,255,0.18);padding:0 7px;border-radius:6px;}
 .guest-banner .gb-go{margin-left:auto;font-weight:800;opacity:.85;}
-/* กระพริบนุ่ม (glow) ตลอดเมื่อมีงานค้าง — สังเกตเห็นแต่ไม่ลายตา */
-@keyframes gbGlow{0%,100%{box-shadow:0 3px 14px rgba(153,27,27,.30);}50%{box-shadow:0 4px 22px rgba(220,38,38,.55);}}
+/* กระพริบนุ่มตลอดเมื่อมีงานค้าง — pulse ที่ความสว่าง+ขอบของแถบเอง (เห็นชัดทั้งธีมมืด/สว่าง) */
+@keyframes gbGlow{
+  0%,100%{filter:brightness(1);border-color:rgba(255,255,255,0.12);box-shadow:0 3px 14px rgba(153,27,27,.30);}
+  50%{filter:brightness(1.22);border-color:rgba(255,190,190,0.85);box-shadow:0 4px 24px rgba(220,38,38,.6);}
+}
 /* กระดิ่งไกวเป็นจังหวะ (subtle) */
 @keyframes gbRing{0%,55%,100%{transform:rotate(0)}62%{transform:rotate(-13deg)}70%{transform:rotate(11deg)}78%{transform:rotate(-7deg)}86%{transform:rotate(0)}}
 /* แฟลชแรงชั่วขณะเมื่อ "งานใหม่เข้า" (JS ใส่ class 3 วิแล้วถอด) */
