@@ -211,6 +211,9 @@ function selectTicket(id){
   if(el) el.classList.add('selected');
   document.getElementById('btn-submit').disabled=false;
   document.getElementById('btn-reject').disabled=false;
+  // รีเซ็ตปุ่มปฏิเสธกลับปกติเมื่อสลับงาน
+  rejectArmed=false; clearTimeout(rejectArmTimer);
+  var bR2=document.getElementById('btn-reject'); if(bR2){ bR2.textContent='❌ ปฏิเสธ'; bR2.style.background='transparent'; bR2.style.color='#DC2626'; }
 }
 
 // ===== SUBMIT (accept / reject) =====
@@ -236,6 +239,7 @@ function postGAS(payload){
   });
 }
 
+let rejectArmed=false, rejectArmTimer=null;
 async function submitAction(kind){
   if(!selectedId){ toast('กรุณาเลือกงานก่อน'); return; }
   const sel=openTickets.find(function(t){return t.ticket_id===selectedId;});
@@ -245,6 +249,22 @@ async function submitAction(kind){
   const note=document.getElementById('note').value.trim();
   const who=profile&&profile.displayName?profile.displayName:'ไม่ระบุ';
   if(kind==='reject'&&!note){ toast('กรุณาระบุเหตุผลที่ปฏิเสธงาน'); return; }
+
+  // ยืนยัน 2 ชั้นเฉพาะปุ่มปฏิเสธ กันเผลอกดพลาด (ปุ่มรับงานเป็นทางบวก ไม่ต้องยืนยัน)
+  if(kind==='reject'){
+    const bRc=document.getElementById('btn-reject');
+    if(!rejectArmed){
+      rejectArmed=true;
+      bRc.textContent='⚠️ แตะอีกครั้งเพื่อยืนยันปฏิเสธ';
+      bRc.style.background='#DC2626'; bRc.style.color='#fff';
+      if(navigator.vibrate) navigator.vibrate(30);
+      clearTimeout(rejectArmTimer);
+      rejectArmTimer=setTimeout(function(){ rejectArmed=false; bRc.textContent='❌ ปฏิเสธ'; bRc.style.background='transparent'; bRc.style.color='#DC2626'; }, 4000);
+      return;
+    }
+    clearTimeout(rejectArmTimer); rejectArmed=false;
+    bRc.style.background='transparent'; bRc.style.color='#DC2626';
+  }
 
   const bA=document.getElementById('btn-submit'), bR=document.getElementById('btn-reject');
   bA.disabled=true; bR.disabled=true;
@@ -272,7 +292,8 @@ async function submitAction(kind){
     toast('บันทึกไม่สำเร็จ: '+(r.error||'ลองใหม่อีกครั้ง'));
     bA.disabled=false; bR.disabled=false;
   }
-  bA.textContent='✅ รับงาน'; bR.textContent='❌ ปฏิเสธ';
+  bA.textContent='✅ รับงาน';
+  if(!rejectArmed) bR.textContent='❌ ปฏิเสธ';
 }
 
 function closeApp(){
