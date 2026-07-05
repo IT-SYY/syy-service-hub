@@ -3190,6 +3190,71 @@ body.viewer .btn-assign,body.viewer .btn-accept,body.viewer .btn-done2,
 body.viewer #btn-assign-ok,body.viewer .kb-actions{display:none!important;}
 .viewer-note{display:none;}
 body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--orange);margin-left:8px;}
+/* ===== PR Tracker (บันทึก PR จัดซื้อ) ===== */
+.prt-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.prt-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.prt-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:11.5px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.prt-chip:hover{border-color:var(--green);color:var(--green);}
+.prt-chip.active{background:rgba(16,185,129,0.15);border-color:var(--green);color:var(--green);font-weight:700;}
+.prt-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.prt-btn{padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:'Prompt',sans-serif;font-size:11.5px;cursor:pointer;transition:all .15s;}
+.prt-btn:hover{border-color:var(--green);}
+.prt-btn-green{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;}
+.prt-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:8px;}
+.prt-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 11px;cursor:pointer;border-top:3px solid var(--border);}
+.prt-kpi .n{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.1;}
+.prt-kpi .l{font-size:10px;color:var(--text3);margin-top:2px;}
+.prt-kpi.k-all{border-top-color:var(--blue);} .prt-kpi.k-pr{border-top-color:#0EA5E9;}
+.prt-kpi.k-done{border-top-color:var(--green);} .prt-kpi.k-proc{border-top-color:var(--purple);}
+.prt-kpi.k-pend{border-top-color:var(--orange);} .prt-kpi.k-cxl{border-top-color:#94A3B8;}
+.prt-progress-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;margin-bottom:10px;}
+.prt-progress-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:6px;}
+.prt-progress-bar{height:9px;background:var(--bg3);border-radius:6px;overflow:hidden;}
+.prt-progress-bar div{height:100%;width:0;background:linear-gradient(90deg,var(--green),#34D399);border-radius:6px;transition:width .4s;}
+.prt-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;}
+.prt-sel{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:'Prompt',sans-serif;font-size:11.5px;max-width:260px;}
+.prt-search{flex:1;min-width:180px;padding:7px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:'Prompt',sans-serif;font-size:11.5px;}
+.prt-tablewrap{overflow-x:auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);}
+.prt-table{width:100%;border-collapse:collapse;font-size:11px;min-width:900px;}
+.prt-table th{position:sticky;top:0;background:var(--bg3);color:var(--text2);text-align:left;padding:8px 9px;font-weight:600;white-space:nowrap;border-bottom:1px solid var(--border);}
+.prt-table td{padding:6px 9px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
+.prt-table tbody tr:hover{background:var(--bg3);}
+.prt-badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.prt-badge.completed{background:rgba(16,185,129,0.15);color:var(--green);}
+.prt-badge.onprocess{background:rgba(139,92,246,0.15);color:var(--purple);}
+.prt-badge.pending{background:rgba(245,158,11,0.16);color:var(--orange);}
+.prt-badge.cancelled{background:rgba(148,163,184,0.2);color:#94A3B8;text-decoration:line-through;}
+.prt-pager{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+.prt-pager button{padding:5px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:'Prompt',sans-serif;font-size:11px;}
+.prt-pager button.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;}
+.prt-empty{text-align:center;padding:44px 10px;color:var(--text3);font-size:12.5px;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);}
+.prt-yeartitle{font-size:13px;font-weight:700;margin:4px 0 8px;}
+#pr-yeartable th,#pr-yeartable td{text-align:center;}
+#pr-yeartable td:first-child,#pr-yeartable th:first-child{text-align:left;font-weight:600;}
+.prt-import-drop{border:2px dashed var(--border);border-radius:12px;padding:22px;text-align:center;color:var(--text3);font-size:12px;cursor:pointer;transition:all .15s;}
+.prt-import-drop:hover{border-color:var(--green);color:var(--green);}
+.prt-import-months{max-height:220px;overflow-y:auto;margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.prt-imp-row{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:11.5px;}
+.prt-imp-row .cnt{margin-left:auto;color:var(--text3);font-size:10.5px;white-space:nowrap;}
+@media (max-width:820px){ .prt-kpis{grid-template-columns:repeat(3,1fr);} .prt-table{min-width:760px;} }
+/* ===== โหมดพิมพ์สรุป PR ===== */
+#pr-print{display:none;}
+@media print{
+  body.print-pr > *:not(#pr-print){display:none !important;}
+  body.print-pr #pr-print{display:block !important;background:#FFF;color:#111;font-family:'Sarabun','Prompt',sans-serif;padding:0;}
+  body.print-pr #pr-print h1{font-size:17px;margin:0 0 2px;}
+  body.print-pr #pr-print .sub{font-size:11px;color:#555;margin-bottom:10px;}
+  body.print-pr #pr-print .kbox{display:inline-block;border:1px solid #CBD5E1;border-radius:8px;padding:7px 14px;margin:0 6px 8px 0;text-align:center;}
+  body.print-pr #pr-print .kbox b{display:block;font-size:16px;}
+  body.print-pr #pr-print .kbox span{font-size:9.5px;color:#555;}
+  body.print-pr #pr-print table{width:100%;border-collapse:collapse;font-size:9.8px;margin-top:6px;}
+  body.print-pr #pr-print th,body.print-pr #pr-print td{border:1px solid #CBD5E1;padding:3px 5px;text-align:left;}
+  body.print-pr #pr-print th{background:#F1F5F9;}
+  body.print-pr #pr-print .dept-h{background:#E2E8F0;font-weight:700;}
+  body.print-pr #pr-print .foot{margin-top:12px;font-size:9.5px;color:#64748B;display:flex;justify-content:space-between;}
+  body.print-pr #pr-print tr{page-break-inside:avoid;}
+}
+
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #FFF !important; font-family: 'Prompt', 'Sarabun', sans-serif !important; }
@@ -3322,6 +3387,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
     <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="ติดตามงานจัดซื้อ" data-en="Track Procurement">ติดตามงานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
+    <div class="nav-item" onclick="showPage('prtrack',this)"><span class="nav-icon">🧾</span><span data-th="บันทึก PR จัดซื้อ" data-en="PR Records">บันทึก PR จัดซื้อ</span></div>
     <div class="nav-item" onclick="showPage('chat',this)"><span class="nav-icon">💬</span><span data-th="แชตติดตามงาน" data-en="Chat">แชตติดตามงาน</span><span class="nav-badge" id="chat-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-item" onclick="showPage('qrgen',this)"><span class="nav-icon">🏷️</span><span data-th="สร้าง QR ห้องพัก" data-en="Guest QR Generator">สร้าง QR ห้องพัก</span></div>
@@ -3561,6 +3627,53 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         </div>
       </div>
     </div>
+    <!-- ===== หน้า: บันทึก PR จัดซื้อ (PR Tracker) ===== -->
+    <div class="page" id="page-prtrack">
+      <div class="prt-toolbar">
+        <div id="pr-month-chips" class="prt-chips"></div>
+        <div class="prt-actions">
+          <button class="prt-btn prt-btn-green" id="pr-btn-import" onclick="prOpenImport()">📥 <span data-th="นำเข้า Excel" data-en="Import Excel">นำเข้า Excel</span></button>
+          <button class="prt-btn" id="pr-btn-add" onclick="prOpenAdd()">➕ <span data-th="เพิ่มรายการ" data-en="Add Item">เพิ่มรายการ</span></button>
+          <button class="prt-btn" onclick="prPrint()">🖨️ <span data-th="พิมพ์สรุป" data-en="Print Summary">พิมพ์สรุป</span></button>
+          <button class="prt-btn" onclick="prRefresh()" title="รีเฟรช">🔄</button>
+        </div>
+      </div>
+
+      <div class="prt-kpis" id="pr-kpis"></div>
+      <div class="prt-progress-wrap" id="pr-progress-wrap" style="display:none">
+        <div class="prt-progress-lbl"><span data-th="ความก้าวหน้า (Completed / รายการที่ไม่ถูกยกเลิก)" data-en="Progress (Completed / non-cancelled items)">ความก้าวหน้า (Completed / รายการที่ไม่ถูกยกเลิก)</span> <b id="pr-progress-pct">0%</b></div>
+        <div class="prt-progress-bar"><div id="pr-progress-fill"></div></div>
+      </div>
+
+      <div class="prt-filters" id="pr-filters">
+        <div class="prt-chips" id="pr-status-chips"></div>
+        <select class="prt-sel" id="pr-dept-sel" onchange="prFilter.dept=this.value;prPage=1;prRenderTable()"></select>
+        <input class="prt-search" id="pr-search" placeholder="🔍 ค้นหา PR# / รหัส / ชื่อรายการ / Supplier" oninput="prFilter.q=this.value.trim().toLowerCase();prPage=1;prRenderTable()">
+      </div>
+
+      <div class="prt-tablewrap" id="pr-tablewrap">
+        <table class="prt-table" id="pr-table">
+          <thead><tr>
+            <th data-th="วันที่" data-en="Date">วันที่</th><th data-th="แผนก" data-en="Department">แผนก</th><th>Store</th><th>PR#</th>
+            <th data-th="รหัส" data-en="Code">รหัส</th><th data-th="รายการ" data-en="Item">รายการ</th><th data-th="จำนวน" data-en="Qty">จำนวน</th>
+            <th data-th="สถานะ" data-en="Status">สถานะ</th><th>Supplier</th><th data-th="หมายเหตุ" data-en="Note">หมายเหตุ</th>
+          </tr></thead>
+          <tbody id="pr-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prt-pager" id="pr-pager"></div>
+
+      <div id="pr-yearview" style="display:none">
+        <div class="prt-yeartitle">📊 <span data-th="สรุป PR รายเดือน (ทั้งปี)" data-en="Yearly PR Summary">สรุป PR รายเดือน (ทั้งปี)</span></div>
+        <div class="prt-tablewrap"><table class="prt-table" id="pr-yeartable"></table></div>
+      </div>
+
+      <div class="prt-empty" id="pr-empty" style="display:none">
+        <div style="font-size:34px">🧾</div>
+        <div data-th="ยังไม่มีข้อมูล PR — กด “นำเข้า Excel” เพื่อนำไฟล์จากทีมจัดซื้อเข้าระบบ" data-en="No PR data yet — click “Import Excel” to load the purchasing team's file">ยังไม่มีข้อมูล PR — กด “นำเข้า Excel” เพื่อนำไฟล์จากทีมจัดซื้อเข้าระบบ</div>
+      </div>
+    </div>
+
     <div class="page" id="page-technicians">
       <div class="tickets-toolbar"><div class="toolbar-ttl" id="tech-title" data-th="👥 ทีมช่าง" data-en="👥 Technicians">👥 ทีมช่าง</div></div>
       <div class="tech-grid" id="tech-grid"><div class="loading"><div class="skl" style="width:85%"></div><div class="skl" style="width:65%"></div><div class="skl" style="width:75%"></div></div></div>
@@ -7680,7 +7793,7 @@ function toast(msg,icon='✅',type='success'){
 }
 
 // ===== PAGE NAV =====
-const PAGE_NAV={dashboard:0,inbox:1,tickets:2,projects:3,pm:4,claim:5,purchase:6,chat:7,technicians:11,history:12,archive:13,report:15};
+const PAGE_NAV={dashboard:0,inbox:1,tickets:2,projects:3,pm:4,claim:5,purchase:6,prtrack:7,chat:8,technicians:12,history:13,archive:14,report:16};
 let currentPage='dashboard';
 // ===== ARCHIVE SEARCH (ค้นประวัติงานเก่าที่ย้ายออกจาก TICKETS แล้ว) =====
 let archiveSearching = false;
@@ -8087,7 +8200,8 @@ function showPage(p,el,fromPop){
     history:L('📋 ประวัติงาน','📋 History'),
     archive:L('🗄️ ค้นประวัติ (Archive)','🗄️ Archive Search'),
     report:L('📈 รายงาน','📈 Reports'),
-    qrgen:L('🏷️ สร้าง QR ห้องพัก','🏷️ Guest QR Generator')
+    qrgen:L('🏷️ สร้าง QR ห้องพัก','🏷️ Guest QR Generator'),
+    prtrack:L('🧾 บันทึก PR จัดซื้อ','🧾 PR Records')
   };
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
   // สลับ UI ของหน้า tickets ตามประเภทงาน
@@ -8104,6 +8218,7 @@ function showPage(p,el,fromPop){
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
   if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
+  if(p==='prtrack'){ prLoadPage(); }
   // ล้างตัวกรองที่ค้างจากหน้าก่อน (status/priority/category/ค้นหา/ช่าง/วันที่) เมื่อเข้าหน้ากลุ่ม Ticket ผ่านเมนู
   // กันบัก: badge นับงานดิบ แต่ตารางกรองด้วยค่าเก่า → ตัวเลขไม่ตรง / ตารางว่างดูเหมือนโหลดค้าง
   // (gotoTickets/goToMemberTasks ตั้งค่าตัวกรองหลัง showPage อยู่แล้ว จึงไม่ได้รับผลกระทบ)
@@ -8158,5 +8273,454 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<!-- ===== PR Tracker: Modals ===== -->
+<div class="overlay" id="m-pr-import">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-ttl"><span>📥 นำเข้าไฟล์ Excel จากทีมจัดซื้อ</span><button class="modal-x" onclick="closeM('m-pr-import')">×</button></div>
+    <div class="prt-import-drop" id="pr-drop" onclick="document.getElementById('pr-file').click()">
+      📄 คลิกเลือกไฟล์ .xlsx (เช่น New_Pr_Pending.xlsx)<br>
+      <span style="font-size:10.5px">ระบบอ่านทุกชีตรายเดือนอัตโนมัติ และแปลงสถานะที่พิมพ์หลากหลายให้เป็นมาตรฐาน</span>
+    </div>
+    <input type="file" id="pr-file" accept=".xlsx,.xls" style="display:none" onchange="prParseFile(this.files[0])">
+    <div id="pr-import-preview" style="display:none">
+      <div style="font-size:11.5px;color:var(--text2);margin:12px 0 4px">พบข้อมูลต่อไปนี้ — ติ๊กเดือนที่ต้องการนำเข้า (นำเข้าทับข้อมูลเดิมของเดือนนั้น):</div>
+      <div class="prt-import-months" id="pr-import-months"></div>
+      <div id="pr-import-progress" style="display:none;margin-top:12px">
+        <div class="prt-progress-lbl"><span>กำลังนำเข้า...</span><b id="pr-imp-pct">0%</b></div>
+        <div class="prt-progress-bar"><div id="pr-imp-fill"></div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn-cancel" onclick="closeM('m-pr-import')">ยกเลิก</button>
+        <button class="prt-btn prt-btn-green" id="pr-imp-go" style="flex:1;padding:9px" onclick="prDoImport()">📥 นำเข้าข้อมูล</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-pr-edit">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-ttl"><span>✏️ อัปเดตสถานะ PR</span><button class="modal-x" onclick="closeM('m-pr-edit')">×</button></div>
+    <div id="pr-edit-info" style="font-size:11.5px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:9px 11px;margin-bottom:12px"></div>
+    <div class="modal-field"><label class="modal-lbl">สถานะ</label>
+      <select class="modal-sel" id="pr-edit-status">
+        <option value="pending">⏳ Pending (รอดำเนินการ)</option>
+        <option value="onprocess">🔄 Onprocess (กำลังดำเนินการ)</option>
+        <option value="completed">✅ Completed (เสร็จสิ้น)</option>
+        <option value="cancelled">❌ ยกเลิก</option>
+      </select>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ / ผู้จัดซื้อ</label>
+      <input class="modal-sel" id="pr-edit-note" placeholder="เช่น รอบิล, ดวงตา, สั่งของแล้วรอส่ง">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-cancel" onclick="closeM('m-pr-edit')">ยกเลิก</button>
+      <button class="prt-btn prt-btn-green" style="flex:1;padding:9px" onclick="prSaveEdit()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-pr-add">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-ttl"><span>➕ บันทึกรายการ PR ใหม่</span><button class="modal-x" onclick="closeM('m-pr-add')">×</button></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">PR# <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pra-pr" placeholder="เช่น 2607-0015"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันที่</label><input class="modal-sel" id="pra-date" placeholder="เช่น 05/07/2026"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">แผนก</label><input class="modal-sel" id="pra-dept" list="pra-dept-list" placeholder="เช่น HOUSEKEEPING DEPT."><datalist id="pra-dept-list"></datalist></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">Store</label><input class="modal-sel" id="pra-store" placeholder="เช่น MAIN STORE"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">รหัสสินค้า</label><input class="modal-sel" id="pra-code"></div>
+      <div class="modal-field" style="flex:2"><label class="modal-lbl">ชื่อรายการ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="pra-name"></div>
+      <div class="modal-field" style="width:80px"><label class="modal-lbl">จำนวน</label><input class="modal-sel" id="pra-qty"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สถานะ</label>
+        <select class="modal-sel" id="pra-status"><option value="pending">⏳ Pending</option><option value="onprocess">🔄 Onprocess</option><option value="completed">✅ Completed</option><option value="cancelled">❌ ยกเลิก</option></select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">Supplier</label><input class="modal-sel" id="pra-sup"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><input class="modal-sel" id="pra-note"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-cancel" onclick="closeM('m-pr-add')">ยกเลิก</button>
+      <button class="prt-btn prt-btn-green" style="flex:1;padding:9px" onclick="prSaveAdd()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div id="pr-print"></div>
+
+<script>
+/* ===================== PR TRACKER (บันทึก PR จัดซื้อ) ===================== */
+let prSummary=null, prMonth='', prMode='month', prCache={}, prRows=[], prPage=1, prEditRow=null, prParsed=null;
+const prFilter={status:'all',dept:'all',q:''};
+const PR_PAGE_SIZE=100;
+const PR_TH_M=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const PR_ST_LBL={completed:'✅ Completed',onprocess:'🔄 Onprocess',pending:'⏳ Pending',cancelled:'❌ ยกเลิก'};
+
+function prEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function prMonthLabel(mk){const m=String(mk).match(/^(\d{4})-(\d{2})$/);if(!m)return mk;return PR_TH_M[+m[2]]+' '+(+m[1]+543);}
+function prMonthShort(mk){const m=String(mk).match(/^(\d{4})-(\d{2})$/);if(!m)return mk;return PR_TH_M[+m[2]].substring(0,3)+'. '+String(+m[1]+543).substring(2);}
+// ต้องตรงกับ prNormStatus_ ใน PR_Tracking.gs
+function prNormStatus(s){
+  const raw=String(s||'').trim(); const t=raw.toLowerCase();
+  if(!t) return 'pending';
+  if(t==='x'||t.indexOf('ยกเลิก')>=0||t.indexOf('cancle')>=0||t.indexOf('cancel')>=0||t.indexOf('ไม่อนุมัติ')>=0) return 'cancelled';
+  if(t.indexOf('comp')>=0||t.indexOf('mplet')>=0||t.indexOf('conplet')>=0) return 'completed';
+  if(t.indexOf('proc')>=0||t.indexOf('รอบิล')>=0) return 'onprocess';
+  return 'pending';
+}
+async function prApi(body){const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});return r.json();}
+
+async function prLoadPage(force){
+  if(userRole==='viewer'){const b1=document.getElementById('pr-btn-import'),b2=document.getElementById('pr-btn-add');if(b1)b1.style.display='none';if(b2)b2.style.display='none';}
+  if(prSummary&&!force){return;}
+  document.getElementById('pr-kpis').innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:20px;font-size:12px">⏳ กำลังโหลดข้อมูล PR...</div>';
+  try{
+    const r=await prApi({action:'pr_summary',nocache:force?1:0});
+    if(!r.success)throw new Error(r.error||'โหลดไม่สำเร็จ');
+    prSummary=r.months||{};
+    const months=Object.keys(prSummary).sort();
+    if(!months.length){
+      document.getElementById('pr-kpis').innerHTML='';
+      document.getElementById('pr-month-chips').innerHTML='';
+      document.getElementById('pr-empty').style.display='block';
+      document.getElementById('pr-tablewrap').style.display='none';
+      document.getElementById('pr-filters').style.display='none';
+      document.getElementById('pr-pager').innerHTML='';
+      return;
+    }
+    document.getElementById('pr-empty').style.display='none';
+    prRenderMonthChips(months);
+    prSelectMonth(prMonth&&prSummary[prMonth]?prMonth:months[months.length-1]);
+  }catch(e){toast('โหลดข้อมูล PR ไม่สำเร็จ: '+e.message,'⚠️','error');}
+}
+function prRefresh(){prCache={};prLoadPage(true);}
+
+function prRenderMonthChips(months){
+  const c=document.getElementById('pr-month-chips');
+  c.innerHTML=months.map(mk=>`<div class="prt-chip ${prMode==='month'&&mk===prMonth?'active':''}" onclick="prSelectMonth('${mk}')">${prMonthShort(mk)}</div>`).join('')
+    +`<div class="prt-chip ${prMode==='year'?'active':''}" onclick="prShowYear()">📊 สรุปทั้งปี</div>`;
+}
+
+async function prSelectMonth(mk){
+  prMode='month';prMonth=mk;prPage=1;
+  prRenderMonthChips(Object.keys(prSummary).sort());
+  document.getElementById('pr-yearview').style.display='none';
+  document.getElementById('pr-tablewrap').style.display='';
+  document.getElementById('pr-filters').style.display='';
+  document.getElementById('pr-progress-wrap').style.display='';
+  if(!prCache[mk]){
+    document.getElementById('pr-tbody').innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px">⏳ กำลังโหลดรายการเดือน '+prEsc(prMonthLabel(mk))+'...</td></tr>';
+    try{
+      const r=await prApi({action:'pr_list',month:mk});
+      if(!r.success)throw new Error(r.error||'');
+      const h=r.head;
+      prCache[mk]=(r.rows||[]).map(a=>{const o={};h.forEach((k,i)=>o[k]=a[i]||'');return o;});
+    }catch(e){toast('โหลดรายการไม่สำเร็จ: '+e.message,'⚠️','error');prCache[mk]=[];}
+  }
+  prRows=prCache[mk];
+  prFilter.status='all';prFilter.dept='all';prFilter.q='';
+  const si=document.getElementById('pr-search');if(si)si.value='';
+  prRenderKpis();prRenderStatusChips();prRenderDeptSel();prRenderTable();
+}
+
+function prCounts(rows){
+  const c={items:rows.length,completed:0,onprocess:0,pending:0,cancelled:0,prs:0};
+  const set={};
+  rows.forEach(r=>{c[r.status]!==undefined&&c[r.status]++;if(r.pr_no)set[r.pr_no]=1;});
+  c.prs=Object.keys(set).length;
+  return c;
+}
+function prRenderKpis(){
+  const c=prCounts(prRows);
+  const mkK=(cls,n,l,st)=>`<div class="prt-kpi ${cls}" onclick="prSetStatus('${st}')"><div class="n">${n.toLocaleString()}</div><div class="l">${l}</div></div>`;
+  document.getElementById('pr-kpis').innerHTML=
+    mkK('k-all',c.items,'รายการทั้งหมด · '+prMonthLabel(prMonth),'all')+
+    mkK('k-pr',c.prs,'จำนวนใบ PR','all')+
+    mkK('k-done',c.completed,'✅ Completed','completed')+
+    mkK('k-proc',c.onprocess,'🔄 Onprocess','onprocess')+
+    mkK('k-pend',c.pending,'⏳ Pending','pending')+
+    mkK('k-cxl',c.cancelled,'❌ ยกเลิก','cancelled');
+  const denom=c.items-c.cancelled;
+  const pct=denom>0?Math.round(c.completed*100/denom):0;
+  document.getElementById('pr-progress-pct').textContent=pct+'%';
+  document.getElementById('pr-progress-fill').style.width=pct+'%';
+}
+function prSetStatus(st){prFilter.status=st;prPage=1;prRenderStatusChips();prRenderTable();}
+function prRenderStatusChips(){
+  const c=prCounts(prRows);
+  const opts=[['all','ทั้งหมด ('+c.items+')'],['pending','⏳ Pending ('+c.pending+')'],['onprocess','🔄 Onprocess ('+c.onprocess+')'],['completed','✅ Completed ('+c.completed+')'],['cancelled','❌ ยกเลิก ('+c.cancelled+')']];
+  document.getElementById('pr-status-chips').innerHTML=opts.map(([v,l])=>`<div class="prt-chip ${prFilter.status===v?'active':''}" onclick="prSetStatus('${v}')">${l}</div>`).join('');
+}
+function prRenderDeptSel(){
+  const set={};prRows.forEach(r=>{if(r.department)set[r.department]=1;});
+  const depts=Object.keys(set).sort();
+  document.getElementById('pr-dept-sel').innerHTML='<option value="all">🏢 ทุกแผนก ('+depts.length+')</option>'+depts.map(d=>`<option value="${prEsc(d)}">${prEsc(d)}</option>`).join('');
+  document.getElementById('pr-dept-sel').value='all';
+  const dl=document.getElementById('pra-dept-list');if(dl)dl.innerHTML=depts.map(d=>`<option value="${prEsc(d)}">`).join('');
+}
+function prFiltered(){
+  return prRows.filter(r=>{
+    if(prFilter.status!=='all'&&r.status!==prFilter.status)return false;
+    if(prFilter.dept!=='all'&&r.department!==prFilter.dept)return false;
+    if(prFilter.q){
+      const hay=(r.pr_no+' '+r.code+' '+r.stock_name+' '+r.supplier+' '+r.department+' '+r.note).toLowerCase();
+      if(hay.indexOf(prFilter.q)<0)return false;
+    }
+    return true;
+  });
+}
+function prRenderTable(){
+  const rows=prFiltered();
+  const totalPages=Math.max(1,Math.ceil(rows.length/PR_PAGE_SIZE));
+  if(prPage>totalPages)prPage=totalPages;
+  const page=rows.slice((prPage-1)*PR_PAGE_SIZE,prPage*PR_PAGE_SIZE);
+  const tb=document.getElementById('pr-tbody');
+  if(!page.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px">— ไม่พบรายการตามเงื่อนไข —</td></tr>';}
+  else tb.innerHTML=page.map(r=>{
+    const raw=r.status_raw&&prNormStatus(r.status_raw)!==r.status_raw.toLowerCase()?` title="สถานะเดิมในไฟล์: ${prEsc(r.status_raw)}"`:'';
+    return `<tr>
+      <td style="white-space:nowrap">${prEsc(String(r.item_date).split(' ')[0])}</td>
+      <td>${prEsc(r.department)}</td><td>${prEsc(r.store)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;white-space:nowrap">${prEsc(r.pr_no)}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${prEsc(r.code)}</td>
+      <td>${prEsc(r.stock_name)}</td><td style="text-align:right">${prEsc(r.order_qty)}</td>
+      <td><span class="prt-badge ${r.status}"${raw} onclick="prOpenEdit('${prEsc(r.item_id)}')">${PR_ST_LBL[r.status]||r.status}</span></td>
+      <td style="font-size:10px;color:var(--text3)">${prEsc(String(r.supplier).substring(0,40))}</td>
+      <td style="font-size:10px">${prEsc(r.note)}</td>
+    </tr>`;}).join('');
+  // pager
+  const pg=document.getElementById('pr-pager');
+  if(totalPages<=1){pg.innerHTML=rows.length?`<span style="font-size:10.5px;color:var(--text3)">${rows.length.toLocaleString()} รายการ</span>`:'';}
+  else{
+    let btns=[];const push=p=>btns.push(`<button class="${p===prPage?'on':''}" onclick="prPage=${p};prRenderTable()">${p}</button>`);
+    push(1);
+    for(let p=Math.max(2,prPage-2);p<=Math.min(totalPages-1,prPage+2);p++){if(p===Math.max(2,prPage-2)&&p>2)btns.push('<span style="color:var(--text3)">…</span>');push(p);}
+    if(prPage+2<totalPages-1)btns.push('<span style="color:var(--text3)">…</span>');
+    if(totalPages>1)push(totalPages);
+    pg.innerHTML=`<button onclick="prPage=Math.max(1,prPage-1);prRenderTable()">‹</button>${btns.join('')}<button onclick="prPage=Math.min(${totalPages},prPage+1);prRenderTable()">›</button><span style="font-size:10.5px;color:var(--text3);margin-left:6px">${rows.length.toLocaleString()} รายการ</span>`;
+  }
+}
+
+/* ===== สรุปทั้งปี ===== */
+function prShowYear(){
+  prMode='year';
+  prRenderMonthChips(Object.keys(prSummary).sort());
+  document.getElementById('pr-yearview').style.display='';
+  document.getElementById('pr-tablewrap').style.display='none';
+  document.getElementById('pr-filters').style.display='none';
+  document.getElementById('pr-pager').innerHTML='';
+  document.getElementById('pr-progress-wrap').style.display='none';
+  const months=Object.keys(prSummary).sort();
+  const tot={items:0,prs:0,completed:0,onprocess:0,pending:0,cancelled:0};
+  months.forEach(mk=>{const m=prSummary[mk];['items','prs','completed','onprocess','pending','cancelled'].forEach(k=>tot[k]+=(m[k]||0));});
+  const metric=(lbl,key,fmt)=>`<tr><td>${lbl}</td>${months.map(mk=>`<td>${fmt(prSummary[mk][key]||0,prSummary[mk])}</td>`).join('')}<td style="font-weight:700">${fmt(tot[key]||0,tot)}</td></tr>`;
+  const num=v=>v.toLocaleString();
+  const t=document.getElementById('pr-yeartable');
+  t.innerHTML=`<thead><tr><th></th>${months.map(mk=>`<th>${prMonthShort(mk)}</th>`).join('')}<th>รวม</th></tr></thead><tbody>`+
+    metric('จำนวนรายการ ITEM','items',num)+
+    metric('จำนวนใบ PR','prs',num)+
+    metric('✅ Completed','completed',num)+
+    metric('🔄 Onprocess','onprocess',num)+
+    metric('⏳ Pending','pending',num)+
+    metric('❌ ยกเลิก','cancelled',num)+
+    `<tr><td>📌 คงค้าง (Onprocess+Pending)</td>${months.map(mk=>{const m=prSummary[mk];return `<td style="color:var(--orange);font-weight:700">${num((m.onprocess||0)+(m.pending||0))}</td>`;}).join('')}<td style="color:var(--orange);font-weight:700">${num(tot.onprocess+tot.pending)}</td></tr>`+
+    `<tr><td>🎯 ความก้าวหน้า</td>${months.map(mk=>{const m=prSummary[mk];const d=(m.items||0)-(m.cancelled||0);return `<td>${d>0?Math.round((m.completed||0)*100/d):0}%</td>`;}).join('')}<td style="font-weight:700">${(tot.items-tot.cancelled)>0?Math.round(tot.completed*100/(tot.items-tot.cancelled)):0}%</td></tr></tbody>`;
+  // KPI รวมทั้งปีด้านบน
+  const mkK=(cls,n,l)=>`<div class="prt-kpi ${cls}"><div class="n">${n.toLocaleString()}</div><div class="l">${l}</div></div>`;
+  document.getElementById('pr-kpis').innerHTML=
+    mkK('k-all',tot.items,'รายการทั้งหมด (ทั้งปี)')+mkK('k-pr',tot.prs,'จำนวนใบ PR')+
+    mkK('k-done',tot.completed,'✅ Completed')+mkK('k-proc',tot.onprocess,'🔄 Onprocess')+
+    mkK('k-pend',tot.pending,'⏳ Pending')+mkK('k-cxl',tot.cancelled,'❌ ยกเลิก');
+}
+
+/* ===== แก้ไขสถานะรายการ ===== */
+function prOpenEdit(itemId){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
+  const r=prRows.find(x=>x.item_id===itemId);if(!r)return;
+  prEditRow=r;
+  document.getElementById('pr-edit-info').innerHTML=`<b>${prEsc(r.pr_no)}</b> · ${prEsc(r.stock_name)}<br><span style="font-size:10px">${prEsc(r.department)} · ${prEsc(r.store)}${r.status_raw?' · สถานะเดิม: '+prEsc(r.status_raw):''}</span>`;
+  document.getElementById('pr-edit-status').value=r.status||'pending';
+  document.getElementById('pr-edit-note').value=r.note||'';
+  document.getElementById('m-pr-edit').classList.add('show');
+}
+async function prSaveEdit(){
+  if(!prEditRow)return;
+  const st=document.getElementById('pr-edit-status').value;
+  const note=document.getElementById('pr-edit-note').value.trim();
+  const btnRow=prEditRow;
+  try{
+    const r=await prApi({action:'pr_update',access_token:authToken(),item_id:btnRow.item_id,status:st,status_raw:st,note:note});
+    if(!r.success)throw new Error(r.error||'');
+    btnRow.status=st;btnRow.status_raw=st;btnRow.note=note;
+    prSummary=null; // ให้ summary โหลดใหม่ครั้งหน้า
+    closeM('m-pr-edit');
+    prRenderKpis();prRenderStatusChips();prRenderTable();
+    toast('อัปเดตสถานะแล้ว','✅');
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'⚠️','error');}
+}
+
+/* ===== เพิ่มรายการเดียว ===== */
+function prOpenAdd(){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  document.getElementById('m-pr-add').classList.add('show');
+}
+async function prSaveAdd(){
+  const g=id=>document.getElementById(id).value.trim();
+  const item={pr_no:g('pra-pr'),item_date:g('pra-date'),department:g('pra-dept'),store:g('pra-store'),code:g('pra-code'),stock_name:g('pra-name'),order_qty:g('pra-qty'),status_raw:document.getElementById('pra-status').value,supplier:g('pra-sup'),note:g('pra-note')};
+  if(!item.pr_no&&!item.stock_name){toast('กรอก PR# หรือชื่อรายการอย่างน้อย 1 อย่าง','⚠️','error');return;}
+  try{
+    const r=await prApi({action:'pr_add',access_token:authToken(),item:item});
+    if(!r.success)throw new Error(r.error||'');
+    closeM('m-pr-add');
+    ['pra-pr','pra-date','pra-dept','pra-store','pra-code','pra-name','pra-qty','pra-sup','pra-note'].forEach(i=>document.getElementById(i).value='');
+    toast('บันทึกรายการแล้ว','✅');
+    prRefresh();
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'⚠️','error');}
+}
+
+/* ===== นำเข้า Excel (SheetJS โหลดเมื่อใช้) ===== */
+function prLoadSheetJS(){
+  return new Promise((res,rej)=>{
+    if(window.XLSX)return res();
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=res;s.onerror=()=>rej(new Error('โหลดไลบรารีอ่าน Excel ไม่สำเร็จ'));
+    document.head.appendChild(s);
+  });
+}
+function prOpenImport(){
+  if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
+  prParsed=null;
+  document.getElementById('pr-file').value='';
+  document.getElementById('pr-import-preview').style.display='none';
+  document.getElementById('pr-import-progress').style.display='none';
+  document.getElementById('pr-imp-go').disabled=false;
+  document.getElementById('m-pr-import').classList.add('show');
+}
+async function prParseFile(file){
+  if(!file)return;
+  try{
+    await prLoadSheetJS();
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    prParsed=prParseWorkbook(wb);
+    const months=Object.keys(prParsed).sort();
+    if(!months.length){toast('ไม่พบตารางข้อมูล PR ในไฟล์ (ต้องมีหัวคอลัมน์ PR#)','⚠️','error');return;}
+    document.getElementById('pr-import-months').innerHTML=months.map(mk=>{
+      const rows=prParsed[mk];const c={completed:0,onprocess:0,pending:0,cancelled:0};
+      rows.forEach(r=>c[prNormStatus(r.status_raw)]++);
+      return `<label class="prt-imp-row"><input type="checkbox" class="pr-imp-chk" value="${mk}" checked> <b>${prMonthLabel(mk)}</b><span class="cnt">${rows.length.toLocaleString()} รายการ · ✅${c.completed} 🔄${c.onprocess} ⏳${c.pending} ❌${c.cancelled}</span></label>`;
+    }).join('');
+    document.getElementById('pr-import-preview').style.display='block';
+  }catch(e){toast('อ่านไฟล์ไม่สำเร็จ: '+e.message,'⚠️','error');}
+}
+function prParseWorkbook(wb){
+  const out={};
+  wb.SheetNames.forEach(name=>{
+    const aoa=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:false,defval:''});
+    let hdr=-1,cols=null;
+    for(let i=0;i<Math.min(aoa.length,25);i++){
+      const row=(aoa[i]||[]).map(v=>String(v).trim());
+      if(row.indexOf('PR#')>=0){hdr=i;cols=row;break;}
+    }
+    if(hdr<0)return;
+    const ix=n=>cols.findIndex(v=>v.toLowerCase()===n.toLowerCase());
+    const iPr=cols.indexOf('PR#');
+    let iSt=ix('Status');if(iSt<0)iSt=iPr+1;
+    const iDate0=ix('Date'),iDate=iDate0>=0?iDate0:1;
+    const iDep=ix('Department'),iStore=ix('Store'),iCode=ix('CODE'),iName=ix('Stock Name'),iOrd=ix('Order'),iLast=ix('Last Purchase');
+    const iSup=cols.findIndex(v=>v.toLowerCase().indexOf('supplier')>=0);
+    const monthCount={},rows=[];
+    for(let i=hdr+1;i<aoa.length;i++){
+      const r=aoa[i]||[];
+      const pr=String(r[iPr]||'').trim();
+      if(!pr)continue;
+      const m=pr.match(/^(\d{2})(\d{2})-/);
+      const mk=m?('20'+m[1]+'-'+m[2]):'';
+      if(mk)monthCount[mk]=(monthCount[mk]||0)+1;
+      rows.push({month_key:mk,item_date:String(r[iDate]||'').trim(),department:String(iDep>=0?r[iDep]||'':'').trim(),store:String(iStore>=0?r[iStore]||'':'').trim(),pr_no:pr,status_raw:String(r[iSt]||'').trim(),code:String(iCode>=0?r[iCode]||'':'').trim(),stock_name:String(iName>=0?r[iName]||'':'').trim(),order_qty:String(iOrd>=0?r[iOrd]||'':'').trim(),last_purchase:String(iLast>=0?r[iLast]||'':'').trim(),supplier:String(iSup>=0?r[iSup]||'':'').trim()});
+    }
+    const dom=Object.keys(monthCount).sort((a,b)=>monthCount[b]-monthCount[a])[0]||'';
+    rows.forEach(r=>{
+      if(!r.month_key)r.month_key=dom;
+      if(!r.month_key)return;
+      (out[r.month_key]=out[r.month_key]||[]).push(r);
+    });
+  });
+  return out;
+}
+async function prDoImport(){
+  if(!prParsed)return;
+  const months=[...document.querySelectorAll('.pr-imp-chk:checked')].map(c=>c.value);
+  if(!months.length){toast('เลือกอย่างน้อย 1 เดือน','⚠️','error');return;}
+  let rows=[];months.forEach(mk=>rows=rows.concat(prParsed[mk]));
+  const chunks=[];for(let i=0;i<rows.length;i+=400)chunks.push(rows.slice(i,i+400));
+  const go=document.getElementById('pr-imp-go');go.disabled=true;
+  document.getElementById('pr-import-progress').style.display='block';
+  try{
+    for(let i=0;i<chunks.length;i++){
+      const r=await prApi({action:'pr_import',access_token:authToken(),rows:chunks[i],first_chunk:i===0,replace_months:months});
+      if(!r.success)throw new Error(r.error||('chunk '+(i+1)));
+      const pct=Math.round((i+1)*100/chunks.length);
+      document.getElementById('pr-imp-pct').textContent=pct+'% ('+((i+1)*400>rows.length?rows.length:(i+1)*400).toLocaleString()+'/'+rows.length.toLocaleString()+')';
+      document.getElementById('pr-imp-fill').style.width=pct+'%';
+    }
+    toast('นำเข้าสำเร็จ '+rows.length.toLocaleString()+' รายการ ('+months.length+' เดือน)','✅');
+    closeM('m-pr-import');
+    prMonth=months[months.length-1];
+    prRefresh();
+  }catch(e){
+    toast('นำเข้าไม่สำเร็จ: '+e.message+' — ข้อมูลเดือนที่เลือกอาจไม่ครบ กดนำเข้าซ้ำได้เลย','⚠️','error');
+    go.disabled=false;
+  }
+}
+
+/* ===== พิมพ์สรุป ===== */
+function prPrint(){
+  const box=document.getElementById('pr-print');
+  const now=new Date();
+  const dts=('0'+now.getDate()).slice(-2)+'/'+('0'+(now.getMonth()+1)).slice(-2)+'/'+(now.getFullYear()+543)+' '+('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+  const kb=(n,l)=>`<div class="kbox"><b>${Number(n).toLocaleString()}</b><span>${l}</span></div>`;
+  if(prMode==='year'&&prSummary){
+    const months=Object.keys(prSummary).sort();
+    const tot={items:0,prs:0,completed:0,onprocess:0,pending:0,cancelled:0};
+    months.forEach(mk=>{const m=prSummary[mk];Object.keys(tot).forEach(k=>tot[k]+=(m[k]||0));});
+    let tbl=`<table><thead><tr><th></th>${months.map(mk=>`<th>${prMonthShort(mk)}</th>`).join('')}<th>รวม</th></tr></thead><tbody>`;
+    const line=(l,k)=>`<tr><td>${l}</td>${months.map(mk=>`<td style="text-align:center">${(prSummary[mk][k]||0).toLocaleString()}</td>`).join('')}<td style="text-align:center;font-weight:700">${tot[k].toLocaleString()}</td></tr>`;
+    tbl+=line('จำนวนรายการ ITEM','items')+line('จำนวนใบ PR','prs')+line('Completed','completed')+line('Onprocess','onprocess')+line('Pending','pending')+line('ยกเลิก','cancelled');
+    tbl+=`<tr><td>คงค้าง (Onprocess+Pending)</td>${months.map(mk=>{const m=prSummary[mk];return `<td style="text-align:center">${((m.onprocess||0)+(m.pending||0)).toLocaleString()}</td>`;}).join('')}<td style="text-align:center;font-weight:700">${(tot.onprocess+tot.pending).toLocaleString()}</td></tr>`;
+    tbl+=`<tr><td>ความก้าวหน้า</td>${months.map(mk=>{const m=prSummary[mk];const d=(m.items||0)-(m.cancelled||0);return `<td style="text-align:center">${d>0?Math.round((m.completed||0)*100/d):0}%</td>`;}).join('')}<td style="text-align:center;font-weight:700">${(tot.items-tot.cancelled)>0?Math.round(tot.completed*100/(tot.items-tot.cancelled)):0}%</td></tr></tbody></table>`;
+    box.innerHTML=`<h1>🛒 สรุปสถานะ PR จัดซื้อ — ภาพรวมทั้งปี</h1><div class="sub">Santhiya Koh Yao Yai (SYY) · SYY Service Hub</div>
+      ${kb(tot.items,'รายการทั้งหมด')}${kb(tot.prs,'จำนวนใบ PR')}${kb(tot.completed,'Completed')}${kb(tot.onprocess,'Onprocess')}${kb(tot.pending,'Pending')}${kb(tot.cancelled,'ยกเลิก')}
+      ${tbl}<div class="foot"><span>พิมพ์เมื่อ ${dts}</span><span>SYY Service Hub — PR Tracker</span></div>`;
+  }else{
+    const c=prCounts(prRows);
+    const denom=c.items-c.cancelled;const pct=denom>0?Math.round(c.completed*100/denom):0;
+    const open=prRows.filter(r=>r.status==='pending'||r.status==='onprocess');
+    const byDept={};open.forEach(r=>{(byDept[r.department||'ไม่ระบุแผนก']=byDept[r.department||'ไม่ระบุแผนก']||[]).push(r);});
+    let tbl='<table><thead><tr><th style="width:64px">วันที่</th><th style="width:70px">PR#</th><th style="width:62px">รหัส</th><th>รายการ</th><th style="width:44px">จำนวน</th><th style="width:72px">สถานะ</th><th>Supplier</th><th>หมายเหตุ</th></tr></thead><tbody>';
+    Object.keys(byDept).sort().forEach(d=>{
+      tbl+=`<tr><td class="dept-h" colspan="8">🏢 ${prEsc(d)} — คงค้าง ${byDept[d].length} รายการ</td></tr>`;
+      byDept[d].forEach(r=>{
+        tbl+=`<tr><td>${prEsc(String(r.item_date).split(' ')[0])}</td><td>${prEsc(r.pr_no)}</td><td>${prEsc(r.code)}</td><td>${prEsc(r.stock_name)}</td><td style="text-align:right">${prEsc(r.order_qty)}</td><td>${r.status==='onprocess'?'Onprocess':'Pending'}</td><td>${prEsc(String(r.supplier).substring(0,34))}</td><td>${prEsc(r.note)}</td></tr>`;
+      });
+    });
+    tbl+='</tbody></table>';
+    box.innerHTML=`<h1>🛒 สรุปสถานะ PR จัดซื้อ — ${prEsc(prMonthLabel(prMonth))}</h1><div class="sub">Santhiya Koh Yao Yai (SYY) · SYY Service Hub</div>
+      ${kb(c.items,'รายการทั้งหมด')}${kb(c.prs,'จำนวนใบ PR')}${kb(c.completed,'Completed')}${kb(c.onprocess,'Onprocess')}${kb(c.pending,'Pending')}${kb(c.cancelled,'ยกเลิก')}${kb(pct+'%','ความก้าวหน้า')}
+      <div style="font-size:11px;font-weight:700;margin-top:8px">📌 รายการคงค้าง (Onprocess + Pending) รวม ${open.length.toLocaleString()} รายการ แยกตามแผนก</div>
+      ${open.length?tbl:'<div style="font-size:11px;color:#16A34A;margin-top:6px">🎉 ไม่มีรายการคงค้างในเดือนนี้</div>'}
+      <div class="foot"><span>พิมพ์เมื่อ ${dts}</span><span>SYY Service Hub — PR Tracker</span></div>`;
+  }
+  document.body.classList.add('print-pr');
+  const cleanup=()=>{document.body.classList.remove('print-pr');window.removeEventListener('afterprint',cleanup);};
+  window.addEventListener('afterprint',cleanup);
+  setTimeout(()=>window.print(),80);
+}
+</script>
+
 </body>
 </html>
