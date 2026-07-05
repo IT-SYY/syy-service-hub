@@ -4955,7 +4955,7 @@ function compressToDataURL(file){
     const w=Math.max(1,Math.round(sw*sc)), h=Math.max(1,Math.round(sh*sc));
     const c=document.createElement('canvas'); c.width=w; c.height=h;
     const ctx=c.getContext('2d');
-    ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);  // พื้นขาว กัน PNG โปร่งใส/snapshot กลายเป็นดำ
+    ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);  // สีพื้นขาว กัน PNG โปร่งใส/snapshot กลายเป็นดำ
     ctx.drawImage(source,0,0,w,h);
     return c.toDataURL('image/jpeg',Q);
   }
