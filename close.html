@@ -50,6 +50,16 @@
   .pv-wrap img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1.5px solid var(--border);}
   .pv-x{position:absolute;top:-7px;right:-7px;width:21px;height:21px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:12px;cursor:pointer;line-height:1;}
   .footer-bar{position:fixed;left:0;right:0;bottom:0;background:white;border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:50;display:flex;gap:10px;}
+  /* แถบนำทาง section แบบ pill สไลด์แนวนอนได้ (sticky ใต้ header) */
+  .secnav{position:sticky;top:0;z-index:40;background:rgba(255,255,255,0.97);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);}
+  .secnav-track{display:flex;gap:8px;overflow-x:auto;padding:10px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .secnav-track::-webkit-scrollbar{display:none;}
+  .secpill{flex:0 0 auto;padding:9px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-muted);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer;transition:all .15s;}
+  .secpill.active{background:var(--green);border-color:var(--green);color:#fff;transform:scale(1.03);}
+  .secpill:active{transform:scale(0.96);}
+  .scroll-hint{display:flex;align-items:center;justify-content:center;gap:6px;background:#FFF7ED;border:1px solid #FED7AA;color:#C2410C;font-size:12.5px;font-weight:600;border-radius:10px;padding:9px 12px;margin-bottom:12px;transition:opacity .3s;}
+  .scroll-hint.hide{display:none;}
+  @keyframes pillFlash{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0);}50%{box-shadow:0 0 0 5px rgba(245,158,11,0.45);}}
   .btn-foot-update{flex:1.6;padding:15px 8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:15px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;transition:all .15s;}
   .btn-foot-update:disabled{background:#9CA3AF;}
   .btn-foot-update:active{transform:scale(0.98);}
@@ -92,13 +102,23 @@
   </div>
 </div></div>
 
+<div class="secnav" id="secnav">
+  <div class="secnav-track" id="secnav-track">
+    <button class="secpill active" data-sec="sec-1" onclick="goSec('sec-1')">1 · เลือกงาน</button>
+    <button class="secpill" data-sec="sec-2" onclick="goSec('sec-2')">2 · ความคืบหน้า</button>
+    <button class="secpill" data-sec="sec-3" onclick="goSec('sec-3')">3 · ผลการซ่อม</button>
+    <button class="secpill" data-sec="sec-4" onclick="goSec('sec-4')">4 · รูป</button>
+  </div>
+</div>
+
 <div class="content">
-  <div class="card">
+  <div class="scroll-hint" id="scroll-hint">⬇️ เลื่อนลงเพื่อกรอกความคืบหน้า / แนบรูป ก่อนกดปุ่มด้านล่าง</div>
+  <div class="card" id="sec-1">
     <div class="card-title"><span>1</span>เลือกงานที่ต้องการอัปเดต/ปิด</div>
     <div id="tk-list" class="tk-list"><div class="loading">⏳ กำลังโหลดรายการงาน...</div></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="sec-2">
     <div class="card-title"><span>2</span>ความคืบหน้างาน <span class="opt">(กรณียังไม่เสร็จ)</span></div>
     <div class="field">
       <label>เปอร์เซ็นต์ความคืบหน้า: <strong id="pct-label" style="color:var(--green)">0%</strong></label>
@@ -118,7 +138,7 @@
     <button class="btn-update" id="btn-update" onclick="submitProgress()">📊 บันทึกความคืบหน้า (ยังไม่ปิดงาน)</button>
   </div>
 
-  <div class="card">
+  <div class="card" id="sec-3">
     <div class="card-title"><span>3</span>ผลการซ่อม / คอมเม้น <span class="opt">(กรณีปิดงาน)</span></div>
     <div class="field">
       <label>หมายเหตุการซ่อม <span class="opt">(แนะนำให้กรอก)</span></label>
@@ -126,7 +146,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="sec-4">
     <div class="card-title"><span>4</span>รูปหลังปิดงาน <span style="background:none;color:var(--text-muted);font-weight:400;font-size:12px;width:auto;height:auto">(ไม่บังคับ สูงสุด 3 รูป)</span></div>
     <input type="file" id="photos" accept="image/*" multiple style="display:none" onchange="pickPhotos(this)">
     <button type="button" class="photo-btn" onclick="document.getElementById('photos').click()">📷 แตะเพื่อถ่ายรูป / เลือกรูป</button>
@@ -262,6 +282,10 @@ function selectTicket(id){
   const t=openTickets.find(function(x){return x.ticket_id===id;});
   const cur=t&&t.progress?parseInt(t.progress,10):0;
   setPct(isFinite(cur)?cur:0);
+  // บอกใบ้ว่ายังมีขั้นต่อไป: ไฮไลต์ pill "ความคืบหน้า" ชั่วครู่ + ซ่อน hint
+  var h=document.getElementById('scroll-hint'); if(h) h.classList.remove('hide');
+  var p2=document.querySelector('.secpill[data-sec="sec-2"]');
+  if(p2){ p2.style.animation='pillFlash 1s ease 2'; setTimeout(function(){ if(p2) p2.style.animation=''; },2100); }
 }
 var PCT_OPTIONS=[10,25,50,75,90];
 function renderPctButtons(){
@@ -477,6 +501,35 @@ function closeApp(){
   if(liff.isInClient()) liff.closeWindow();
   else document.getElementById('success').classList.remove('show');
 }
+
+/* ===== แถบนำทาง section: กระโดด + ไฮไลต์ตามการเลื่อน + hint ===== */
+function goSec(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const nav=document.getElementById('secnav');
+  const y=el.getBoundingClientRect().top+window.scrollY-(nav?nav.offsetHeight:0)-10;
+  window.scrollTo({top:y,behavior:'smooth'});
+}
+function setActivePill(id){
+  document.querySelectorAll('.secpill').forEach(function(p){
+    const on=p.getAttribute('data-sec')===id;
+    p.classList.toggle('active',on);
+    if(on){ const tr=document.getElementById('secnav-track'); if(tr) tr.scrollTo({left:p.offsetLeft-16,behavior:'smooth'}); }
+  });
+}
+(function initSecNav(){
+  var hintHidden=false;
+  function onScroll(){
+    if(!hintHidden && window.scrollY>60){ var h=document.getElementById('scroll-hint'); if(h){ h.classList.add('hide'); hintHidden=true; } }
+    var nav=document.getElementById('secnav');
+    var offset=(nav?nav.offsetHeight:0)+60;
+    var ids=['sec-1','sec-2','sec-3','sec-4'], cur='sec-1';
+    for(var i=0;i<ids.length;i++){ var el=document.getElementById(ids[i]); if(el && el.getBoundingClientRect().top<=offset) cur=ids[i]; }
+    setActivePill(cur);
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  document.addEventListener('DOMContentLoaded',onScroll);
+})();
 </script>
 </body>
 </html>
