@@ -3215,7 +3215,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 .prt-sel{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:'Prompt',sans-serif;font-size:11.5px;max-width:260px;}
 .prt-search{flex:1;min-width:180px;padding:7px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:'Prompt',sans-serif;font-size:11.5px;}
 .prt-tablewrap{overflow-x:auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);}
-.prt-table{width:100%;border-collapse:collapse;font-size:11px;min-width:900px;}
+.prt-table{width:100%;border-collapse:collapse;font-size:11px;min-width:1000px;}
 .prt-table th{position:sticky;top:0;background:var(--bg3);color:var(--text2);text-align:left;padding:8px 9px;font-weight:600;white-space:nowrap;border-bottom:1px solid var(--border);}
 .prt-table td{padding:6px 9px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
 .prt-table tbody tr:hover{background:var(--bg3);}
@@ -3656,6 +3656,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
           <thead><tr>
             <th data-th="วันที่" data-en="Date">วันที่</th><th data-th="แผนก" data-en="Department">แผนก</th><th>Store</th><th>PR#</th>
             <th data-th="รหัส" data-en="Code">รหัส</th><th data-th="รายการ" data-en="Item">รายการ</th><th data-th="จำนวน" data-en="Qty">จำนวน</th>
+            <th data-th="ราคาซื้อล่าสุด" data-en="Last Purchase">ราคาซื้อล่าสุด</th>
             <th data-th="สถานะ" data-en="Status">สถานะ</th><th>Supplier</th><th data-th="หมายเหตุ" data-en="Note">หมายเหตุ</th>
           </tr></thead>
           <tbody id="pr-tbody"></tbody>
@@ -8466,7 +8467,7 @@ function prFiltered(){
     if(prFilter.status!=='all'&&r.status!==prFilter.status)return false;
     if(prFilter.dept!=='all'&&r.department!==prFilter.dept)return false;
     if(prFilter.q){
-      const hay=(r.pr_no+' '+r.code+' '+r.stock_name+' '+r.supplier+' '+r.department+' '+r.note).toLowerCase();
+      const hay=(r.pr_no+' '+r.code+' '+r.stock_name+' '+r.supplier+' '+r.department+' '+r.last_purchase+' '+r.note).toLowerCase();
       if(hay.indexOf(prFilter.q)<0)return false;
     }
     return true;
@@ -8478,7 +8479,7 @@ function prRenderTable(){
   if(prPage>totalPages)prPage=totalPages;
   const page=rows.slice((prPage-1)*PR_PAGE_SIZE,prPage*PR_PAGE_SIZE);
   const tb=document.getElementById('pr-tbody');
-  if(!page.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px">— ไม่พบรายการตามเงื่อนไข —</td></tr>';}
+  if(!page.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:24px">— ไม่พบรายการตามเงื่อนไข —</td></tr>';}
   else tb.innerHTML=page.map(r=>{
     const raw=r.status_raw&&prNormStatus(r.status_raw)!==r.status_raw.toLowerCase()?` title="สถานะเดิมในไฟล์: ${prEsc(r.status_raw)}"`:'';
     return `<tr>
@@ -8487,6 +8488,7 @@ function prRenderTable(){
       <td style="font-family:'JetBrains Mono',monospace;white-space:nowrap">${prEsc(r.pr_no)}</td>
       <td style="font-family:'JetBrains Mono',monospace">${prEsc(r.code)}</td>
       <td>${prEsc(r.stock_name)}</td><td style="text-align:right">${prEsc(r.order_qty)}</td>
+      <td style="text-align:right;white-space:nowrap;font-family:'JetBrains Mono',monospace">${prEsc(r.last_purchase)}</td>
       <td><span class="prt-badge ${r.status}"${raw} onclick="prOpenEdit('${prEsc(r.item_id)}')">${PR_ST_LBL[r.status]||r.status}</span></td>
       <td style="font-size:10px;color:var(--text3)">${prEsc(String(r.supplier).substring(0,40))}</td>
       <td style="font-size:10px">${prEsc(r.note)}</td>
@@ -8541,7 +8543,12 @@ function prOpenEdit(itemId){
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
   const r=prRows.find(x=>x.item_id===itemId);if(!r)return;
   prEditRow=r;
-  document.getElementById('pr-edit-info').innerHTML=`<b>${prEsc(r.pr_no)}</b> · ${prEsc(r.stock_name)}<br><span style="font-size:10px">${prEsc(r.department)} · ${prEsc(r.store)}${r.status_raw?' · สถานะเดิม: '+prEsc(r.status_raw):''}</span>`;
+  document.getElementById('pr-edit-info').innerHTML=`<b>${prEsc(r.pr_no)}</b> · ${prEsc(r.stock_name)}<br><span style="font-size:10px">${prEsc(r.department)} · ${prEsc(r.store)}${r.status_raw?' · สถานะเดิม: '+prEsc(r.status_raw):''}</span>`+
+    `<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:5px">`+
+    (r.order_qty?`<span style="font-size:10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 7px">จำนวน: <b>${prEsc(r.order_qty)}</b></span>`:'')+
+    (r.last_purchase?`<span style="font-size:10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 7px">ราคาซื้อล่าสุด: <b>${prEsc(r.last_purchase)}</b></span>`:'')+
+    (r.supplier?`<span style="font-size:10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 7px">Supplier: ${prEsc(String(r.supplier).substring(0,30))}</span>`:'')+
+    `</div>`;
   document.getElementById('pr-edit-status').value=r.status||'pending';
   document.getElementById('pr-edit-note').value=r.note||'';
   document.getElementById('m-pr-edit').classList.add('show');
@@ -8701,11 +8708,11 @@ function prPrint(){
     const denom=c.items-c.cancelled;const pct=denom>0?Math.round(c.completed*100/denom):0;
     const open=prRows.filter(r=>r.status==='pending'||r.status==='onprocess');
     const byDept={};open.forEach(r=>{(byDept[r.department||'ไม่ระบุแผนก']=byDept[r.department||'ไม่ระบุแผนก']||[]).push(r);});
-    let tbl='<table><thead><tr><th style="width:64px">วันที่</th><th style="width:70px">PR#</th><th style="width:62px">รหัส</th><th>รายการ</th><th style="width:44px">จำนวน</th><th style="width:72px">สถานะ</th><th>Supplier</th><th>หมายเหตุ</th></tr></thead><tbody>';
+    let tbl='<table><thead><tr><th style="width:60px">วันที่</th><th style="width:66px">PR#</th><th style="width:58px">รหัส</th><th>รายการ</th><th style="width:40px">จำนวน</th><th style="width:66px">ราคาซื้อล่าสุด</th><th style="width:70px">สถานะ</th><th>Supplier</th><th>หมายเหตุ</th></tr></thead><tbody>';
     Object.keys(byDept).sort().forEach(d=>{
-      tbl+=`<tr><td class="dept-h" colspan="8">🏢 ${prEsc(d)} — คงค้าง ${byDept[d].length} รายการ</td></tr>`;
+      tbl+=`<tr><td class="dept-h" colspan="9">🏢 ${prEsc(d)} — คงค้าง ${byDept[d].length} รายการ</td></tr>`;
       byDept[d].forEach(r=>{
-        tbl+=`<tr><td>${prEsc(String(r.item_date).split(' ')[0])}</td><td>${prEsc(r.pr_no)}</td><td>${prEsc(r.code)}</td><td>${prEsc(r.stock_name)}</td><td style="text-align:right">${prEsc(r.order_qty)}</td><td>${r.status==='onprocess'?'Onprocess':'Pending'}</td><td>${prEsc(String(r.supplier).substring(0,34))}</td><td>${prEsc(r.note)}</td></tr>`;
+        tbl+=`<tr><td>${prEsc(String(r.item_date).split(' ')[0])}</td><td>${prEsc(r.pr_no)}</td><td>${prEsc(r.code)}</td><td>${prEsc(r.stock_name)}</td><td style="text-align:right">${prEsc(r.order_qty)}</td><td style="text-align:right">${prEsc(r.last_purchase)}</td><td>${r.status==='onprocess'?'Onprocess':'Pending'}</td><td>${prEsc(String(r.supplier).substring(0,34))}</td><td>${prEsc(r.note)}</td></tr>`;
       });
     });
     tbl+='</tbody></table>';
