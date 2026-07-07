@@ -3443,6 +3443,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <span id="role-badge"></span>
     <span class="viewer-note">👁 ดูอย่างเดียว</span>
     <div class="topbar-actions">
+      <button class="btn-tb" id="scope-btn" onclick="toggleScope()" style="display:none" title="สลับมุมมองแผนก"></button>
       <button class="btn-tb" onclick="loadData()" title="รีเฟรช">↻<span class="btn-tb-txt"> Refresh</span></button>
       <button class="btn-tb" id="theme-btn" onclick="toggleTheme()" title="สลับธีม">🌙</button>
       <button class="btn-tb" id="tv-btn" onclick="toggleTV()" title="โหมดทีวี">📺</button>
@@ -4711,6 +4712,8 @@ document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElemen
 let currentUser=null;       // {userId,name,role}
 let userRole='viewer';
 let userBranches=[];   // สาขาที่ผู้ใช้ดูแล (ว่าง=admin เห็นทุกสาขา / tech ที่ไม่ระบุ=เห็นทุกสาขา)
+let userTeams=[];      // แผนก/ทีมที่ผู้ใช้ดูแล (ว่าง=เห็นทุกทีม / ระบุ=เห็นเฉพาะทีมนั้นเป็นตั้งต้น)
+let scopeAll=false;    // true=ดูทุกแผนก/ทุกสาขา (override ชั่วคราว), false=โฟกัสแผนก/สาขาตัวเอง
 let currentBranch='all';
 let viewWorkType='repair';   // มุมมองปัจจุบัน: repair=งานซ่อมบำรุง / project=งานโครงการ
 let inboxMode=false;          // โหมดงานรอมอบหมายทั้งหมด (รวมทุกประเภท เฉพาะ pending/assigned)
@@ -4911,27 +4914,30 @@ function copyUserId(){
 // อ่านแท็บ USERS: คอลัมน์ A=userId, B=name, C=role, D=active
 async function lookupRole(userId){
   try{
-    const r=await fetch(`${BASE}/USERS!A2:E200?key=${API_KEY}`);
+    const r=await fetch(`${BASE}/USERS!A2:F200?key=${API_KEY}`);
     const d=await r.json();
     const rows=d.values||[];
     for(const row of rows){
       if((row[0]||'').trim()===userId){
         const active=(row[3]===undefined||String(row[3]).toLowerCase()!=='false');
         const branches=(row[4]||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
-        if(!active) return {role:'viewer', found:true, branches:branches};
+        const teams=(row[5]||'').split(',').map(x=>x.trim()).filter(Boolean);
+        if(!active) return {role:'viewer', found:true, branches:branches, teams:teams};
         const role=(row[2]||'viewer').trim().toLowerCase();
-        return {role:['admin','tech','viewer'].includes(role)?role:'viewer', found:true, branches:branches};
+        return {role:['admin','tech','viewer'].includes(role)?role:'viewer', found:true, branches:branches, teams:teams};
       }
     }
-    return {role:'viewer', found:false, branches:[]}; // โหลดรายชื่อได้ แต่ไม่พบ userId นี้จริง
+    return {role:'viewer', found:false, branches:[], teams:[]}; // โหลดรายชื่อได้ แต่ไม่พบ userId นี้จริง
   }catch(e){
     /* silent: lookupRole error */
     return {netError:true, found:false}; // โหลดรายชื่อไม่ได้ (เน็ตสะดุด) — ให้ผู้เรียกลองใหม่ ไม่ใช่ตัดสินว่าไม่มีสิทธิ์
   }
 }
 function enterAs(user, degraded){
-  currentUser=user; userRole=user.role; userBranches=user.branches||[];
+  currentUser=user; userRole=user.role; userBranches=user.branches||[]; userTeams=user.teams||[];
   buildBranchFilter();
+  buildTeamFilter();
+  updateScopeBtn();
   loadMembers();
   loadLeaves();
   updateEngineeringMenu();
@@ -5461,8 +5467,18 @@ function filterByWorkType(wtype){
 function passesScope_(t, myName){
   myName = myName!==undefined ? myName : ((currentUser&&currentUser.name)||'');
   const sec=String(t.assigned_secondary||'');
-  const assignedToMe = userBranches.length>0 && myName && (t.assigned_to===myName || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0);
-  if(!assignedToMe && userBranches.length>0 && t.branch && userBranches.indexOf(String(t.branch).toUpperCase())<0) return false;
+  const assignedToMe = myName && (t.assigned_to===myName || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0);
+  // งานที่มอบหมายให้เราเอง เห็นได้เสมอ (แม้ข้ามสาขา/แผนกที่ดูแล)
+  // scopeAll=true → ดูทุกแผนก/ทุกสาขา ข้ามการกรองส่วนตัว (แต่ยังเคารพ dropdown ที่เลือกเอง)
+  if(!assignedToMe && !scopeAll){
+    // กรองตามสาขาที่ดูแล (ถ้าระบุ)
+    if(userBranches.length>0 && t.branch && userBranches.indexOf(String(t.branch).toUpperCase())<0) return false;
+    // กรองตามแผนก/ทีมที่ดูแล (ถ้าระบุ) — เห็นเฉพาะงานของทีมตัวเองเป็นตั้งต้น
+    if(userTeams.length>0){
+      const tteam=String(t.team||t.department||'');
+      if(userTeams.indexOf(tteam)<0) return false;
+    }
+  }
   if(currentBranch!=='all' && String(t.branch||'').toUpperCase()!==currentBranch) return false;
   if(!(currentTeam==='all'||t.team===currentTeam||t.department===currentTeam)) return false;
   return true;
@@ -5482,12 +5498,59 @@ function buildBranchFilter(){
   const sel=document.getElementById('branch-filter');
   if(!sel) return;
   const all=['STY','SYY','SPN','SNT','SKC'];
-  const list=(userBranches.length>0)?all.filter(b=>userBranches.indexOf(b)>=0):all;
-  let html='<option value="all">'+(userBranches.length>0?'ทุกสาขาที่ดูแล':'ทุกสาขา')+'</option>';
+  const limited=(userBranches.length>0 && !scopeAll);
+  const list=limited?all.filter(b=>userBranches.indexOf(b)>=0):all;
+  let html='<option value="all">'+(limited?'ทุกสาขาที่ดูแล':'ทุกสาขา')+'</option>';
   list.forEach(b=>{ html+='<option value="'+b+'">'+b+'</option>'; });
   sel.innerHTML=html;
 }
 function onBranch(){ currentBranch=document.getElementById('branch-filter').value; renderAll(); }
+// ปุ่มสลับ "ดูทุกแผนก / กลับมาแผนกฉัน" — แสดงเฉพาะผู้ใช้ที่ถูกจำกัดขอบเขต
+function hasScopeLimit(){ return userTeams.length>0 || userBranches.length>0; }
+function updateScopeBtn(){
+  const btn=document.getElementById('scope-btn');
+  if(!btn) return;
+  if(!hasScopeLimit()){ btn.style.display='none'; return; }  // admin/ไม่จำกัด ไม่ต้องมีปุ่ม
+  btn.style.display='inline-flex';
+  if(scopeAll){
+    btn.innerHTML='👥<span class="btn-tb-txt"> กลับมาแผนกฉัน</span>';
+    btn.title='กำลังดูทุกแผนก — กดเพื่อกลับมาดูเฉพาะแผนก/สาขาที่รับผิดชอบ';
+    btn.style.background='var(--purple,#7C3AED)'; btn.style.color='#fff';
+  }else{
+    btn.innerHTML='🌐<span class="btn-tb-txt"> ดูทุกแผนก</span>';
+    btn.title='กำลังดูเฉพาะแผนก/สาขาที่รับผิดชอบ — กดเพื่อดูภาพรวมทุกแผนก';
+    btn.style.background=''; btn.style.color='';
+  }
+}
+function toggleScope(){
+  scopeAll=!scopeAll;
+  // รีเซ็ต dropdown กลับ "ทั้งหมด" เมื่อเปิดดูทุกแผนก เพื่อเห็นภาพรวมจริง
+  if(scopeAll){
+    currentTeam='all'; currentBranch='all';
+    var tf=document.getElementById('team-filter'); if(tf) tf.value='all';
+    var bf=document.getElementById('branch-filter'); if(bf) bf.value='all';
+  }else{
+    // กลับมาโฟกัสแผนกตัวเอง — ถ้าดูแลแผนกเดียวตั้งให้เลย
+    if(userTeams.length===1){ currentTeam=userTeams[0]; var tf2=document.getElementById('team-filter'); if(tf2) tf2.value=userTeams[0]; }
+  }
+  buildBranchFilter(); buildTeamFilter();
+  updateScopeBtn();
+  renderAll();
+  toast(scopeAll?L('🌐 แสดงงานทุกแผนกทุกสาขา','🌐 Showing all departments'):L('👥 กลับมาดูเฉพาะแผนก/สาขาของคุณ','👥 Back to your scope'),scopeAll?'🌐':'👥','info');
+}
+// สร้างตัวเลือกทีมในตัวกรอง — ถ้าผู้ใช้ดูแลบางแผนก แสดงเฉพาะแผนกนั้น + ตั้งค่าเริ่มต้นเป็นแผนกตัวเอง
+function buildTeamFilter(){
+  const sel=document.getElementById('team-filter');
+  if(!sel) return;
+  const ALL_TEAMS=[['IT Support','IT Support'],['Engineering','Engineering'],['Landscape & Garden','L&G'],['Environment','Environment'],['Asset','Asset'],['Housekeeping','Housekeeping'],['F&B','F&B'],['Front Office','Front Office'],['จัดซื้อ','จัดซื้อ']];
+  const limited=(userTeams.length>0 && !scopeAll);
+  const list=limited?ALL_TEAMS.filter(t=>userTeams.indexOf(t[0])>=0):ALL_TEAMS;
+  let html='<option value="all">'+(limited?'ทุกทีมที่ดูแล':'ทุกทีม')+'</option>';
+  list.forEach(t=>{ html+='<option value="'+t[0]+'">'+t[1]+'</option>'; });
+  sel.innerHTML=html;
+  // ถ้าดูแลแผนกเดียวและไม่ได้เปิดดูทุกแผนก ตั้งเป็นค่าเริ่มต้นเลย
+  if(limited && userTeams.length===1){ sel.value=userTeams[0]; currentTeam=userTeams[0]; }
+}
 
 // ===== KPI =====
 function trendTag(cur, prev){
