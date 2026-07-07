@@ -2640,6 +2640,11 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-timer-warn{background:rgba(251,191,36,0.12);color:#FBBF24;border:1px solid rgba(251,191,36,0.35);}
 .kb-timer-danger{background:rgba(248,113,113,0.14);color:#F87171;border:1px solid rgba(248,113,113,0.4);font-weight:700;animation:blink 1.5s infinite;}
 .kb-timer-done{background:#F0FDF4;color:#059669;border:1px solid #A7F3D0;}
+.kb-eta{font-size:10px;font-weight:600;padding:4px 8px;border-radius:6px;margin-bottom:6px;margin-left:5px;display:inline-block;}
+.kb-eta-ok{background:#F5F3FF;color:#7C3AED;border:1px solid #DDD6FE;}
+.kb-eta-soon{background:rgba(245,158,11,0.13);color:#D97706;border:1px solid rgba(245,158,11,0.4);font-weight:700;}
+.kb-eta-over{background:rgba(220,38,38,0.14);color:#DC2626;border:1px solid rgba(220,38,38,0.45);font-weight:700;animation:blink 1.3s infinite;}
+.kb-card.eta-over-card{border-left-color:#DC2626 !important;box-shadow:0 0 0 1.5px rgba(220,38,38,0.25);}
 
 /* MEMBER FILTER BAR */
 .member-filter-bar{display:flex;align-items:center;margin-bottom:10px;}
@@ -3774,7 +3779,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
         <div id="recurring-body"></div>
       </div>
       <div class="report-card" id="sla-card" style="margin-top:10px">
-        <div class="report-ttl">🎯 SLA — อัตราปิดงานตรงเวลา <span style="font-weight:400;font-size:11px;color:var(--text3)">(เป้า: ฉุกเฉิน 1 ชม. / เร่งด่วน 4 ชม. / ปกติ 8 ชม.)</span></div>
+        <div class="report-ttl">🎯 SLA — อัตราปิดงานตรงเวลา <span style="font-weight:400;font-size:11px;color:var(--text3)">(เป้า: ฉุกเฉิน 1 ชม. / เร่งด่วน 2 ชม. / ปกติ 4 ชม. · นับจากช่างรับงาน)</span></div>
         <div id="sla-body"></div>
       </div>
       <div class="report-card" id="leaderboard-card" style="margin-top:10px">
@@ -3808,6 +3813,24 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     </div>
     <div class="modal-field"><label class="modal-lbl"><span data-th="ผู้รับรอง" data-en="Secondary Assignees">ผู้รับรอง</span> <span style="color:var(--text3);font-weight:400" data-th="(เพิ่มเติม ไม่บังคับ)" data-en="(optional)">(เพิ่มเติม ไม่บังคับ)</span></label>
       <div id="m-assign-secondary" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;background:var(--bg3);border-radius:8px;padding:8px"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl"><span data-th="⏱️ กรอบเวลาที่คาดว่าจะเสร็จ" data-en="⏱️ Expected time to finish">⏱️ กรอบเวลาที่คาดว่าจะเสร็จ</span> <span style="color:var(--text3);font-weight:400" data-th="(นับจากช่างกดรับงาน)" data-en="(from acceptance)">(นับจากช่างกดรับงาน)</span></label>
+      <select class="modal-sel" id="m-assign-eta" title="เลือกกรอบเวลา" onchange="onEtaChange()">
+        <option value="0" data-th="— ไม่กำหนด —" data-en="— None —">— ไม่กำหนด —</option>
+        <option value="30">30 นาที</option>
+        <option value="60">1 ชั่วโมง</option>
+        <option value="120">2 ชั่วโมง</option>
+        <option value="240">4 ชั่วโมง</option>
+        <option value="480" data-th="ครึ่งวัน (8 ชม.)" data-en="Half day (8h)">ครึ่งวัน (8 ชม.)</option>
+        <option value="custom" data-th="⌨️ กำหนดเอง..." data-en="⌨️ Custom...">⌨️ กำหนดเอง...</option>
+      </select>
+      <div id="m-assign-eta-custom" style="display:none;margin-top:8px;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" class="modal-sel" id="m-assign-eta-num" min="1" max="2880" step="1" style="width:110px" placeholder="เช่น 45" oninput="updateEtaCustomHint()">
+          <span style="font-size:12.5px;color:var(--text2)" data-th="นาที" data-en="minutes">นาที</span>
+          <span id="m-assign-eta-hint" style="font-size:11.5px;color:var(--text3)"></span>
+        </div>
+      </div>
     </div>
     <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="m-assign-note" data-th-ph="เช่น กุญแจห้องอยู่ที่ Reception..." data-en-ph="e.g. Room key at Reception..." placeholder="เช่น กุญแจห้องอยู่ที่ Reception..."></textarea></div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-assign')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="btn-ok green" id="btn-assign-ok" onclick="doAssign()" data-th="✅ ยืนยันมอบหมาย" data-en="✅ Confirm Assign">✅ ยืนยันมอบหมาย</button></div>
@@ -4707,7 +4730,7 @@ async function loadMembers(){
     })).filter(m=>m.name && m.active && (m.role==='admin'||m.role==='tech'));
     // ถ้าผู้ใช้เปิดหน้าทีมช่างอยู่ก่อนโหลดเสร็จ ให้รีเฟรชด้วยข้อมูลจริงทันที (กันเห็นรายชื่อค้าง/ว่างชั่วคราว)
     if(currentPage==='technicians') renderTechGrid();
-  }catch(e){ console.log('loadMembers error:',e); }
+  }catch(e){ /* silent: loadMembers */ }
 }
 
 // ===== วันหยุด / ลา ของช่าง =====
@@ -4724,7 +4747,7 @@ async function loadLeaves(){
     })).filter(x=>x.id&&x.member);
     const lm=document.getElementById('m-leaves');
     if(lm&&lm.classList.contains('show')) renderLeaveList();
-  }catch(e){ console.log('loadLeaves error:',e); }
+  }catch(e){ /* silent: loadLeaves */ }
 }
 function todayYMD(){ const n=new Date(),p=x=>String(x).padStart(2,'0'); return n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate()); }
 // คืนข้อมูลการลาถ้าช่างคนนี้หยุดในวันที่กำหนด (ค่าเริ่มต้น = วันนี้)
@@ -4821,7 +4844,7 @@ async function initAuth(){
     }
     await finishAuth();
   }catch(e){
-    console.log('LIFF init error:',e);
+    /* silent: LIFF init error */
     if(e && e.message==='liff_init_timeout'){
       // init ค้าง → ให้ผู้ใช้ลองใหม่ แทนที่จะค้างหน้าจอตลอด
       setStatus(L('เชื่อมต่อ LINE ช้า กรุณาลองใหม่','LINE connection slow, please retry'));
@@ -4856,7 +4879,7 @@ async function finishAuth(){
     enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[]}, false);
   }catch(e){
     // ตรวจสิทธิ์ล้ม (เช่นเน็ตสะดุด) → ไม่ค้างหน้าจอ ให้ลองใหม่ได้
-    console.log('finishAuth error:',e);
+    /* silent: finishAuth error */
     setStatus(L('ตรวจสอบสิทธิ์ไม่สำเร็จ กรุณาลองใหม่','Verification failed, please retry'));
     setLoginBtn(true, L('↻ ลองใหม่','↻ Retry'));
     document.getElementById('auth-btn').setAttribute('onclick','location.reload()');
@@ -4902,7 +4925,7 @@ async function lookupRole(userId){
     }
     return {role:'viewer', found:false, branches:[]}; // โหลดรายชื่อได้ แต่ไม่พบ userId นี้จริง
   }catch(e){
-    console.log('lookupRole error:',e);
+    /* silent: lookupRole error */
     return {netError:true, found:false}; // โหลดรายชื่อไม่ได้ (เน็ตสะดุด) — ให้ผู้เรียกลองใหม่ ไม่ใช่ตัดสินว่าไม่มีสิทธิ์
   }
 }
@@ -5122,7 +5145,7 @@ async function loadData(silent=false){
   if(!silent) document.getElementById('live-txt').textContent='กำลังโหลด...';
   try{
     // อ่านรวมหัวตาราง (แถว 1) เพื่อแมปตามชื่อคอลัมน์ — เพิ่ม/ย้ายคอลัมน์ได้โดยไม่พัง
-    const res=await fetch(`${BASE}/TICKETS!A1:AZ1000?key=${API_KEY}`);
+    const res=await fetch(`${BASE}/TICKETS!A1:AZ5000?key=${API_KEY}`);
     const d=await res.json();
     if(!d.values || d.values.length<2){tickets=[];renderAll();return;}
     const heads=d.values[0].map(h=>String(h||'').trim());
@@ -5173,6 +5196,7 @@ async function loadData(silent=false){
         groupId:      g(r,'groupId'),
         source:       g(r,'source'),
         accepted_at:  g(r,'accepted_at'),
+        eta_min:      parseInt(g(r,'eta_min'),10)||0,
         rejected_at:  g(r,'rejected_at'),
         rejected_by:  g(r,'rejected_by'),
         reject_reason:g(r,'reject_reason'),
@@ -5536,8 +5560,10 @@ function renderKPI(){
   document.getElementById('k-pending-sub').innerHTML=
     pAge!==null?`เก่าสุดค้างมา <span style="color:${pAge>=480?'var(--red)':'var(--text2)'};font-weight:600">${fmtDuration(pAge)}</span>`:'ไม่มีงานค้าง 🎉';
   const iAge=oldestAge(inprog);
+  const overdueCnt=b.filter(t=>t.status!=='done' && etaState(t).state==='overdue').length;
+  const overStr=overdueCnt>0?` · <span style="color:var(--red);font-weight:700">⛔ ${overdueCnt} ${L('เกินกรอบเวลา','overdue')}</span>`:'';
   document.getElementById('k-inprog-sub').innerHTML=
-    iAge!==null?`นานสุดทำมา <span style="color:var(--text2);font-weight:600">${fmtDuration(iAge)}</span>`:'ไม่มีงานกำลังทำ';
+    (iAge!==null?`นานสุดทำมา <span style="color:var(--text2);font-weight:600">${fmtDuration(iAge)}</span>`:'ไม่มีงานกำลังทำ')+overStr;
   document.getElementById('k-done-sub').innerHTML=
     `ปิดแล้ว ${doneThis} /สัปดาห์${trendTag(doneThis,donePrev)}`;
 }
@@ -5715,6 +5741,20 @@ function mkCard(t){
     timerHtml=`<div class="kb-timer kb-timer-done">✅ ${L('ใช้เวลา','Took')} ${fmtDuration(parseInt(t.completion_min))}</div>`;
   }
 
+  // ===== ETA badge: กรอบเวลาที่หัวหน้ากำหนด =====
+  let etaHtml='';
+  const es=etaState(t);
+  if(es.state==='overdue'){
+    etaHtml=`<div class="kb-eta kb-eta-over">⛔ ${L('เกินกรอบเวลา','Overdue')} ${etaLabel(es.eta)} · ${L('เกินมา','over by')} ${fmtDuration(-es.leftMin)}</div>`;
+  }else if(es.state==='soon'){
+    etaHtml=`<div class="kb-eta kb-eta-soon">⏳ ${L('ใกล้ครบกรอบ','Due soon')} ${etaLabel(es.eta)} · ${L('เหลือ','left')} ${fmtDuration(es.leftMin)}</div>`;
+  }else if(es.state==='ontrack'){
+    etaHtml=`<div class="kb-eta kb-eta-ok">🎯 ${L('กรอบเวลา','ETA')} ${etaLabel(es.eta)} · ${L('เหลือ','left')} ${fmtDuration(es.leftMin)}</div>`;
+  }else if(parseInt(t.eta_min,10)>0 && (t.status==='pending'||t.status==='assigned')){
+    etaHtml=`<div class="kb-eta kb-eta-ok">🎯 ${L('กรอบเวลา','ETA')} ${etaLabel(t.eta_min)} ${L('(เริ่มนับเมื่อรับงาน)','(starts on accept)')}</div>`;
+  }
+  timerHtml+=etaHtml;
+
   let btns='';
   if(t.status==='pending'){
     if(String(t.work_type).toLowerCase()==='claim')
@@ -5738,7 +5778,8 @@ function mkCard(t){
   btns+=`<button class="btn-view2" onclick="event.stopPropagation();openDetail('${t.ticket_id}')">${L('ดู','View')}</button>`;
 
   const sc=t.status==='pending'?'pending':t.status==='assigned'?'assigned':t.status==='in_progress'?'inprog':'done';
-  return `<div class="kb-card ${sc} ${t._new?'new-card':''}" style="border-left-color:${ticketColor(t)}" onclick="openDetail('${t.ticket_id}')">
+  const etaOverCls=(es.state==='overdue')?' eta-over-card':'';
+  return `<div class="kb-card ${sc} ${t._new?'new-card':''}${etaOverCls}" style="border-left-color:${ticketColor(t)}" onclick="openDetail('${t.ticket_id}')">
     <div class="kb-card-top">
       <span class="kb-id">${tid}</span>${newB}
       <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
@@ -6378,14 +6419,45 @@ function fmtDuration(min){
   return hh>0 ? d+' วัน '+hh+' ชม.' : d+' วัน';
 }
 
-// ===== SLA =====
-const SLA_TARGETS={high:60,med:240,low:480}; // นาที — ให้ตรงกับ Code.gs
+// ===== ETA: กรอบเวลาที่คาดว่าจะเสร็จ (หัวหน้ากำหนดตอน assign, นับจากตอนช่างกดรับงาน) =====
+const SLA_TARGETS={high:60,med:120,low:240}; // นาที — เป้า SLA (ตัดสินจากเวลาช่าง) ต้องตรงกับ Code.gs
+function etaLabel(min){
+  min=parseInt(min,10)||0;
+  if(!min) return '';
+  if(min<60) return min+' นาที';
+  if(min===480) return 'ครึ่งวัน';
+  var h=Math.floor(min/60), m=min%60;
+  return m>0 ? h+' ชม. '+m+' น.' : h+' ชม.';
+}
+// คืนสถานะเทียบกรอบเวลา: {state:'none'|'ontrack'|'soon'|'overdue', usedMin, leftMin}
+// นับจาก accepted_at (ถ้ายังไม่รับงานถือว่ายังไม่เริ่มจับเวลา) จนถึงตอนนี้ (หรือ resolved_at ถ้าปิดแล้ว)
+function etaState(t){
+  var eta=parseInt(t.eta_min,10)||0;
+  if(!eta) return {state:'none'};
+  var startStr=t.accepted_at||t.assigned_at;
+  if(!startStr) return {state:'none'};
+  var used;
+  if(t.status==='done' && t.completion_min!=='' && isFinite(Number(t.completion_min))){
+    used=Number(t.completion_min);
+  }else if(t.status==='done'){
+    return {state:'none'}; // ปิดแล้วแต่ไม่มีเวลา — ไม่ต้องแสดง
+  }else{
+    used=elapsedSince(startStr);
+  }
+  if(used===null) return {state:'none'};
+  var left=eta-used;
+  var state = left<0 ? 'overdue' : (left<=Math.max(10,eta*0.2) ? 'soon' : 'ontrack');
+  return {state:state, usedMin:used, leftMin:left, eta:eta};
+}
+
 function slaOf(t){
   if(t.status!=='done') return '';
   if(t.sla_status==='on_time'||t.sla_status==='late') return t.sla_status;
-  const d=Number(t.duration_min);
-  if(!isFinite(d)||d<=0) return '';
-  return d<=(SLA_TARGETS[t.priority]||SLA_TARGETS.low)?'on_time':'late';
+  // ตัดสินจาก "เวลาช่าง" (completion_min: ช่างรับ→ปิด) fallback เวลารวม (duration_min)
+  let j=Number(t.completion_min);
+  if(!isFinite(j)||j<=0) j=Number(t.duration_min);
+  if(!isFinite(j)||j<=0) return '';
+  return j<=(SLA_TARGETS[t.priority]||SLA_TARGETS.low)?'on_time':'late';
 }
 
 // แปลงค่านาที (จากคอลัมน์ response_min/completion_min/duration_min) เป็นข้อความอ่านง่าย
@@ -6398,7 +6470,7 @@ function fmtMins(v){
 
 function lateLevel(min, priority){
   if(min===null) return {late:false, level:'ok', label:''};
-  var threshold = priority==='high' ? 60 : priority==='med' ? 240 : 480;
+  var threshold = priority==='high' ? 60 : priority==='med' ? 120 : 240;
   if(min >= threshold)       return {late:true,  level:'danger', label:'ล่าช้า'};
   if(min >= threshold*0.66)  return {late:true,  level:'warn',   label:'ใกล้ครบ'};
   return {late:false, level:'ok', label:''};
@@ -6460,6 +6532,14 @@ function openAssign(id){
   buildAssignOptions(br, t.team, t.assigned_to||'');
   rebuildSecondary(t.assigned_secondary||'');
   document.getElementById('m-assign-note').value='';
+  var etaEl=document.getElementById('m-assign-eta'), etaBox=document.getElementById('m-assign-eta-custom'), etaNum=document.getElementById('m-assign-eta-num');
+  var curEta=parseInt(t.eta_min,10)||0;
+  var presets=['0','30','60','120','240','480'];
+  if(etaEl){
+    if(curEta===0){ etaEl.value='0'; if(etaBox)etaBox.style.display='none'; }
+    else if(presets.indexOf(String(curEta))>=0){ etaEl.value=String(curEta); if(etaBox)etaBox.style.display='none'; }
+    else { etaEl.value='custom'; if(etaBox)etaBox.style.display='flex'; if(etaNum)etaNum.value=curEta; updateEtaCustomHint(); }
+  }
   document.getElementById('m-assign').classList.add('show');
 }
 // สร้างตัวเลือกช่าง: แยก "ในสาขา" กับ "ข้ามสาขา (เฉพาะกิจ)" ให้ admin เห็นชัด
@@ -7264,13 +7344,14 @@ function openDetail(id){
       ${t.doc_url?`<div style="grid-column:1/-1"><div class="detail-lbl">${isPurchase?L('ไฟล์ PR / เอกสารจัดซื้อ','PR / Procurement doc'):L('เอกสารส่งซ่อม/เคลม','Claim Document')}</div><div class="detail-val">${String(t.doc_url).split(',').filter(Boolean).map((u,i)=>`<a href="${u}" target="_blank" style="color:#0EA5E9;text-decoration:underline">📄 ${L('เปิดเอกสาร','Open doc')}${i+1}</a>`).join(' · ')}</div></div>`:''}
       <div><div class="detail-lbl">${L('วันที่แจ้ง','Reported')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.created_at||'—'}</div></div>
       <div><div class="detail-lbl">${L('ผู้รับงาน','Assignee')}</div><div class="detail-val">${t.assigned_to||L('ยังไม่มอบหมาย','Unassigned')}${t.assigned_secondary?'<br><span style="font-size:11px;color:var(--text3)">+ '+L('รอง','Secondary')+': '+t.assigned_secondary+'</span>':''}</div></div>
+      ${parseInt(t.eta_min,10)>0?(function(){var e=etaState(t);var c=e.state==='overdue'?'var(--red)':e.state==='soon'?'#D97706':'var(--text2)';var extra=e.state==='overdue'?(' · <b style=\"color:var(--red)\">'+L('เกินมา','over by')+' '+fmtDuration(-e.leftMin)+'</b>'):e.state==='ontrack'||e.state==='soon'?(' · '+L('เหลือ','left')+' '+fmtDuration(e.leftMin)):(t.status==='pending'||t.status==='assigned'?' · '+L('เริ่มนับเมื่อรับงาน','starts on accept'):'');return '<div><div class="detail-lbl">'+L('⏱️ กรอบเวลา','⏱️ ETA')+'</div><div class="detail-val" style="color:'+c+'">'+etaLabel(t.eta_min)+extra+'</div></div>';})():''}
       <div><div class="detail-lbl">${L('มอบหมายเมื่อ','Assigned at')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.assigned_at||'—'}</div></div>
       <div><div class="detail-lbl">${L('รับงานเมื่อ','Accepted at')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">${t.accepted_at||'—'}</div></div>
       <div><div class="detail-lbl">${L('เสร็จงานเมื่อ','Resolved at')}</div><div class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.resolved_at||'—'}</div></div>
       ${t.response_min?`<div><div class="detail-lbl">${L('⏱ เวลารับงาน','⏱ Response time')}</div><div class="detail-val" style="color:var(--blue)">${fmtMins(t.response_min)}</div></div>`:''}
       <div><div class="detail-lbl">${L('⭐ คะแนน','⭐ Rating')}</div><div class="detail-val">${t.rating&&parseInt(t.rating)>0?renderStars(t.rating,'16px')+' ('+t.rating+'/5)':L('ยังไม่ได้รับการประเมิน','Not rated yet')}</div></div>
-      ${t.completion_min?`<div><div class="detail-lbl">${L('⏱ เวลาปิดงาน','⏱ Resolution time')}</div><div class="detail-val" style="color:var(--green)">${fmtMins(t.completion_min)}</div></div>`:''}
-      ${t.duration_min?`<div><div class="detail-lbl">${L('⏱ เวลารวมทั้งหมด','⏱ Total time')}</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} ${L('(แจ้ง→เสร็จ)','(report→done)')}</div></div>`:''}
+      ${t.completion_min?`<div><div class="detail-lbl">${L('⏱ เวลาช่าง (ใช้ตัดสิน SLA)','⏱ Technician time (SLA)')}</div><div class="detail-val" style="color:var(--green)">${fmtMins(t.completion_min)} ${L('(รับงาน→เสร็จ)','(accept→done)')}</div></div>`:''}
+      ${t.duration_min?`<div><div class="detail-lbl">${L('⏱ เวลารวมทั้งหมด','⏱ Total time')}</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} ${L('(แจ้ง→เสร็จ · รวมช่วงรอ)','(report→done · incl. wait)')}</div></div>`:''}
       ${slaOf(t)?`<div><div class="detail-lbl">🎯 SLA</div><div class="detail-val" style="color:${slaOf(t)==='on_time'?'var(--green)':'var(--red)'};font-weight:700">${slaOf(t)==='on_time'?L('✓ ตรงเวลา','✓ On time'):L('✗ เกินกำหนด','✗ Overdue')} <span style="font-weight:400;color:var(--text3);font-size:11px">(${L('เป้า','target')} ${fmtMins(SLA_TARGETS[t.priority]||SLA_TARGETS.low)})</span></div></div>`:''}
       <div style="grid-column:1/-1"><div class="detail-lbl">${L('รายละเอียด','Details')}</div><div class="detail-val">${t.description||'—'}</div></div>
       ${mkProgressBar(t)}
@@ -7334,17 +7415,41 @@ async function gasPost(body){
 }
 
 // ===== API CALLS =====
+// สลับช่องกรอกเวลาเองในกรอบ ETA
+function onEtaChange(){
+  var sel=document.getElementById('m-assign-eta');
+  var box=document.getElementById('m-assign-eta-custom');
+  if(!sel||!box) return;
+  if(sel.value==='custom'){ box.style.display='flex'; var n=document.getElementById('m-assign-eta-num'); if(n){ n.focus(); } updateEtaCustomHint(); }
+  else box.style.display='none';
+}
+function updateEtaCustomHint(){
+  var n=parseInt((document.getElementById('m-assign-eta-num')||{}).value,10)||0;
+  var h=document.getElementById('m-assign-eta-hint'); if(!h) return;
+  h.textContent = n>0 ? ('= '+etaLabel(n)) : '';
+}
+// อ่านค่ากรอบเวลาจากโมดัล (รองรับทั้งเลือก preset และกำหนดเอง)
+function readAssignEta(){
+  var sel=document.getElementById('m-assign-eta');
+  if(!sel) return 0;
+  if(sel.value==='custom'){
+    var n=parseInt((document.getElementById('m-assign-eta-num')||{}).value,10)||0;
+    return Math.max(0, Math.min(2880, n)); // จำกัด 0–2880 นาที (48 ชม.)
+  }
+  return parseInt(sel.value,10)||0;
+}
 async function doAssign(){
   const member=document.getElementById('m-assign-member').value;
   const note=document.getElementById('m-assign-note').value;
   if(!member){toast(L('กรุณาเลือกผู้รับหลัก','Please select primary assignee'),'⚠️','info');return;}
   const secondary=Array.from(document.querySelectorAll('.assign-sec:checked')).map(c=>c.value).join(', ');
+  const etaMin=readAssignEta();
   const btn=document.getElementById('btn-assign-ok');btn.disabled=true;btn.textContent=L('กำลังบันทึก...','Saving...');
   const t=tickets.find(x=>x.ticket_id===currentId);
   const ts=thaiTime();
   try{
-    const r=await gasPost({action:'assign',ticket_id:currentId,assigned_to:member,assigned_secondary:secondary,assigned_at:ts,notes:note||'',access_token:authToken()});
-    if(r.ok){t.status='assigned';t.assigned_to=member;t.assigned_secondary=secondary;t.assigned_at=ts;if(note)t.notes=note;closeM('m-assign');renderAll();toast(L('มอบหมายให้ ','Assigned to ')+member+(secondary?' + '+secondary:'')+L(' เรียบร้อย — รอช่างรับงาน',' — awaiting acceptance'),'🎉','success');if(r.soft)setTimeout(()=>loadData(true),2500);}
+    const r=await gasPost({action:'assign',ticket_id:currentId,assigned_to:member,assigned_secondary:secondary,assigned_at:ts,eta_min:etaMin,notes:note||'',access_token:authToken()});
+    if(r.ok){t.status='assigned';t.assigned_to=member;t.assigned_secondary=secondary;t.assigned_at=ts;t.eta_min=etaMin;if(note)t.notes=note;closeM('m-assign');renderAll();toast(L('มอบหมายให้ ','Assigned to ')+member+(secondary?' + '+secondary:'')+(etaMin?L(' · กรอบ ',' · ETA ')+etaLabel(etaMin):'')+L(' เรียบร้อย — รอช่างรับงาน',' — awaiting acceptance'),'🎉','success');if(r.soft)setTimeout(()=>loadData(true),2500);}
     else if(r.networkError) toast(L('เครือข่ายมีปัญหา กรุณาลองใหม่','Network error, please retry'),'❌','error');
     else toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||'unknown'),'❌','error');
   }catch(e){toast('Error: '+e.message,'❌','error');}
