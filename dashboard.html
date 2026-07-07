@@ -6612,6 +6612,9 @@ function openAccept(id){
   document.getElementById('m-accept-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">มอบหมายให้: ${t.assigned_to||'—'} เมื่อ ${t.assigned_at||'—'}</span>`;
   document.getElementById('reject-form').style.display='none';
   document.getElementById('reject-reason').value='';
+  // รีเซ็ตปุ่มกลับสถานะปกติทุกครั้งที่เปิด (กันปุ่มค้าง "กำลังบันทึก..." จากรอบก่อน — ต้องรีเฟรช)
+  var bA=document.getElementById('btn-accept-ok'); if(bA){ bA.disabled=false; bA.textContent=L('✅ รับงาน','✅ Accept'); }
+  var bR=document.getElementById('btn-reject-ok'); if(bR){ bR.disabled=false; bR.textContent=L('❌ ยืนยันปฏิเสธ','❌ Confirm Reject'); }
   document.getElementById('m-accept').classList.add('show');
 }
 function showRejectForm(){document.getElementById('reject-form').style.display='block';}
@@ -7465,6 +7468,7 @@ async function doAccept(){
       t.status='in_progress';
       t.accepted_at=ts;
       t.response_min=t.assigned_at?String(Math.max(0,Math.round((new Date(tsISO(ts))-new Date(tsISO(t.assigned_at)))/60000))):'';
+      btn.disabled=false; btn.textContent=_o;
       closeM('m-accept');
       renderAll();
       toast(L('รับงาน ','Accepted ')+currentId+' เรียบร้อย','✅','success');
@@ -7487,6 +7491,7 @@ async function doReject(){
       t.assigned_at='';
       t.rejected_at=ts;
       t.reject_reason=reason;
+      btn.disabled=false; btn.textContent=_o;
       closeM('m-accept');
       renderAll();
       toast(L('ปฏิเสธงาน ','Rejected ')+currentId+' — กรุณามอบหมายใหม่','⚠️','info');
