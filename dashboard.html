@@ -3332,6 +3332,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('pm',this)"><span class="nav-icon">🔧</span><span data-th="บำรุงรักษาตามแผน (PM)" data-en="Preventive Maintenance">บำรุงรักษาตามแผน (PM)</span><span class="nav-badge" id="pm-badge">0</span></div>
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
     <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="ติดตามงานจัดซื้อ" data-en="Track Procurement">ติดตามงานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
+    <div class="nav-item" onclick="quickAddPurchase()"><span class="nav-icon">📝</span><span data-th="บันทึก PR จัดซื้อ" data-en="Record PR">บันทึก PR จัดซื้อ</span></div>
     <div class="nav-item" onclick="showPage('chat',this)"><span class="nav-icon">💬</span><span data-th="แชตติดตามงาน" data-en="Chat">แชตติดตามงาน</span><span class="nav-badge" id="chat-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-item" onclick="showPage('qrgen',this)"><span class="nav-icon">🏷️</span><span data-th="สร้าง QR ห้องพัก" data-en="Guest QR Generator">สร้าง QR ห้องพัก</span></div>
@@ -6620,6 +6621,12 @@ function apPickDoc(input){
   reader.readAsDataURL(f);
 }
 function apClearDoc(){ apDocFile=null; document.getElementById('ap-doc-preview').innerHTML=''; document.getElementById('ap-doc').value=''; }
+// เมนูลัดในแถบซ้าย: เข้าหน้าจัดซื้อแล้วเปิดฟอร์มบันทึก PR ทันที
+function quickAddPurchase(){
+  const navPur=[...document.querySelectorAll('.nav-item')].find(e=>(e.getAttribute('onclick')||'').includes("showPage('purchase'"));
+  showPage('purchase', navPur||null);
+  setTimeout(openAddPurchase, 250);
+}
 function openAddPurchase(){
   if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
   ['ap-dept','ap-prno','ap-budget','ap-item','ap-desc','ap-buyer','ap-procnote'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
