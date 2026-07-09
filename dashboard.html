@@ -3233,6 +3233,36 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 .prt-pager button{padding:5px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:'Prompt',sans-serif;font-size:11px;}
 .prt-pager button.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;}
 .prt-empty{text-align:center;padding:44px 10px;color:var(--text3);font-size:12.5px;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);}
+/* ===== LOST & FOUND ===== */
+.lf-head{font-size:16px;font-weight:800;color:var(--text);}
+.lf-overdue{display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,#B45309,#D97706);color:#fff;border-radius:12px;padding:9px 15px;margin-bottom:10px;cursor:pointer;box-shadow:0 3px 12px rgba(217,119,6,.3);animation:lfGlow 2.4s ease-in-out infinite;}
+.lf-overdue .lf-ob-ic{font-size:17px;}
+.lf-overdue .lf-ob-tx{font-size:12.5px;font-weight:600;}
+.lf-overdue .lf-ob-tx b{font-family:'JetBrains Mono',monospace;font-size:15px;background:rgba(255,255,255,.22);padding:0 7px;border-radius:6px;}
+.lf-overdue .lf-ob-go{margin-left:auto;font-weight:800;opacity:.85;}
+@keyframes lfGlow{0%,100%{box-shadow:0 3px 10px rgba(217,119,6,.26);}50%{box-shadow:0 4px 18px rgba(217,119,6,.48);}}
+@media(prefers-reduced-motion:reduce){.lf-overdue{animation:none;}}
+.lf-age{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:9px;white-space:nowrap;}
+.lf-cat-pill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.lf-valuable{box-shadow:inset 3px 0 0 #DC2626;}
+.lf-st{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.lf-st-wait{background:#FEF3C7;color:#92400E;}
+.lf-st-contact{background:#DBEAFE;color:#1E40AF;}
+.lf-st-returned{background:#DCFCE7;color:#166534;}
+.lf-st-disposed{background:#F1F5F9;color:#64748B;}
+body.dark .lf-st-wait{background:#78350F;color:#FDE68A;}
+body.dark .lf-st-contact{background:#1E3A8A;color:#BFDBFE;}
+body.dark .lf-st-returned{background:#14532D;color:#BBF7D0;}
+body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
+.lf-act-btn{font-size:11px;font-weight:600;padding:3px 9px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);cursor:pointer;margin:1px;}
+.lf-act-btn:hover{background:var(--bg3);}
+.lf-act-return{border-color:#16A34A;color:#16A34A;}
+.lf-act-return:hover{background:#16A34A;color:#fff;}
+.lf-return-info{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;line-height:1.6;}
+.lf-return-info b{color:var(--text);}
+#lfa-photo-prev img,#lfr-photo-prev img{max-width:120px;border-radius:8px;border:1px solid var(--border);}
+@media(max-width:900px){.prt-kpis{grid-template-columns:repeat(2,1fr);}}
+
 .prt-yeartitle{font-size:13px;font-weight:700;margin:4px 0 8px;}
 #pr-yeartable th,#pr-yeartable td{text-align:center;}
 #pr-yeartable td:first-child,#pr-yeartable th:first-child{text-align:left;font-weight:600;}
@@ -3393,6 +3423,7 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     <div class="nav-item" onclick="showPage('claim',this)"><span class="nav-icon">📦</span><span data-th="ส่งซ่อม/เคลมนอก" data-en="Claim / External Repair">ส่งซ่อม/เคลมนอก</span><span class="nav-badge" id="claim-badge">0</span></div>
     <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="ติดตามงานจัดซื้อ" data-en="Track Procurement">ติดตามงานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
     <div class="nav-item" onclick="showPage('prtrack',this)"><span class="nav-icon">🧾</span><span data-th="บันทึก PR จัดซื้อ" data-en="PR Records">บันทึก PR จัดซื้อ</span></div>
+    <div class="nav-item" onclick="showPage('lostfound',this)"><span class="nav-icon">🔍</span><span data-th="ของหาย-ของเก็บได้" data-en="Lost & Found">ของหาย-ของเก็บได้</span><span class="nav-badge" id="lf-badge" style="display:none">0</span></div>
     <div class="nav-item" onclick="showPage('chat',this)"><span class="nav-icon">💬</span><span data-th="แชตติดตามงาน" data-en="Chat">แชตติดตามงาน</span><span class="nav-badge" id="chat-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-item" onclick="showPage('qrgen',this)"><span class="nav-icon">🏷️</span><span data-th="สร้าง QR ห้องพัก" data-en="Guest QR Generator">สร้าง QR ห้องพัก</span></div>
@@ -3748,6 +3779,62 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
     </div>
 
     <!-- REPORT PAGE -->
+    <!-- LOST & FOUND PAGE -->
+    <div class="page" id="page-lostfound">
+      <div class="prt-toolbar">
+        <div class="lf-head">🔍 <span data-th="ของหาย-ของเก็บได้ (Lost & Found)" data-en="Lost & Found">ของหาย-ของเก็บได้</span></div>
+        <div class="prt-actions">
+          <button class="prt-btn" id="lf-btn-add" onclick="lfOpenAdd()">➕ <span data-th="บันทึกของเก็บได้" data-en="Add Item">บันทึกของเก็บได้</span></button>
+          <button class="prt-btn" onclick="lfPrint()">🖨️ <span data-th="พิมพ์รายการ" data-en="Print">พิมพ์รายการ</span></button>
+          <button class="prt-btn" onclick="lfRefresh()" title="รีเฟรช">🔄</button>
+        </div>
+      </div>
+
+      <div class="prt-kpis" id="lf-kpis"></div>
+
+      <div id="lf-overdue-banner" class="lf-overdue" style="display:none" onclick="lfShowOverdue()">
+        <span class="lf-ob-ic">⏰</span>
+        <span class="lf-ob-tx"><b id="lf-ob-n">0</b> <span data-th="รายการเก็บครบ 90 วัน — ควรพิจารณาบริจาค/ทำลาย (แตะเพื่อดู)" data-en="item(s) held 90+ days — review for disposal (tap to view)">รายการเก็บครบ 90 วัน — ควรพิจารณาบริจาค/ทำลาย</span></span>
+        <span class="lf-ob-go">→</span>
+      </div>
+
+      <div class="prt-filters">
+        <div class="prt-chips" id="lf-status-chips"></div>
+        <select class="prt-sel" id="lf-cat-sel" onchange="lfState.cat=this.value;lfRenderTable()">
+          <option value="all" data-th="ทุกประเภท" data-en="All types">ทุกประเภท</option>
+          <option value="cash" data-th="💵 เงินสด/มีค่า" data-en="💵 Cash/Valuables">💵 เงินสด/มีค่า</option>
+          <option value="document" data-th="📄 เอกสาร/พาสปอร์ต" data-en="📄 Documents/Passport">📄 เอกสาร/พาสปอร์ต</option>
+          <option value="electronic" data-th="📱 อิเล็กทรอนิกส์" data-en="📱 Electronics">📱 อิเล็กทรอนิกส์</option>
+          <option value="jewelry" data-th="💍 เครื่องประดับ" data-en="💍 Jewelry">💍 เครื่องประดับ</option>
+          <option value="clothing" data-th="👕 เสื้อผ้า/กระเป๋า" data-en="👕 Clothing/Bags">👕 เสื้อผ้า/กระเป๋า</option>
+          <option value="other" data-th="📦 อื่นๆ" data-en="📦 Other">📦 อื่นๆ</option>
+        </select>
+        <input class="prt-search" id="lf-search" placeholder="🔍 ค้นหา รหัส / รายการ / ห้อง / ชื่อแขก" oninput="lfState.q=this.value.trim().toLowerCase();lfRenderTable()">
+      </div>
+
+      <div class="prt-tablewrap">
+        <table class="prt-table" id="lf-table">
+          <thead><tr>
+            <th data-th="รหัส" data-en="Code">รหัส</th>
+            <th data-th="วันที่พบ" data-en="Found">วันที่พบ</th>
+            <th data-th="เก็บมา" data-en="Age">เก็บมา</th>
+            <th data-th="ประเภท" data-en="Type">ประเภท</th>
+            <th data-th="รายการ" data-en="Item">รายการ</th>
+            <th data-th="พบที่/ห้อง" data-en="Location">พบที่/ห้อง</th>
+            <th data-th="ผู้เก็บ" data-en="Found by">ผู้เก็บ</th>
+            <th data-th="สถานะ" data-en="Status">สถานะ</th>
+            <th data-th="จัดการ" data-en="Action">จัดการ</th>
+          </tr></thead>
+          <tbody id="lf-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prt-pager" id="lf-pager"></div>
+      <div class="prt-empty" id="lf-empty" style="display:none">
+        <div style="font-size:34px">🔍</div>
+        <div data-th="ยังไม่มีรายการของเก็บได้ — กด “บันทึกของเก็บได้” เพื่อเพิ่มรายการแรก" data-en="No items yet — click “Add Item”">ยังไม่มีรายการของเก็บได้ — กด “บันทึกของเก็บได้” เพื่อเพิ่มรายการแรก</div>
+      </div>
+    </div>
+
     <div class="page" id="page-report">
       <div class="tickets-toolbar">
         <div class="toolbar-ttl">📈 รายงานสรุป</div>
@@ -4150,6 +4237,61 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 </div>
 
 <!-- EXPORT FILTER MODAL -->
+
+<!-- LOST & FOUND: บันทึกของเก็บได้ -->
+<div class="overlay" id="m-lf-add">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-ttl"><span id="lf-add-ttl">➕ บันทึกของเก็บได้</span><button class="modal-x" onclick="closeM('m-lf-add')">×</button></div>
+    <input type="hidden" id="lfa-id">
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันที่พบ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="lfa-date" placeholder="dd/mm/yyyy"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขา</label>
+        <select class="modal-sel" id="lfa-branch"><option value="STY">STY</option><option value="SYY" selected>SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ประเภท <span style="color:var(--red)">*</span></label>
+        <select class="modal-sel" id="lfa-cat">
+          <option value="cash">💵 เงินสด/มีค่า</option>
+          <option value="document">📄 เอกสาร/พาสปอร์ต</option>
+          <option value="electronic">📱 อิเล็กทรอนิกส์</option>
+          <option value="jewelry">💍 เครื่องประดับ</option>
+          <option value="clothing">👕 เสื้อผ้า/กระเป๋า</option>
+          <option value="other" selected>📦 อื่นๆ</option>
+        </select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">พบที่/ห้อง <span style="color:var(--red)">*</span></label><input class="modal-sel" id="lfa-loc" placeholder="เช่น ห้อง 512 / ล็อบบี้"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">รายละเอียดของ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="lfa-desc" placeholder="เช่น กระเป๋าสตางค์หนังสีน้ำตาล มีเงินสด ฿1,500"></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ผู้พบ/ผู้เก็บ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="lfa-by" placeholder="ชื่อพนักงาน"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ชื่อแขก (ถ้าทราบ)</label><input class="modal-sel" id="lfa-guest" placeholder="ผู้เข้าพักห้องนั้น"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">รูปถ่าย</label>
+      <input type="file" id="lfa-photo" accept="image/*" onchange="lfPickPhoto(this)">
+      <div id="lfa-photo-prev" style="margin-top:6px"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><textarea class="modal-ta" id="lfa-note" placeholder="ข้อมูลเพิ่มเติม..."></textarea></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-lf-add')">ยกเลิก</button><button class="btn-ok" id="lf-add-ok" onclick="lfSave()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- LOST & FOUND: คืนของให้เจ้าของ (บันทึกหลักฐาน) -->
+<div class="overlay" id="m-lf-return">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-ttl"><span>✅ บันทึกการคืนของ</span><button class="modal-x" onclick="closeM('m-lf-return')">×</button></div>
+    <input type="hidden" id="lfr-id">
+    <div id="lfr-item-info" class="lf-return-info"></div>
+    <div class="modal-field"><label class="modal-lbl">ชื่อผู้มารับ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="lfr-owner" placeholder="ชื่อ-นามสกุล ผู้รับของคืน"></div>
+    <div class="modal-field"><label class="modal-lbl">หลักฐาน/ช่องทางติดต่อ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="lfr-proof" placeholder="เลขบัตร ปชช. 4 ตัวท้าย / เบอร์โทร / เลขห้อง"></div>
+    <div class="modal-field"><label class="modal-lbl">รูปหลักฐานการรับ (แนะนำสำหรับของมีค่า)</label>
+      <input type="file" id="lfr-photo" accept="image/*" onchange="lfPickReturnPhoto(this)">
+      <div id="lfr-photo-prev" style="margin-top:6px"></div>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-lf-return')">ยกเลิก</button><button class="btn-ok" id="lf-return-ok" style="background:linear-gradient(135deg,#16A34A,#15803D)" onclick="lfConfirmReturn()">✅ ยืนยันคืนของ</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="m-export">
   <div class="modal" style="max-width:540px">
     <div class="modal-ttl"><span data-th="🖨️ กรองข้อมูลก่อนส่งออก" data-en="🖨️ Filter before export">🖨️ กรองข้อมูลก่อนส่งออก</span><button class="modal-x" onclick="closeM('m-export')">×</button></div>
@@ -8375,7 +8517,8 @@ function showPage(p,el,fromPop){
     archive:L('🗄️ ค้นประวัติ (Archive)','🗄️ Archive Search'),
     report:L('📈 รายงาน','📈 Reports'),
     qrgen:L('🏷️ สร้าง QR ห้องพัก','🏷️ Guest QR Generator'),
-    prtrack:L('🧾 บันทึก PR จัดซื้อ','🧾 PR Records')
+    prtrack:L('🧾 บันทึก PR จัดซื้อ','🧾 PR Records'),
+    lostfound:L('🔍 ของหาย-ของเก็บได้','🔍 Lost & Found')
   };
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
   // สลับ UI ของหน้า tickets ตามประเภทงาน
@@ -8393,6 +8536,7 @@ function showPage(p,el,fromPop){
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
   if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
   if(p==='prtrack'){ prLoadPage(); }
+  if(p==='lostfound'){ lfLoadPage(); }
   // ล้างตัวกรองที่ค้างจากหน้าก่อน (status/priority/category/ค้นหา/ช่าง/วันที่) เมื่อเข้าหน้ากลุ่ม Ticket ผ่านเมนู
   // กันบัก: badge นับงานดิบ แต่ตารางกรองด้วยค่าเก่า → ตัวเลขไม่ตรง / ตารางว่างดูเหมือนโหลดค้าง
   // (gotoTickets/goToMemberTasks ตั้งค่าตัวกรองหลัง showPage อยู่แล้ว จึงไม่ได้รับผลกระทบ)
@@ -8546,6 +8690,220 @@ function prNormStatus(s){
   return 'pending';
 }
 async function prApi(body){const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});return r.json();}
+
+// ==================== LOST & FOUND ====================
+let lfState={ items:[], q:'', cat:'all', status:'all', page:1, overdueOnly:false };
+const LF_PER_PAGE=15, LF_HOLD_DAYS=90;
+let lfPhoto='', lfReturnPhoto='';
+const LF_CAT={ cash:{i:'💵',t:'เงินสด/มีค่า',v:1}, document:{i:'📄',t:'เอกสาร/พาสปอร์ต',v:1}, electronic:{i:'📱',t:'อิเล็กทรอนิกส์',v:0}, jewelry:{i:'💍',t:'เครื่องประดับ',v:1}, clothing:{i:'👕',t:'เสื้อผ้า/กระเป๋า',v:0}, other:{i:'📦',t:'อื่นๆ',v:0} };
+const LF_ST={ wait:{c:'lf-st-wait',t:'⏳ รอเจ้าของ'}, contact:{c:'lf-st-contact',t:'📞 ติดต่อแล้ว'}, returned:{c:'lf-st-returned',t:'✅ คืนแล้ว'}, disposed:{c:'lf-st-disposed',t:'🗑️ จำหน่ายออก'} };
+
+function lfToday(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
+function lfAge(it){
+  const m=String(it.found_date||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(!m) return null;
+  let y=+m[3]; if(y>2026&&y<2100)y=2026;
+  const start=new Date(y,+m[2]-1,+m[1]);
+  let end=new Date();
+  if(it.status==='returned'&&it.returned_date){ const r=String(it.returned_date).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(r)end=new Date(+r[3],+r[2]-1,+r[1]); }
+  const d=Math.floor((end-start)/86400000);
+  return (isFinite(d)&&d>=0)?d:null;
+}
+function lfAgeBadge(it){
+  const d=lfAge(it); if(d===null)return '';
+  const active=(it.status==='wait'||it.status==='contact');
+  let bg='#94A3B8';
+  if(active){ if(d>=90)bg='#DC2626'; else if(d>=60)bg='#EA580C'; else if(d>=30)bg='#D97706'; else bg='#059669'; }
+  return `<span class="lf-age" style="background:${bg};color:#fff">${d} ${L('วัน','d')}${active&&d>=90?' ⚠️':''}</span>`;
+}
+
+async function lfLoadPage(){
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_list',access_token:authToken()})})).json();
+    if(r&&r.success&&Array.isArray(r.items)) lfState.items=r.items;
+  }catch(e){ /* offline: คงข้อมูลเดิมใน memory */ }
+  lfRender();
+}
+function lfRefresh(){ lfState.overdueOnly=false; lfLoadPage(); }
+
+function lfFiltered(){
+  return lfState.items.filter(it=>{
+    if(lfState.overdueOnly){ if(!((it.status==='wait'||it.status==='contact')&&(lfAge(it)||0)>=LF_HOLD_DAYS))return false; }
+    if(lfState.status!=='all'&&it.status!==lfState.status)return false;
+    if(lfState.cat!=='all'&&it.category!==lfState.cat)return false;
+    if(lfState.q){ const hay=[it.lf_id,it.description,it.location,it.guest_name,it.found_by].join(' ').toLowerCase(); if(hay.indexOf(lfState.q)<0)return false; }
+    return true;
+  });
+}
+function lfRenderChips(){
+  const c={all:lfState.items.length,wait:0,contact:0,returned:0,disposed:0};
+  lfState.items.forEach(it=>{ if(c[it.status]!==undefined)c[it.status]++; });
+  const chips=[['all',L('ทั้งหมด','All')],['wait','⏳ '+L('รอเจ้าของ','Waiting')],['contact','📞 '+L('ติดต่อแล้ว','Contacted')],['returned','✅ '+L('คืนแล้ว','Returned')],['disposed','🗑️ '+L('จำหน่ายออก','Disposed')]];
+  document.getElementById('lf-status-chips').innerHTML=chips.map(([k,label])=>
+    `<div class="prt-chip ${!lfState.overdueOnly&&lfState.status===k?'active':''}" onclick="lfState.overdueOnly=false;lfState.status='${k}';lfState.page=1;lfRenderTable()">${label} (${c[k]||0})</div>`).join('');
+}
+function lfRender(){
+  const items=lfState.items;
+  const wait=items.filter(it=>it.status==='wait'||it.status==='contact').length;
+  const returned=items.filter(it=>it.status==='returned').length;
+  const overdue=items.filter(it=>(it.status==='wait'||it.status==='contact')&&(lfAge(it)||0)>=LF_HOLD_DAYS).length;
+  const valuable=items.filter(it=>(it.status==='wait'||it.status==='contact')&&LF_CAT[it.category]&&LF_CAT[it.category].v).length;
+  const kpis=[['📦',items.length,L('รายการทั้งหมด','Total'),'var(--text)'],['⏳',wait,L('รอเจ้าของ','Waiting'),'#D97706'],['✅',returned,L('คืนแล้ว','Returned'),'#16A34A'],['💎',valuable,L('ของมีค่าที่ยังถือ','Valuables held'),'#DC2626'],['⏰',overdue,L('ครบ 90 วัน','90+ days'),'#DC2626']];
+  document.getElementById('lf-kpis').innerHTML=kpis.map(([ic,n,l,c])=>`<div class="prt-kpi"><div class="prt-kpi-ic">${ic}</div><div class="prt-kpi-n" style="color:${c}">${n}</div><div class="prt-kpi-l">${l}</div></div>`).join('');
+  const ob=document.getElementById('lf-overdue-banner');
+  ob.style.display=overdue>0?'flex':'none';
+  document.getElementById('lf-ob-n').textContent=overdue;
+  lfRenderTable();
+}
+function lfRenderTable(){
+  lfRenderChips();
+  const tb=document.getElementById('lf-tbody'), empty=document.getElementById('lf-empty');
+  let data=lfFiltered();
+  data.sort((a,c)=>{ const aa=(a.status==='wait'||a.status==='contact'),ca=(c.status==='wait'||c.status==='contact'); if(aa!==ca)return ca-aa; return (lfAge(c)||0)-(lfAge(a)||0); });
+  const badge=document.getElementById('lf-badge');
+  if(badge){ const ac=lfState.items.filter(it=>it.status==='wait'||it.status==='contact').length; badge.textContent=ac; badge.style.display=ac>0?'':'none'; }
+  if(!data.length){ tb.innerHTML=''; empty.style.display='block'; document.getElementById('lf-pager').innerHTML=''; return; }
+  empty.style.display='none';
+  const pages=Math.ceil(data.length/LF_PER_PAGE);
+  if(lfState.page>pages)lfState.page=pages; if(lfState.page<1)lfState.page=1;
+  const rows=data.slice((lfState.page-1)*LF_PER_PAGE,(lfState.page-1)*LF_PER_PAGE+LF_PER_PAGE);
+  tb.innerHTML=rows.map(it=>{
+    const cat=LF_CAT[it.category]||LF_CAT.other, st=LF_ST[it.status]||LF_ST.wait;
+    const canAct=(it.status==='wait'||it.status==='contact');
+    let actions='';
+    if(canAct){
+      actions=`<button class="lf-act-btn lf-act-return" onclick="lfOpenReturn('${it.lf_id}')">${L('คืนของ','Return')}</button>`
+        +(it.status==='wait'?`<button class="lf-act-btn" onclick="lfMarkContact('${it.lf_id}')">${L('ติดต่อแล้ว','Contacted')}</button>`:'')
+        +`<button class="lf-act-btn" onclick="lfEdit('${it.lf_id}')">${L('แก้ไข','Edit')}</button>`;
+      if((lfAge(it)||0)>=LF_HOLD_DAYS) actions+=`<button class="lf-act-btn" style="border-color:#94A3B8;color:#64748B" onclick="lfDispose('${it.lf_id}')">${L('จำหน่ายออก','Dispose')}</button>`;
+    } else {
+      actions=`<span style="font-size:10px;color:var(--text3)">${it.status==='returned'?(L('คืนให้ ','Returned to ')+esc(it.owner_name||'-')):('🗑️ '+esc(String(it.disposed_date||'').substring(0,10)))}</span>`;
+    }
+    return `<tr class="${cat.v?'lf-valuable':''}">
+      <td style="font-family:monospace;font-size:11px;font-weight:700">${esc(it.lf_id||'')}</td>
+      <td style="font-size:11px;white-space:nowrap">${esc(String(it.found_date||'').substring(0,10))}</td>
+      <td>${lfAgeBadge(it)}</td>
+      <td><span class="lf-cat-pill" style="background:var(--bg3)">${cat.i} ${L(cat.t,cat.t)}</span></td>
+      <td style="max-width:220px">${esc(it.description||'')}${it.image_url?' 📷':''}</td>
+      <td style="font-size:11px">${esc(it.location||'')}${it.guest_name?'<br><span style="color:var(--text3);font-size:10px">👤 '+esc(it.guest_name)+'</span>':''}</td>
+      <td style="font-size:11px">${esc(it.found_by||'')}</td>
+      <td><span class="lf-st ${st.c}">${st.t}</span></td>
+      <td>${actions}</td></tr>`;
+  }).join('');
+  document.getElementById('lf-pager').innerHTML= pages>1? Array.from({length:pages},(_,i)=>`<button class="prt-pgbtn ${lfState.page===i+1?'active':''}" onclick="lfState.page=${i+1};lfRenderTable()">${i+1}</button>`).join(''):'';
+}
+function lfShowOverdue(){ lfState.overdueOnly=true; lfState.status='all'; lfState.cat='all'; lfState.q=''; const s=document.getElementById('lf-search'); if(s)s.value=''; lfState.page=1; lfRenderTable(); }
+
+// ---------- เพิ่ม/แก้ไข ----------
+function lfOpenAdd(){
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  ['lfa-id','lfa-loc','lfa-desc','lfa-by','lfa-guest','lfa-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('lfa-date').value=lfToday();
+  document.getElementById('lfa-cat').value='other';
+  if(currentBranch&&currentBranch!=='all')document.getElementById('lfa-branch').value=currentBranch;
+  lfPhoto=''; document.getElementById('lfa-photo-prev').innerHTML='';
+  document.getElementById('lf-add-ttl').textContent=L('➕ บันทึกของเก็บได้','➕ Add Found Item');
+  document.getElementById('m-lf-add').classList.add('show');
+}
+function lfEdit(id){
+  const it=lfState.items.find(x=>x.lf_id===id); if(!it)return;
+  document.getElementById('lfa-id').value=it.lf_id;
+  document.getElementById('lfa-date').value=String(it.found_date||'').substring(0,10);
+  document.getElementById('lfa-branch').value=it.branch||'SYY';
+  document.getElementById('lfa-cat').value=it.category||'other';
+  document.getElementById('lfa-loc').value=it.location||'';
+  document.getElementById('lfa-desc').value=it.description||'';
+  document.getElementById('lfa-by').value=it.found_by||'';
+  document.getElementById('lfa-guest').value=it.guest_name||'';
+  document.getElementById('lfa-note').value=it.note||'';
+  lfPhoto=it.image_url||''; document.getElementById('lfa-photo-prev').innerHTML=it.image_url?`<img src="${esc(it.image_url)}">`:'';
+  document.getElementById('lf-add-ttl').textContent=L('✏️ แก้ไขรายการ','✏️ Edit Item');
+  document.getElementById('m-lf-add').classList.add('show');
+}
+async function lfPickPhoto(input){
+  const f=(input.files||[])[0]; if(!f)return;
+  try{ lfPhoto=await compressToDataURL(f); document.getElementById('lfa-photo-prev').innerHTML=`<img src="${lfPhoto}">`; }
+  catch(e){ toast(L('อ่านรูปไม่สำเร็จ','Image error'),'❌','error'); }
+  input.value='';
+}
+async function lfUploadPhoto(dataUrl){
+  if(!dataUrl||dataUrl.indexOf('data:')!==0) return dataUrl||'';
+  try{
+    const b64=dataUrl.split(',')[1];
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'lostfound_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
+    return (r&&(r.imageUrl||r.url))||'';
+  }catch(e){ return ''; }
+}
+async function lfSave(){
+  const date=document.getElementById('lfa-date').value.trim();
+  const cat=document.getElementById('lfa-cat').value;
+  const loc=document.getElementById('lfa-loc').value.trim();
+  const desc=document.getElementById('lfa-desc').value.trim();
+  const by=document.getElementById('lfa-by').value.trim();
+  if(!date||!loc||!desc||!by){ toast(L('กรุณากรอกช่องที่มี * ให้ครบ','Please fill required fields'),'⚠️','info'); return; }
+  const btn=document.getElementById('lf-add-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
+  let imageUrl=lfPhoto;
+  if(lfPhoto&&lfPhoto.indexOf('data:')===0) imageUrl=await lfUploadPhoto(lfPhoto);
+  const rec={ lf_id:document.getElementById('lfa-id').value||'', found_date:date, branch:document.getElementById('lfa-branch').value,
+    category:cat, location:loc, description:desc, found_by:by,
+    guest_name:document.getElementById('lfa-guest').value.trim(), note:document.getElementById('lfa-note').value.trim(), image_url:imageUrl };
+  try{
+    const action=rec.lf_id?'lf_update':'lf_add';
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:action,access_token:authToken()},rec))})).json();
+    if(r&&r.success){ toast(L('บันทึกแล้ว','Saved'),'✅'); closeM('m-lf-add'); lfLoadPage(); }
+    else toast((r&&r.error)||L('บันทึกไม่สำเร็จ','Save failed'),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+  btn.disabled=false; btn.textContent=old;
+}
+
+// ---------- เปลี่ยนสถานะ ----------
+async function lfMarkContact(id){
+  try{ const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'contact',access_token:authToken()})})).json();
+    if(r&&r.success){ const it=lfState.items.find(x=>x.lf_id===id); if(it)it.status='contact'; lfRender(); toast(L('อัปเดตแล้ว','Updated'),'📞'); } }catch(e){ toast(L('ไม่สำเร็จ','Failed'),'❌','error'); }
+}
+function lfDispose(id){
+  const it=lfState.items.find(x=>x.lf_id===id); if(!it)return;
+  if(!confirm(L('ยืนยันจำหน่ายออก (บริจาค/ทำลาย) รายการนี้?\n','Confirm dispose this item?\n')+esc(it.description||''))) return;
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'disposed',disposed_date:lfToday(),access_token:authToken()})}).then(r=>r.json()).then(r=>{
+    if(r&&r.success){ it.status='disposed'; it.disposed_date=lfToday(); lfRender(); toast(L('บันทึกการจำหน่ายออกแล้ว','Disposed'),'🗑️'); }
+  }).catch(()=>toast(L('ไม่สำเร็จ','Failed'),'❌','error'));
+}
+function lfOpenReturn(id){
+  const it=lfState.items.find(x=>x.lf_id===id); if(!it)return;
+  const cat=LF_CAT[it.category]||LF_CAT.other;
+  document.getElementById('lfr-id').value=id;
+  document.getElementById('lfr-item-info').innerHTML=`<b>${esc(it.lf_id)}</b> · ${cat.i} ${esc(it.description||'')}<br><span style="color:var(--text3)">📍 ${esc(it.location||'')} · ${L('เก็บมา','held')} ${lfAge(it)||0} ${L('วัน','days')}</span>`;
+  document.getElementById('lfr-owner').value=''; document.getElementById('lfr-proof').value='';
+  lfReturnPhoto=''; document.getElementById('lfr-photo-prev').innerHTML='';
+  document.getElementById('m-lf-return').classList.add('show');
+}
+async function lfPickReturnPhoto(input){
+  const f=(input.files||[])[0]; if(!f)return;
+  try{ lfReturnPhoto=await compressToDataURL(f); document.getElementById('lfr-photo-prev').innerHTML=`<img src="${lfReturnPhoto}">`; }catch(e){}
+  input.value='';
+}
+async function lfConfirmReturn(){
+  const id=document.getElementById('lfr-id').value;
+  const owner=document.getElementById('lfr-owner').value.trim();
+  const proof=document.getElementById('lfr-proof').value.trim();
+  if(!owner||!proof){ toast(L('กรุณากรอกชื่อผู้รับและหลักฐาน','Enter recipient & proof'),'⚠️','info'); return; }
+  const btn=document.getElementById('lf-return-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
+  let proofImg='';
+  if(lfReturnPhoto&&lfReturnPhoto.indexOf('data:')===0) proofImg=await lfUploadPhoto(lfReturnPhoto);
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'returned',owner_name:owner,owner_contact:proof,return_proof:proofImg,returned_date:lfToday(),access_token:authToken()})})).json();
+    if(r&&r.success){ const it=lfState.items.find(x=>x.lf_id===id); if(it){it.status='returned';it.owner_name=owner;it.owner_contact=proof;it.returned_date=lfToday();} closeM('m-lf-return'); lfRender(); toast(L('บันทึกการคืนของแล้ว','Return recorded'),'✅'); }
+    else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+  btn.disabled=false; btn.textContent=old;
+}
+function lfPrint(){
+  const data=lfFiltered();
+  const w=window.open('','_blank'); if(!w){toast(L('เปิดหน้าต่างพิมพ์ไม่ได้','Popup blocked'),'⚠️','info');return;}
+  const rows=data.map(it=>{const cat=LF_CAT[it.category]||LF_CAT.other,st=LF_ST[it.status]||LF_ST.wait;return `<tr><td>${esc(it.lf_id)}</td><td>${esc(String(it.found_date||'').substring(0,10))}</td><td>${lfAge(it)||0} วัน</td><td>${cat.i} ${cat.t}</td><td>${esc(it.description||'')}</td><td>${esc(it.location||'')}</td><td>${esc(it.found_by||'')}</td><td>${st.t.replace(/[⏳📞✅🗑️]/g,'')}</td></tr>`;}).join('');
+  w.document.write(`<html><head><title>Lost & Found</title><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px}h1{font-size:18px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:5px;text-align:left}th{background:#f3f4f6}</style></head><body><h1>🔍 รายการของหาย-ของเก็บได้ (${data.length} รายการ)</h1><div style="font-size:11px;color:#666;margin-bottom:10px">Santhiya · SYY Service Hub · ${lfToday()}</div><table><thead><tr><th>รหัส</th><th>วันที่พบ</th><th>เก็บมา</th><th>ประเภท</th><th>รายการ</th><th>พบที่</th><th>ผู้เก็บ</th><th>สถานะ</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),500);
+}
 
 async function prLoadPage(force){
   if(userRole==='viewer'){const b1=document.getElementById('pr-btn-import'),b2=document.getElementById('pr-btn-add');if(b1)b1.style.display='none';if(b2)b2.style.display='none';}
