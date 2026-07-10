@@ -3233,6 +3233,72 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 .prt-pager button{padding:5px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:'Prompt',sans-serif;font-size:11px;}
 .prt-pager button.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;}
 .prt-empty{text-align:center;padding:44px 10px;color:var(--text3);font-size:12.5px;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);}
+
+/* ===== FIRE EXTINGUISHER ===== */
+.fci-checklist{display:flex;flex-direction:column;gap:6px;margin:10px 0;}
+.fci-item{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;}
+.fci-item-txt{flex:1;font-size:12.5px;line-height:1.45;color:var(--text);padding-top:3px;}
+.fci-btns{display:flex;gap:5px;flex-shrink:0;}
+.fci-tog{font-size:11px;font-weight:700;padding:4px 11px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .12s;}
+.fci-tog.pass-on{background:#16A34A;border-color:#16A34A;color:#fff;}
+.fci-tog.fail-on{background:#DC2626;border-color:#DC2626;color:#fff;}
+.fci-note{width:100%;margin-top:6px;font-size:11.5px;padding:5px 8px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);color:var(--text);font-family:'Prompt';display:none;}
+.fci-note.show{display:block;}
+.fci-summary{text-align:center;font-size:14px;font-weight:800;padding:10px;border-radius:10px;margin:4px 0;}
+.fci-summary.ok{background:#DCFCE7;color:#166534;}
+.fci-summary.bad{background:#FEE2E2;color:#991B1B;}
+body.dark .fci-summary.ok{background:#14532D;color:#BBF7D0;}
+body.dark .fci-summary.bad{background:#7F1D1D;color:#FECACA;}
+.fc-st{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.fc-st-active{background:#DCFCE7;color:#166534;}
+.fc-st-fix{background:#FEE2E2;color:#991B1B;}
+.fc-st-due{background:#FEF3C7;color:#92400E;}
+.fc-st-expsoon{background:#FED7AA;color:#9A3412;}
+body.dark .fc-st-active{background:#14532D;color:#BBF7D0;}
+body.dark .fc-st-fix{background:#7F1D1D;color:#FECACA;}
+body.dark .fc-st-due{background:#78350F;color:#FDE68A;}
+body.dark .fc-st-expsoon{background:#7C2D12;color:#FED7AA;}
+.fc-exp-warn{color:#DC2626;font-weight:700;}
+.fc-hist-row{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--bg2);}
+.fc-hist-head{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;margin-bottom:5px;}
+.fc-hist-items{font-size:11px;color:var(--text2);line-height:1.6;}
+.fc-hist-fail{color:#DC2626;}
+
+
+/* ===== FIRE EXTINGUISHER ===== */
+.fire-st{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.fire-st-ok{background:#DCFCE7;color:#166534;}
+.fire-st-fix{background:#FEE2E2;color:#991B1B;}
+.fire-st-due{background:#FEF3C7;color:#92400E;}
+.fire-st-exp{background:#FEE2E2;color:#991B1B;}
+body.dark .fire-st-ok{background:#14532D;color:#BBF7D0;}
+body.dark .fire-st-fix,body.dark .fire-st-exp{background:#7F1D1D;color:#FECACA;}
+body.dark .fire-st-due{background:#78350F;color:#FDE68A;}
+.fire-exp-near{color:#DC2626;font-weight:700;}
+.fire-cl-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--text2);margin:10px 0 6px;}
+.fire-cl-all{font-size:11px;font-weight:600;padding:3px 10px;border-radius:8px;border:1px solid #16A34A;color:#16A34A;background:transparent;cursor:pointer;}
+.fire-cl-all:hover{background:#16A34A;color:#fff;}
+.fire-cl-list{display:flex;flex-direction:column;gap:6px;max-height:38vh;overflow:auto;padding:2px;}
+.fire-cl-item{border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;transition:all .15s;}
+.fire-cl-item.pass{border-color:#16A34A;background:rgba(22,163,74,0.06);}
+.fire-cl-item.fail{border-color:#DC2626;background:rgba(220,38,38,0.06);}
+.fire-cl-row{display:flex;align-items:center;gap:9px;cursor:pointer;}
+.fire-cl-tick{width:26px;height:26px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;font-weight:800;}
+.fire-cl-item.pass .fire-cl-tick{background:#16A34A;border-color:#16A34A;color:#fff;}
+.fire-cl-item.fail .fire-cl-tick{background:#DC2626;border-color:#DC2626;color:#fff;}
+.fire-cl-txt{font-size:12.5px;color:var(--text);flex:1;}
+.fire-cl-note{margin-top:6px;width:100%;font-family:'Prompt';font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);display:none;}
+.fire-cl-item.fail .fire-cl-note{display:block;}
+.fire-cl-summary{text-align:center;font-size:14px;font-weight:800;padding:10px;margin-top:8px;border-radius:10px;}
+.fire-cl-summary.pass{background:#DCFCE7;color:#166534;}
+.fire-cl-summary.fail{background:#FEE2E2;color:#991B1B;}
+body.dark .fire-cl-summary.pass{background:#14532D;color:#BBF7D0;}
+body.dark .fire-cl-summary.fail{background:#7F1D1D;color:#FECACA;}
+.fire-hist-card{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.fire-hist-card .fh-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.fire-hist-fail-item{font-size:11.5px;color:#DC2626;margin-top:3px;}
+#fcf-photo-prev img{max-width:120px;border-radius:8px;border:1px solid var(--border);}
+
 /* ===== LOST & FOUND ===== */
 .lf-head{font-size:16px;font-weight:800;color:var(--text);}
 .lf-overdue{display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,#B45309,#D97706);color:#fff;border-radius:12px;padding:9px 15px;margin-bottom:10px;cursor:pointer;box-shadow:0 3px 12px rgba(217,119,6,.3);animation:lfGlow 2.4s ease-in-out infinite;}
@@ -3424,6 +3490,7 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
     <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="ติดตามงานจัดซื้อ" data-en="Track Procurement">ติดตามงานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
     <div class="nav-item" onclick="showPage('prtrack',this)"><span class="nav-icon">🧾</span><span data-th="บันทึก PR จัดซื้อ" data-en="PR Records">บันทึก PR จัดซื้อ</span></div>
     <div class="nav-item" onclick="showPage('lostfound',this)"><span class="nav-icon">🔍</span><span data-th="ของหาย-ของเก็บได้" data-en="Lost & Found">ของหาย-ของเก็บได้</span><span class="nav-badge" id="lf-badge" style="display:none">0</span></div>
+    <div class="nav-item" onclick="showPage('firecheck',this)"><span class="nav-icon">🧯</span><span data-th="ถังดับเพลิง" data-en="Fire Extinguishers">ถังดับเพลิง</span><span class="nav-badge" id="fire-badge" style="display:none">0</span></div>
     <div class="nav-item" onclick="showPage('chat',this)"><span class="nav-icon">💬</span><span data-th="แชตติดตามงาน" data-en="Chat">แชตติดตามงาน</span><span class="nav-badge" id="chat-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
     <div class="nav-item" onclick="showPage('qrgen',this)"><span class="nav-icon">🏷️</span><span data-th="สร้าง QR ห้องพัก" data-en="Guest QR Generator">สร้าง QR ห้องพัก</span></div>
@@ -3779,6 +3846,50 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
     </div>
 
     <!-- REPORT PAGE -->
+    <!-- FIRE EXTINGUISHER PAGE -->
+    <div class="page" id="page-firecheck">
+      <div class="prt-toolbar">
+        <div class="lf-head">🧯 <span data-th="ตรวจถังดับเพลิง (Fire Extinguisher)" data-en="Fire Extinguisher Inspection">ตรวจถังดับเพลิง</span></div>
+        <div class="prt-actions">
+          <button class="prt-btn" onclick="fireOpenAsset()">➕ <span data-th="เพิ่มถัง" data-en="Add Extinguisher">เพิ่มถัง</span></button>
+          <button class="prt-btn" onclick="firePrint()">🖨️ <span data-th="พิมพ์รายงาน" data-en="Print">พิมพ์รายงาน</span></button>
+          <button class="prt-btn" onclick="fireRefresh()" title="รีเฟรช">🔄</button>
+        </div>
+      </div>
+
+      <div class="prt-kpis" id="fire-kpis"></div>
+
+      <div id="fire-alert-banner" class="lf-overdue" style="display:none;background:linear-gradient(120deg,#B91C1C,#DC2626)" onclick="fireShowAlerts()">
+        <span class="lf-ob-ic">🚨</span>
+        <span class="lf-ob-tx"><b id="fire-alert-n">0</b> <span data-th="ถังต้องจัดการ (ไม่ผ่าน / เกินกำหนดตรวจ / ใกล้หมดอายุ) — แตะเพื่อดู" data-en="extinguisher(s) need attention — tap to view">ถังต้องจัดการ (ไม่ผ่าน / เกินกำหนดตรวจ / ใกล้หมดอายุ)</span></span>
+        <span class="lf-ob-go">→</span>
+      </div>
+
+      <div class="prt-filters">
+        <div class="prt-chips" id="fire-chips"></div>
+        <input class="prt-search" id="fire-search" placeholder="🔍 ค้นหา รหัส / จุดติดตั้ง / ชนิด" oninput="fireState.q=this.value.trim().toLowerCase();fireRenderTable()">
+      </div>
+
+      <div class="prt-tablewrap">
+        <table class="prt-table" id="fire-table">
+          <thead><tr>
+            <th data-th="รหัสถัง" data-en="Code">รหัสถัง</th>
+            <th data-th="จุดติดตั้ง" data-en="Location">จุดติดตั้ง</th>
+            <th data-th="ชนิด/ขนาด" data-en="Type/Size">ชนิด/ขนาด</th>
+            <th data-th="ตรวจล่าสุด" data-en="Last check">ตรวจล่าสุด</th>
+            <th data-th="วันหมดอายุ" data-en="Expiry">วันหมดอายุ</th>
+            <th data-th="สถานะ" data-en="Status">สถานะ</th>
+            <th data-th="จัดการ" data-en="Action">จัดการ</th>
+          </tr></thead>
+          <tbody id="fire-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prt-empty" id="fire-empty" style="display:none">
+        <div style="font-size:34px">🧯</div>
+        <div data-th="ยังไม่มีถังในทะเบียน — กด “เพิ่มถัง” เพื่อเริ่มบันทึก" data-en="No extinguishers yet — click “Add Extinguisher”">ยังไม่มีถังในทะเบียน — กด “เพิ่มถัง” เพื่อเริ่มบันทึก</div>
+      </div>
+    </div>
+
     <!-- LOST & FOUND PAGE -->
     <div class="page" id="page-lostfound">
       <div class="prt-toolbar">
@@ -3832,6 +3943,101 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
       <div class="prt-empty" id="lf-empty" style="display:none">
         <div style="font-size:34px">🔍</div>
         <div data-th="ยังไม่มีรายการของเก็บได้ — กด “บันทึกของเก็บได้” เพื่อเพิ่มรายการแรก" data-en="No items yet — click “Add Item”">ยังไม่มีรายการของเก็บได้ — กด “บันทึกของเก็บได้” เพื่อเพิ่มรายการแรก</div>
+      </div>
+    </div>
+
+    <!-- FIRE EXTINGUISHER PAGE -->
+    <div class="page" id="page-firecheck">
+      <div class="prt-toolbar">
+        <div class="lf-head">🧯 <span data-th="ถังดับเพลิง (ทะเบียน + ตรวจสภาพ)" data-en="Fire Extinguishers">ถังดับเพลิง</span></div>
+        <div class="prt-actions">
+          <button class="prt-btn" id="fire-btn-add" onclick="fireOpenAdd()">➕ <span data-th="เพิ่มถัง" data-en="Add Unit">เพิ่มถัง</span></button>
+          <button class="prt-btn" onclick="firePrint()">🖨️ <span data-th="พิมพ์ทะเบียน" data-en="Print">พิมพ์ทะเบียน</span></button>
+          <button class="prt-btn" onclick="fireRefresh()" title="รีเฟรช">🔄</button>
+        </div>
+      </div>
+
+      <div class="prt-kpis" id="fire-kpis"></div>
+
+      <div id="fire-alert-banner" class="lf-overdue" style="display:none;background:linear-gradient(120deg,#B91C1C,#DC2626)" onclick="fireShowDue()">
+        <span class="lf-ob-ic">⚠️</span>
+        <span class="lf-ob-tx"><b id="fire-alert-n">0</b> <span data-th="ถังที่ต้องจัดการ (หมดอายุ/เกินกำหนดตรวจ/ไม่ผ่าน) — แตะเพื่อดู" data-en="unit(s) need attention — tap to view">ถังที่ต้องจัดการ (หมดอายุ/เกินกำหนดตรวจ/ไม่ผ่าน)</span></span>
+        <span class="lf-ob-go">→</span>
+      </div>
+
+      <div class="prt-filters">
+        <div class="prt-chips" id="fire-status-chips"></div>
+        <select class="prt-sel" id="fire-branch-sel" onchange="fireState.branch=this.value;fireRenderTable()">
+          <option value="all" data-th="ทุกสาขา" data-en="All branches">ทุกสาขา</option>
+          <option value="STY">STY</option><option value="SYY">SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option>
+        </select>
+        <input class="prt-search" id="fire-search" placeholder="🔍 ค้นหา รหัส / จุดติดตั้ง / ชนิด" oninput="fireState.q=this.value.trim().toLowerCase();fireRenderTable()">
+      </div>
+
+      <div class="prt-tablewrap">
+        <table class="prt-table" id="fire-table">
+          <thead><tr>
+            <th data-th="รหัส" data-en="Code">รหัส</th>
+            <th data-th="สาขา" data-en="Branch">สาขา</th>
+            <th data-th="จุดติดตั้ง" data-en="Location">จุดติดตั้ง</th>
+            <th data-th="ชนิด" data-en="Type">ชนิด</th>
+            <th data-th="ขนาด" data-en="Size">ขนาด</th>
+            <th data-th="หมดอายุ" data-en="Expiry">หมดอายุ</th>
+            <th data-th="ตรวจล่าสุด" data-en="Last check">ตรวจล่าสุด</th>
+            <th data-th="สถานะ" data-en="Status">สถานะ</th>
+            <th data-th="จัดการ" data-en="Action">จัดการ</th>
+          </tr></thead>
+          <tbody id="fire-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prt-pager" id="fire-pager"></div>
+      <div class="prt-empty" id="fire-empty" style="display:none">
+        <div style="font-size:34px">🧯</div>
+        <div data-th="ยังไม่มีถังในทะเบียน — กด “เพิ่มถัง” เพื่อบันทึกถังใบแรก" data-en="No units yet — click “Add Unit”">ยังไม่มีถังในทะเบียน — กด “เพิ่มถัง” เพื่อบันทึกถังใบแรก</div>
+      </div>
+    </div>
+
+    <!-- FIRE EXTINGUISHER PAGE -->
+    <div class="page" id="page-firecheck">
+      <div class="prt-toolbar">
+        <div class="lf-head">🧯 <span data-th="ตรวจถังดับเพลิง (Fire Extinguisher)" data-en="Fire Extinguishers">ตรวจถังดับเพลิง</span></div>
+        <div class="prt-actions">
+          <button class="prt-btn" onclick="fcOpenAddAsset()">➕ <span data-th="เพิ่มถัง" data-en="Add Unit">เพิ่มถัง</span></button>
+          <button class="prt-btn" onclick="fcExport()">📄 <span data-th="รายงาน" data-en="Report">รายงาน</span></button>
+          <button class="prt-btn" onclick="fcRefresh()" title="รีเฟรช">🔄</button>
+        </div>
+      </div>
+
+      <div class="prt-kpis" id="fc-kpis"></div>
+
+      <div id="fc-alert-banner" class="lf-overdue" style="display:none;background:linear-gradient(120deg,#B91C1C,#DC2626)" onclick="fcShowAlerts()">
+        <span class="lf-ob-ic">⚠️</span>
+        <span class="lf-ob-tx"><b id="fc-alert-n">0</b> <span data-th="ถังต้องจัดการ (ไม่ผ่าน / เกินกำหนดตรวจ / ใกล้หมดอายุ) — แตะเพื่อดู" data-en="unit(s) need attention — tap to view">ถังต้องจัดการ (ไม่ผ่าน / เกินกำหนดตรวจ / ใกล้หมดอายุ)</span></span>
+        <span class="lf-ob-go">→</span>
+      </div>
+
+      <div class="prt-filters">
+        <div class="prt-chips" id="fc-status-chips"></div>
+        <input class="prt-search" id="fc-search" placeholder="🔍 ค้นหา รหัส / จุดติดตั้ง / ชนิด" oninput="fcState.q=this.value.trim().toLowerCase();fcRenderTable()">
+      </div>
+
+      <div class="prt-tablewrap">
+        <table class="prt-table" id="fc-table">
+          <thead><tr>
+            <th data-th="รหัสถัง" data-en="Code">รหัสถัง</th>
+            <th data-th="จุดติดตั้ง" data-en="Location">จุดติดตั้ง</th>
+            <th data-th="ชนิด/ขนาด" data-en="Type/Size">ชนิด/ขนาด</th>
+            <th data-th="ตรวจล่าสุด" data-en="Last check">ตรวจล่าสุด</th>
+            <th data-th="หมดอายุ" data-en="Expiry">หมดอายุ</th>
+            <th data-th="สถานะ" data-en="Status">สถานะ</th>
+            <th data-th="จัดการ" data-en="Action">จัดการ</th>
+          </tr></thead>
+          <tbody id="fc-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prt-empty" id="fc-empty" style="display:none">
+        <div style="font-size:34px">🧯</div>
+        <div data-th="ยังไม่มีถังในทะเบียน — กด “เพิ่มถัง” เพื่อเริ่มบันทึก" data-en="No units yet — click “Add Unit”">ยังไม่มีถังในทะเบียน — กด “เพิ่มถัง” เพื่อเริ่มบันทึก</div>
       </div>
     </div>
 
@@ -4238,6 +4444,66 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
 
 <!-- EXPORT FILTER MODAL -->
 
+
+<!-- FIRE: เพิ่ม/แก้ถัง -->
+<div class="overlay" id="m-fire-asset">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-ttl"><span id="fire-asset-ttl">➕ เพิ่มถังดับเพลิง</span><button class="modal-x" onclick="closeM('m-fire-asset')">×</button></div>
+    <input type="hidden" id="faf-id">
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขา</label>
+        <select class="modal-sel" id="faf-branch"><option value="STY">STY</option><option value="SYY" selected>SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
+      </div>
+      <div class="modal-field" style="flex:2"><label class="modal-lbl">จุดติดตั้ง <span style="color:var(--red)">*</span></label><input class="modal-sel" id="faf-loc" placeholder="เช่น ล็อบบี้ ชั้น 1 / หน้าห้อง 512"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">อาคาร/โซน</label><input class="modal-sel" id="faf-building" placeholder="Sea View Wing"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ชนิด</label>
+        <select class="modal-sel" id="faf-type"><option value="ผงเคมีแห้ง">ผงเคมีแห้ง (ABC)</option><option value="CO2">CO2</option><option value="โฟม">โฟม</option><option value="น้ำยาเหลวระเหย">น้ำยาเหลวระเหย</option><option value="สารสะอาด">สารสะอาด (Clean Agent)</option></select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ขนาด (กก.)</label><input class="modal-sel" id="faf-size" placeholder="6.8"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันติดตั้ง/เติม</label><input class="modal-sel" id="faf-install" placeholder="dd/mm/yyyy"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันหมดอายุ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="faf-expiry" placeholder="dd/mm/yyyy"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><input class="modal-sel" id="faf-note" placeholder="ข้อมูลเพิ่มเติม"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-fire-asset')">ยกเลิก</button><button class="btn-ok" id="fire-asset-ok" onclick="fireSaveAsset()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- FIRE: Checklist ตรวจถัง -->
+<div class="overlay" id="m-fire-check">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-ttl"><span>✅ ตรวจถังดับเพลิง</span><button class="modal-x" onclick="closeM('m-fire-check')">×</button></div>
+    <input type="hidden" id="fcf-faid">
+    <div id="fcf-asset-info" class="lf-return-info"></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันที่ตรวจ</label><input class="modal-sel" id="fcf-date"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ผู้ตรวจ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="fcf-inspector" placeholder="ชื่อผู้ตรวจ"></div>
+    </div>
+    <div class="fire-cl-head">
+      <span data-th="รายการตรวจ (แตะเพื่อสลับ ผ่าน/ไม่ผ่าน)" data-en="Checklist (tap to toggle)">รายการตรวจ (แตะเพื่อสลับ ผ่าน/ไม่ผ่าน)</span>
+      <span class="fire-cl-actions"><button class="fire-cl-all" onclick="fireCheckAll(true)">✅ ผ่านทั้งหมด</button></span>
+    </div>
+    <div id="fcf-checklist" class="fire-cl-list"></div>
+    <div class="fire-cl-summary" id="fcf-summary"></div>
+    <div class="modal-field"><label class="modal-lbl">รูปหลักฐาน (แนะนำ)</label>
+      <input type="file" id="fcf-photo" accept="image/*" onchange="firePickPhoto(this)">
+      <div id="fcf-photo-prev" style="margin-top:6px"></div>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-fire-check')">ยกเลิก</button><button class="btn-ok" id="fire-check-ok" style="background:linear-gradient(135deg,#DC2626,#B91C1C)" onclick="fireSaveCheck()">💾 บันทึกผลตรวจ</button></div>
+  </div>
+</div>
+
+<!-- FIRE: ประวัติการตรวจ -->
+<div class="overlay" id="m-fire-history">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-ttl"><span id="fire-hist-ttl">📋 ประวัติการตรวจ</span><button class="modal-x" onclick="closeM('m-fire-history')">×</button></div>
+    <div id="fire-hist-body" style="max-height:60vh;overflow:auto"></div>
+  </div>
+</div>
+
 <!-- LOST & FOUND: บันทึกของเก็บได้ -->
 <div class="overlay" id="m-lf-add">
   <div class="modal" style="max-width:540px">
@@ -4289,6 +4555,102 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
       <div id="lfr-photo-prev" style="margin-top:6px"></div>
     </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-lf-return')">ยกเลิก</button><button class="btn-ok" id="lf-return-ok" style="background:linear-gradient(135deg,#16A34A,#15803D)" onclick="lfConfirmReturn()">✅ ยืนยันคืนของ</button></div>
+  </div>
+</div>
+
+
+<!-- FIRE: เพิ่ม/แก้ไขถัง -->
+<div class="overlay" id="m-fire-add">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-ttl"><span id="fire-add-ttl">➕ เพิ่มถังดับเพลิง</span><button class="modal-x" onclick="closeM('m-fire-add')">×</button></div>
+    <input type="hidden" id="faa-id">
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขา <span style="color:var(--red)">*</span></label>
+        <select class="modal-sel" id="faa-branch"><option value="STY">STY</option><option value="SYY" selected>SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">อาคาร/โซน</label><input class="modal-sel" id="faa-building" placeholder="เช่น อาคารหลัก, โซนล็อบบี้"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">จุดติดตั้ง <span style="color:var(--red)">*</span></label><input class="modal-sel" id="faa-loc" placeholder="เช่น ทางเดินชั้น 1 หน้าลิฟต์"></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1.4"><label class="modal-lbl">ชนิด</label>
+        <select class="modal-sel" id="faa-type">
+          <option value="ผงเคมีแห้ง">ผงเคมีแห้ง (Dry Chemical)</option>
+          <option value="CO2">CO2 (คาร์บอนไดออกไซด์)</option>
+          <option value="โฟม">โฟม (Foam)</option>
+          <option value="น้ำ">น้ำ (Water)</option>
+          <option value="สารสะอาด">สารสะอาด (Clean Agent)</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ขนาด (กก.)</label><input class="modal-sel" id="faa-size" placeholder="เช่น 6.8"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันติดตั้ง/ผลิต</label><input class="modal-sel" id="faa-install" type="date"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันหมดอายุ/อัดใหม่ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="faa-expiry" type="date"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><input class="modal-sel" id="faa-note" placeholder="ข้อมูลเพิ่มเติม..."></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-fire-add')">ยกเลิก</button><button class="btn-ok" id="fire-add-ok" onclick="fireSaveAsset()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+
+<!-- FIRE: เพิ่ม/แก้ทะเบียนถัง -->
+<div class="overlay" id="m-fc-asset">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-ttl"><span id="fc-asset-ttl">➕ เพิ่มถังดับเพลิง</span><button class="modal-x" onclick="closeM('m-fc-asset')">×</button></div>
+    <input type="hidden" id="fca-id">
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขา</label>
+        <select class="modal-sel" id="fca-branch"><option value="STY">STY</option><option value="SYY" selected>SYY</option><option value="SPN">SPN</option><option value="SNT">SNT</option><option value="SKC">SKC</option></select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">อาคาร/โซน</label><input class="modal-sel" id="fca-building" placeholder="เช่น อาคาร A"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">จุดติดตั้ง <span style="color:var(--red)">*</span></label><input class="modal-sel" id="fca-location" placeholder="เช่น ล็อบบี้ ชั้น 1 ข้างลิฟต์"></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ชนิด</label>
+        <select class="modal-sel" id="fca-type">
+          <option value="ผงเคมีแห้ง">ผงเคมีแห้ง (ABC)</option>
+          <option value="CO2">CO2 (คาร์บอนไดออกไซด์)</option>
+          <option value="โฟม">โฟม (Foam)</option>
+          <option value="น้ำ">น้ำ (Water)</option>
+          <option value="สารสะอาด">สารสะอาด (Clean agent)</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">ขนาด (กก.)</label><input class="modal-sel" id="fca-size" placeholder="เช่น 6.8"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันติดตั้ง/เติมล่าสุด</label><input class="modal-sel" id="fca-install" placeholder="dd/mm/yyyy"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">วันหมดอายุ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="fca-expiry" placeholder="dd/mm/yyyy"></div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">หมายเหตุ</label><input class="modal-sel" id="fca-note" placeholder="ข้อมูลเพิ่มเติม"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-fc-asset')">ยกเลิก</button><button class="btn-ok" id="fc-asset-ok" onclick="fcSaveAsset()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- FIRE: ตรวจถัง (Checklist ติ๊กรายข้อ) -->
+<div class="overlay" id="m-fc-inspect">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-ttl"><span>✅ ตรวจถังดับเพลิง</span><button class="modal-x" onclick="closeM('m-fc-inspect')">×</button></div>
+    <input type="hidden" id="fci-fa-id">
+    <div id="fci-unit-info" class="lf-return-info"></div>
+    <div class="modal-field"><label class="modal-lbl">ผู้ตรวจ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="fci-inspector" placeholder="ชื่อผู้ตรวจ"></div>
+    <div class="fci-checklist" id="fci-checklist"></div>
+    <div class="fci-summary" id="fci-summary"></div>
+    <div class="modal-field"><label class="modal-lbl">รูปหลักฐาน (แนะนำ)</label>
+      <input type="file" id="fci-photo" accept="image/*" onchange="fcPickInspectPhoto(this)">
+      <div id="fci-photo-prev" style="margin-top:6px"></div>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-fc-inspect')">ยกเลิก</button><button class="btn-ok" id="fc-inspect-ok" style="background:linear-gradient(135deg,#16A34A,#15803D)" onclick="fcSaveInspection()">✅ บันทึกผลตรวจ</button></div>
+  </div>
+</div>
+
+<!-- FIRE: ประวัติการตรวจ -->
+<div class="overlay" id="m-fc-history">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-ttl"><span id="fc-hist-ttl">📋 ประวัติการตรวจ</span><button class="modal-x" onclick="closeM('m-fc-history')">×</button></div>
+    <div id="fc-hist-body" style="max-height:60vh;overflow:auto"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-fc-history')">ปิด</button></div>
   </div>
 </div>
 
@@ -8518,7 +8880,8 @@ function showPage(p,el,fromPop){
     report:L('📈 รายงาน','📈 Reports'),
     qrgen:L('🏷️ สร้าง QR ห้องพัก','🏷️ Guest QR Generator'),
     prtrack:L('🧾 บันทึก PR จัดซื้อ','🧾 PR Records'),
-    lostfound:L('🔍 ของหาย-ของเก็บได้','🔍 Lost & Found')
+    lostfound:L('🔍 ของหาย-ของเก็บได้','🔍 Lost & Found'),
+    firecheck:L('🧯 ตรวจถังดับเพลิง','🧯 Fire Extinguisher Inspection')
   };
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
   // สลับ UI ของหน้า tickets ตามประเภทงาน
@@ -8537,6 +8900,7 @@ function showPage(p,el,fromPop){
   if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
   if(p==='prtrack'){ prLoadPage(); }
   if(p==='lostfound'){ lfLoadPage(); }
+  if(p==='firecheck'){ fireLoadPage(); }
   // ล้างตัวกรองที่ค้างจากหน้าก่อน (status/priority/category/ค้นหา/ช่าง/วันที่) เมื่อเข้าหน้ากลุ่ม Ticket ผ่านเมนู
   // กันบัก: badge นับงานดิบ แต่ตารางกรองด้วยค่าเก่า → ตัวเลขไม่ตรง / ตารางว่างดูเหมือนโหลดค้าง
   // (gotoTickets/goToMemberTasks ตั้งค่าตัวกรองหลัง showPage อยู่แล้ว จึงไม่ได้รับผลกระทบ)
@@ -8691,6 +9055,262 @@ function prNormStatus(s){
 }
 async function prApi(body){const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});return r.json();}
 
+// ==================== FIRE EXTINGUISHER ====================
+let fireState={ assets:[], checklist:[], q:'', filter:'all', alertOnly:false };
+let fireChecks={};  // {k:{pass,note}} ระหว่างตรวจ
+let firePhoto='';
+const FIRE_CL_DEFAULT=[
+  {k:'gauge',th:'เกจวัดแรงดันอยู่โซนเขียว (พร้อมใช้งาน)'},
+  {k:'seal',th:'สลัก/สายรัด/ซีลนิรภัยครบ ไม่ชำรุด'},
+  {k:'body',th:'ตัวถังไม่มีสนิม รอยบุบ รอยรั่ว'},
+  {k:'nozzle',th:'หัวฉีด/สายฉีดไม่อุดตัน ไม่แตกร้าว'},
+  {k:'label',th:'ป้ายบอกชนิด/วิธีใช้ชัดเจน อ่านออก'},
+  {k:'access',th:'ติดตั้งตำแหน่งที่กำหนด เข้าถึงง่าย ไม่มีของบัง'},
+  {k:'sign',th:'ป้ายชี้ตำแหน่งถังมองเห็นชัด'},
+  {k:'weight',th:'น้ำหนัก/ผงเคมีปกติ ไม่จับตัวแข็ง'},
+  {k:'expiry',th:'ยังไม่เกินวันตรวจ/วันหมดอายุ'}
+];
+const FIRE_DUE_DAYS=30;     // ครบกำหนดตรวจทุก 30 วัน (ตรวจรายเดือน)
+const FIRE_EXP_WARN=60;     // เตือนล่วงหน้าก่อนหมดอายุ 60 วัน
+
+function fireToday(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
+function fireParseDate(s){ const m=String(s||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!m)return null; let y=+m[3]; return new Date(y,+m[2]-1,+m[1]); }
+function fireDaysSince(s){ const d=fireParseDate(s); if(!d)return null; return Math.floor((new Date()-d)/86400000); }
+function fireDaysUntil(s){ const d=fireParseDate(s); if(!d)return null; return Math.floor((d-new Date())/86400000); }
+
+// สถานะถัง: needs_fix(ไม่ผ่าน) / expired(หมดอายุ) / exp_near(ใกล้หมด) / due(เกินกำหนดตรวจ) / ok
+function fireStatus(a){
+  if(a.status==='needs_fix') return 'fix';
+  const expUntil=fireDaysUntil(a.expiry_date);
+  if(expUntil!==null && expUntil<0) return 'exp';
+  const since=fireDaysSince(a.last_check);
+  if(a.last_check && since!==null && since>FIRE_DUE_DAYS) return 'due';
+  if(!a.last_check) return 'due';
+  if(expUntil!==null && expUntil<=FIRE_EXP_WARN) return 'expwarn';
+  return 'ok';
+}
+function fireNeedsAttention(a){ const s=fireStatus(a); return s==='fix'||s==='exp'||s==='due'||s==='expwarn'; }
+
+async function fireLoadPage(){
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fa_list',access_token:authToken()})})).json();
+    if(r&&r.success){ fireState.assets=r.items||[]; fireState.checklist=(r.checklist&&r.checklist.length)?r.checklist:FIRE_CL_DEFAULT; }
+  }catch(e){ if(!fireState.checklist.length)fireState.checklist=FIRE_CL_DEFAULT; }
+  fireRender();
+}
+function fireRefresh(){ fireState.alertOnly=false; fireLoadPage(); }
+
+function fireRender(){
+  const a=fireState.assets;
+  const total=a.length;
+  const fix=a.filter(x=>fireStatus(x)==='fix').length;
+  const due=a.filter(x=>{const s=fireStatus(x);return s==='due';}).length;
+  const exp=a.filter(x=>{const s=fireStatus(x);return s==='exp'||s==='expwarn';}).length;
+  const ok=a.filter(x=>fireStatus(x)==='ok').length;
+  const attention=a.filter(fireNeedsAttention).length;
+  const kpis=[['🧯',total,L('ถังทั้งหมด','Total'),'var(--text)'],['✅',ok,L('พร้อมใช้','Ready'),'#16A34A'],['🔧',fix,L('ไม่ผ่าน/ต้องแก้','Needs fix'),'#DC2626'],['⏰',due,L('เกินกำหนดตรวจ','Overdue check'),'#D97706'],['📅',exp,L('ใกล้/หมดอายุ','Expiring'),'#DC2626']];
+  document.getElementById('fire-kpis').innerHTML=kpis.map(([ic,n,l,c])=>`<div class="prt-kpi"><div class="prt-kpi-ic">${ic}</div><div class="prt-kpi-n" style="color:${c}">${n}</div><div class="prt-kpi-l">${l}</div></div>`).join('');
+  const ban=document.getElementById('fire-alert-banner');
+  ban.style.display=attention>0?'flex':'none';
+  document.getElementById('fire-alert-n').textContent=attention;
+  const badge=document.getElementById('fire-badge');
+  if(badge){ badge.textContent=attention; badge.style.display=attention>0?'':'none'; }
+  fireRenderTable();
+}
+function fireRenderChips(){
+  const a=fireState.assets;
+  const c={all:a.length,ok:0,fix:0,due:0,exp:0};
+  a.forEach(x=>{const s=fireStatus(x);if(s==='ok')c.ok++;else if(s==='fix')c.fix++;else if(s==='due')c.due++;else if(s==='exp'||s==='expwarn')c.exp++;});
+  const chips=[['all',L('ทั้งหมด','All')],['ok','✅ '+L('พร้อมใช้','Ready')],['fix','🔧 '+L('ต้องแก้','Fix')],['due','⏰ '+L('เกินกำหนด','Overdue')],['exp','📅 '+L('หมดอายุ','Expiry')]];
+  document.getElementById('fire-chips').innerHTML=chips.map(([k,label])=>`<div class="prt-chip ${!fireState.alertOnly&&fireState.filter===k?'active':''}" onclick="fireState.alertOnly=false;fireState.filter='${k}';fireRenderTable()">${label} (${c[k]||0})</div>`).join('');
+}
+function fireFiltered(){
+  return fireState.assets.filter(a=>{
+    if(fireState.alertOnly&&!fireNeedsAttention(a))return false;
+    if(!fireState.alertOnly&&fireState.filter!=='all'){ const s=fireStatus(a); const map={ok:'ok',fix:'fix',due:'due',exp:['exp','expwarn']}; const want=fireState.filter; if(want==='exp'){if(s!=='exp'&&s!=='expwarn')return false;}else if(s!==want)return false; }
+    if(fireState.q){ const hay=[a.fa_id,a.location,a.building,a.fire_type].join(' ').toLowerCase(); if(hay.indexOf(fireState.q)<0)return false; }
+    return true;
+  });
+}
+function fireStPill(a){
+  const s=fireStatus(a);
+  const map={ok:['fire-st-ok','✅ พร้อมใช้'],fix:['fire-st-fix','🔧 ไม่ผ่าน/ต้องแก้'],due:['fire-st-due','⏰ เกินกำหนดตรวจ'],exp:['fire-st-exp','❌ หมดอายุ'],expwarn:['fire-st-due','📅 ใกล้หมดอายุ']};
+  const [cls,txt]=map[s]||map.ok;
+  return `<span class="fire-st ${cls}">${L(txt,txt)}</span>`;
+}
+function fireRenderTable(){
+  fireRenderChips();
+  const tb=document.getElementById('fire-tbody'), empty=document.getElementById('fire-empty');
+  let data=fireFiltered();
+  data.sort((a,c)=>{ const oa=fireNeedsAttention(a),oc=fireNeedsAttention(c); if(oa!==oc)return oc-oa; return String(a.fa_id).localeCompare(String(c.fa_id)); });
+  if(!data.length){ tb.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tb.innerHTML=data.map(a=>{
+    const expUntil=fireDaysUntil(a.expiry_date);
+    const expCls=(expUntil!==null&&expUntil<=FIRE_EXP_WARN)?'fire-exp-near':'';
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px;font-weight:700">${esc(a.fa_id||'')}</td>
+      <td style="font-size:11.5px">${esc(a.location||'')}${a.building?'<br><span style="color:var(--text3);font-size:10px">'+esc(a.building)+'</span>':''}</td>
+      <td style="font-size:11px">${esc(a.fire_type||'-')}${a.size_kg?' · '+esc(a.size_kg)+'kg':''}</td>
+      <td style="font-size:11px;white-space:nowrap">${a.last_check?esc(String(a.last_check).substring(0,10)):'<span style="color:#D97706">ยังไม่ตรวจ</span>'}</td>
+      <td style="font-size:11px;white-space:nowrap" class="${expCls}">${esc(String(a.expiry_date||'-').substring(0,10))}${expUntil!==null&&expUntil>=0&&expUntil<=FIRE_EXP_WARN?' ('+expUntil+'d)':''}</td>
+      <td>${fireStPill(a)}</td>
+      <td>
+        <button class="lf-act-btn lf-act-return" style="border-color:#DC2626;color:#DC2626" onclick="fireOpenCheck('${a.fa_id}')">ตรวจ</button>
+        <button class="lf-act-btn" onclick="fireHistory('${a.fa_id}')">ประวัติ</button>
+        <button class="lf-act-btn" onclick="fireEditAsset('${a.fa_id}')">แก้ไข</button>
+      </td></tr>`;
+  }).join('');
+}
+function fireShowAlerts(){ fireState.alertOnly=true; fireState.filter='all'; fireState.q=''; const s=document.getElementById('fire-search'); if(s)s.value=''; fireRenderTable(); }
+
+// ---------- เพิ่ม/แก้ถัง ----------
+function fireOpenAsset(){
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  ['faf-id','faf-loc','faf-building','faf-size','faf-install','faf-expiry','faf-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('faf-type').value='ผงเคมีแห้ง';
+  if(currentBranch&&currentBranch!=='all')document.getElementById('faf-branch').value=currentBranch;
+  document.getElementById('fire-asset-ttl').textContent=L('➕ เพิ่มถังดับเพลิง','➕ Add Extinguisher');
+  document.getElementById('m-fire-asset').classList.add('show');
+}
+function fireEditAsset(id){
+  const a=fireState.assets.find(x=>x.fa_id===id); if(!a)return;
+  document.getElementById('faf-id').value=a.fa_id;
+  document.getElementById('faf-branch').value=a.branch||'SYY';
+  document.getElementById('faf-loc').value=a.location||'';
+  document.getElementById('faf-building').value=a.building||'';
+  document.getElementById('faf-type').value=a.fire_type||'ผงเคมีแห้ง';
+  document.getElementById('faf-size').value=a.size_kg||'';
+  document.getElementById('faf-install').value=a.install_date||'';
+  document.getElementById('faf-expiry').value=a.expiry_date||'';
+  document.getElementById('faf-note').value=a.note||'';
+  document.getElementById('fire-asset-ttl').textContent=L('✏️ แก้ไขถัง','✏️ Edit')+' '+a.fa_id;
+  document.getElementById('m-fire-asset').classList.add('show');
+}
+async function fireSaveAsset(){
+  const loc=document.getElementById('faf-loc').value.trim();
+  const expiry=document.getElementById('faf-expiry').value.trim();
+  if(!loc||!expiry){ toast(L('กรุณากรอกจุดติดตั้งและวันหมดอายุ','Enter location & expiry'),'⚠️','info'); return; }
+  const btn=document.getElementById('fire-asset-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
+  const rec={ fa_id:document.getElementById('faf-id').value||'', branch:document.getElementById('faf-branch').value,
+    location:loc, building:document.getElementById('faf-building').value.trim(), fire_type:document.getElementById('faf-type').value,
+    size_kg:document.getElementById('faf-size').value.trim(), install_date:document.getElementById('faf-install').value.trim(),
+    expiry_date:expiry, note:document.getElementById('faf-note').value.trim() };
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'fa_save',access_token:authToken()},rec))})).json();
+    if(r&&r.success){ toast(L('บันทึกแล้ว','Saved'),'✅'); closeM('m-fire-asset'); fireLoadPage(); }
+    else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+  btn.disabled=false; btn.textContent=old;
+}
+
+// ---------- Checklist ตรวจถัง ----------
+function fireOpenCheck(id){
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  const a=fireState.assets.find(x=>x.fa_id===id); if(!a)return;
+  document.getElementById('fcf-faid').value=id;
+  document.getElementById('fcf-asset-info').innerHTML=`<b>${esc(a.fa_id)}</b> · ${esc(a.fire_type||'')}${a.size_kg?' '+esc(a.size_kg)+'kg':''}<br><span style="color:var(--text3)">📍 ${esc(a.location||'')} ${a.building?'· '+esc(a.building):''}</span>`;
+  document.getElementById('fcf-date').value=fireToday();
+  document.getElementById('fcf-inspector').value=(currentUser&&currentUser.name)||'';
+  firePhoto=''; document.getElementById('fcf-photo-prev').innerHTML='';
+  fireChecks={}; (fireState.checklist||FIRE_CL_DEFAULT).forEach(c=>fireChecks[c.k]={pass:true,note:''});
+  fireRenderChecklist();
+  document.getElementById('m-fire-check').classList.add('show');
+}
+function fireRenderChecklist(){
+  const cl=fireState.checklist||FIRE_CL_DEFAULT;
+  document.getElementById('fcf-checklist').innerHTML=cl.map(c=>{
+    const st=fireChecks[c.k]||{pass:true,note:''};
+    return `<div class="fire-cl-item ${st.pass?'pass':'fail'}" id="fcl-${c.k}">
+      <div class="fire-cl-row" onclick="fireToggle('${c.k}')">
+        <div class="fire-cl-tick">${st.pass?'✓':'✕'}</div>
+        <div class="fire-cl-txt">${esc(c.th)}</div>
+      </div>
+      <input class="fire-cl-note" id="fcn-${c.k}" placeholder="${L('ระบุปัญหาที่พบ...','Describe issue...')}" value="${esc(st.note||'')}" oninput="fireChecks['${c.k}'].note=this.value">
+    </div>`;
+  }).join('');
+  fireUpdateSummary();
+}
+function fireToggle(k){
+  if(!fireChecks[k])fireChecks[k]={pass:true,note:''};
+  fireChecks[k].pass=!fireChecks[k].pass;
+  const item=document.getElementById('fcl-'+k);
+  const tick=item.querySelector('.fire-cl-tick');
+  if(fireChecks[k].pass){ item.classList.remove('fail'); item.classList.add('pass'); tick.textContent='✓'; }
+  else { item.classList.remove('pass'); item.classList.add('fail'); tick.textContent='✕'; }
+  fireUpdateSummary();
+}
+function fireCheckAll(pass){ Object.keys(fireChecks).forEach(k=>fireChecks[k].pass=pass); fireRenderChecklist(); }
+function fireUpdateSummary(){
+  const cl=fireState.checklist||FIRE_CL_DEFAULT;
+  let pass=0; cl.forEach(c=>{ if(fireChecks[c.k]&&fireChecks[c.k].pass)pass++; });
+  const total=cl.length, allPass=(pass>=total);
+  const el=document.getElementById('fcf-summary');
+  el.className='fire-cl-summary '+(allPass?'pass':'fail');
+  el.textContent=allPass?L(`✅ ผ่านทั้งหมด ${pass}/${total} ข้อ`,`✅ Pass ${pass}/${total}`):L(`⚠️ ผ่าน ${pass}/${total} ข้อ — มี ${total-pass} ข้อไม่ผ่าน`,`⚠️ ${pass}/${total} passed`);
+}
+async function firePickPhoto(input){
+  const f=(input.files||[])[0]; if(!f)return;
+  try{ firePhoto=await compressToDataURL(f); document.getElementById('fcf-photo-prev').innerHTML=`<img src="${firePhoto}">`; }catch(e){}
+  input.value='';
+}
+async function fireSaveCheck(){
+  const inspector=document.getElementById('fcf-inspector').value.trim();
+  if(!inspector){ toast(L('กรุณาระบุผู้ตรวจ','Enter inspector'),'⚠️','info'); return; }
+  const btn=document.getElementById('fire-check-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
+  let imageUrl='';
+  if(firePhoto&&firePhoto.indexOf('data:')===0){
+    try{ const b64=firePhoto.split(',')[1];
+      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'firecheck_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
+      imageUrl=(u&&(u.imageUrl||u.url))||'';
+    }catch(e){}
+  }
+  const cl=fireState.checklist||FIRE_CL_DEFAULT;
+  const items=cl.map(c=>({k:c.k,th:c.th,pass:!!(fireChecks[c.k]&&fireChecks[c.k].pass),note:(fireChecks[c.k]&&fireChecks[c.k].note)||''}));
+  const faid=document.getElementById('fcf-faid').value;
+  const a=fireState.assets.find(x=>x.fa_id===faid);
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_save',fa_id:faid,branch:(a&&a.branch)||'',check_date:document.getElementById('fcf-date').value,inspector:inspector,items:items,image_url:imageUrl,access_token:authToken()})})).json();
+    if(r&&r.success){ toast(r.result==='pass'?L('บันทึกแล้ว — ผ่านทั้งหมด ✅','Saved — All pass'):L(`บันทึกแล้ว — ผ่าน ${r.pass_count}/${r.total_count}`,`Saved — ${r.pass_count}/${r.total_count}`),r.result==='pass'?'✅':'⚠️'); closeM('m-fire-check'); fireLoadPage(); }
+    else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+  btn.disabled=false; btn.textContent=old;
+}
+
+// ---------- ประวัติการตรวจ ----------
+async function fireHistory(id){
+  const a=fireState.assets.find(x=>x.fa_id===id);
+  document.getElementById('fire-hist-ttl').textContent=L('📋 ประวัติการตรวจ ','📋 History ')+id;
+  const body=document.getElementById('fire-hist-body');
+  body.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">'+L('กำลังโหลด...','Loading...')+'</div>';
+  document.getElementById('m-fire-history').classList.add('show');
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_history',fa_id:id,access_token:authToken()})})).json();
+    const hist=(r&&r.history)||[];
+    if(!hist.length){ body.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">'+L('ยังไม่มีประวัติการตรวจ','No inspection history')+'</div>'; return; }
+    body.innerHTML=hist.map(h=>{
+      let fails=[]; try{ const items=JSON.parse(h.items_json||'[]'); fails=items.filter(x=>!x.pass); }catch(e){}
+      const isPass=(h.result==='pass');
+      return `<div class="fire-hist-card">
+        <div class="fh-top">
+          <span style="font-weight:700;font-size:12.5px">${esc(String(h.check_date).substring(0,10))} · ${esc(h.inspector||'')}</span>
+          <span class="fire-st ${isPass?'fire-st-ok':'fire-st-fix'}">${isPass?'✅ ผ่าน':'⚠️ ไม่ผ่าน'} ${esc(h.pass_count||'')}/${esc(h.total_count||'')}</span>
+        </div>
+        ${fails.map(f=>`<div class="fire-hist-fail-item">✕ ${esc(f.th||f.k)}${f.note?': '+esc(f.note):''}</div>`).join('')}
+        ${h.image_url?`<div style="margin-top:6px"><a href="${esc(h.image_url)}" target="_blank" style="font-size:11px;color:var(--accent)">📷 ดูรูปหลักฐาน</a></div>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){ body.innerHTML='<div style="text-align:center;padding:20px;color:var(--red)">'+L('โหลดไม่สำเร็จ','Load failed')+'</div>'; }
+}
+
+function firePrint(){
+  const data=fireFiltered();
+  const w=window.open('','_blank'); if(!w){toast(L('เปิดหน้าต่างพิมพ์ไม่ได้','Popup blocked'),'⚠️','info');return;}
+  const rows=data.map(a=>{const s=fireStatus(a);const stxt={ok:'พร้อมใช้',fix:'ไม่ผ่าน',due:'เกินกำหนดตรวจ',exp:'หมดอายุ',expwarn:'ใกล้หมดอายุ'}[s]||'';return `<tr><td>${esc(a.fa_id)}</td><td>${esc(a.location||'')}</td><td>${esc(a.fire_type||'')} ${esc(a.size_kg||'')}</td><td>${esc(String(a.last_check||'-').substring(0,10))}</td><td>${esc(String(a.expiry_date||'-').substring(0,10))}</td><td>${stxt}</td></tr>`;}).join('');
+  w.document.write(`<html><head><title>Fire Extinguisher</title><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px}h1{font-size:18px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:5px;text-align:left}th{background:#f3f4f6}</style></head><body><h1>🧯 ทะเบียนถังดับเพลิง (${data.length} ถัง)</h1><div style="font-size:11px;color:#666;margin-bottom:10px">Santhiya · SYY Service Hub · ${fireToday()}</div><table><thead><tr><th>รหัส</th><th>จุดติดตั้ง</th><th>ชนิด/ขนาด</th><th>ตรวจล่าสุด</th><th>หมดอายุ</th><th>สถานะ</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),500);
+}
+
 // ==================== LOST & FOUND ====================
 let lfState={ items:[], q:'', cat:'all', status:'all', page:1, overdueOnly:false };
 const LF_PER_PAGE=15, LF_HOLD_DAYS=90;
@@ -8715,6 +9335,252 @@ function lfAgeBadge(it){
   let bg='#94A3B8';
   if(active){ if(d>=90)bg='#DC2626'; else if(d>=60)bg='#EA580C'; else if(d>=30)bg='#D97706'; else bg='#059669'; }
   return `<span class="lf-age" style="background:${bg};color:#fff">${d} ${L('วัน','d')}${active&&d>=90?' ⚠️':''}</span>`;
+}
+
+// ==================== FIRE EXTINGUISHER (ตรวจถังดับเพลิง) ====================
+let fcState={ assets:[], checklist:[], q:'', status:'all', alertsOnly:false };
+let fcInspectItems=[], fcInspectPhoto='';
+const FC_DUE_DAYS=30;        // เกินกี่วันไม่ตรวจ = เตือน (นับจากตรวจล่าสุด)
+const FC_EXP_SOON_DAYS=60;   // ใกล้หมดอายุกี่วัน = เตือน
+// fallback checklist (เผื่อ GAS ยังไม่ส่ง — จะถูกแทนด้วยของจริงจาก server)
+const FC_CHECKLIST_DEFAULT=[
+  {k:'gauge',th:'เกจวัดแรงดันอยู่โซนเขียว (พร้อมใช้งาน)'},
+  {k:'seal',th:'สลัก/สายรัด/ซีลนิรภัยครบ ไม่ชำรุด'},
+  {k:'body',th:'ตัวถังไม่มีสนิม รอยบุบ รอยรั่ว'},
+  {k:'nozzle',th:'หัวฉีด/สายฉีดไม่อุดตัน ไม่แตกร้าว'},
+  {k:'label',th:'ป้ายบอกชนิด/วิธีใช้ชัดเจน อ่านออก'},
+  {k:'access',th:'ติดตั้งตำแหน่งที่กำหนด เข้าถึงง่าย ไม่มีของบัง'},
+  {k:'sign',th:'ป้ายชี้ตำแหน่งถังมองเห็นชัด'},
+  {k:'weight',th:'น้ำหนัก/ผงเคมีปกติ ไม่จับตัวแข็ง'},
+  {k:'expiry',th:'ยังไม่เกินวันตรวจ/วันหมดอายุ'}
+];
+
+function fcParseDate(s){ const m=String(s||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!m)return null; let y=+m[3]; return new Date(y,+m[2]-1,+m[1]); }
+function fcDaysTo(s){ const d=fcParseDate(s); if(!d)return null; return Math.floor((d-new Date())/86400000); }        // + = อีกกี่วัน, - = เกินมาแล้ว
+function fcDaysSince(s){ const d=fcParseDate(s); if(!d)return null; return Math.floor((new Date()-d)/86400000); }
+function fcToday(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
+
+// สถานะถัง (คำนวณจากข้อมูล): needs_fix > expired > exp_soon > due > active
+function fcUnitStatus(u){
+  if(String(u.status)==='needs_fix') return 'needs_fix';
+  const expDays=fcDaysTo(u.expiry_date);
+  if(expDays!==null&&expDays<0) return 'expired';
+  const sinceCheck=u.last_check?fcDaysSince(u.last_check):null;
+  if(u.last_check===''||u.last_check===undefined||u.last_check===null||sinceCheck===null) return 'never';
+  if(sinceCheck>FC_DUE_DAYS) return 'due';
+  if(expDays!==null&&expDays<=FC_EXP_SOON_DAYS) return 'exp_soon';
+  return 'active';
+}
+function fcNeedsAttention(u){ const s=fcUnitStatus(u); return s==='needs_fix'||s==='expired'||s==='due'||s==='never'||s==='exp_soon'; }
+
+async function fcLoadPage(){
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fa_list',access_token:authToken()})})).json();
+    if(r&&r.success){ fcState.assets=r.items||[]; fcState.checklist=(r.checklist&&r.checklist.length)?r.checklist:FC_CHECKLIST_DEFAULT; }
+  }catch(e){ if(!fcState.checklist.length)fcState.checklist=FC_CHECKLIST_DEFAULT; }
+  if(!fcState.checklist.length)fcState.checklist=FC_CHECKLIST_DEFAULT;
+  fcRender();
+}
+function fcRefresh(){ fcState.alertsOnly=false; fcLoadPage(); }
+
+function fcRender(){
+  const a=fcState.assets;
+  const total=a.length;
+  const fix=a.filter(u=>fcUnitStatus(u)==='needs_fix').length;
+  const due=a.filter(u=>{const s=fcUnitStatus(u);return s==='due'||s==='never';}).length;
+  const expSoon=a.filter(u=>{const s=fcUnitStatus(u);return s==='exp_soon'||s==='expired';}).length;
+  const ok=a.filter(u=>fcUnitStatus(u)==='active').length;
+  const kpis=[['🧯',total,L('ถังทั้งหมด','Total units'),'var(--text)'],['✅',ok,L('พร้อมใช้','Ready'),'#16A34A'],['🔧',fix,L('ไม่ผ่าน/ต้องแก้','Needs fix'),'#DC2626'],['⏰',due,L('เกินกำหนดตรวจ','Overdue check'),'#D97706'],['📅',expSoon,L('ใกล้/หมดอายุ','Expiring'),'#EA580C']];
+  document.getElementById('fc-kpis').innerHTML=kpis.map(([ic,n,l,c])=>`<div class="prt-kpi"><div class="prt-kpi-ic">${ic}</div><div class="prt-kpi-n" style="color:${c}">${n}</div><div class="prt-kpi-l">${l}</div></div>`).join('');
+  const alerts=a.filter(fcNeedsAttention).length;
+  const ob=document.getElementById('fc-alert-banner');
+  ob.style.display=alerts>0?'flex':'none';
+  document.getElementById('fc-alert-n').textContent=alerts;
+  const badge=document.getElementById('fc-badge');
+  if(badge){ badge.textContent=alerts; badge.style.display=alerts>0?'':'none'; }
+  fcRenderTable();
+}
+function fcRenderChips(){
+  const a=fcState.assets;
+  const c={all:a.length,active:0,needs_fix:0,due:0,exp_soon:0};
+  a.forEach(u=>{const s=fcUnitStatus(u); if(s==='active')c.active++; else if(s==='needs_fix')c.needs_fix++; else if(s==='due'||s==='never')c.due++; else if(s==='exp_soon'||s==='expired')c.exp_soon++;});
+  const chips=[['all',L('ทั้งหมด','All')],['active','✅ '+L('พร้อมใช้','Ready')],['needs_fix','🔧 '+L('ต้องแก้','Needs fix')],['due','⏰ '+L('เกินกำหนดตรวจ','Overdue')],['exp_soon','📅 '+L('ใกล้/หมดอายุ','Expiring')]];
+  document.getElementById('fc-status-chips').innerHTML=chips.map(([k,label])=>`<div class="prt-chip ${!fcState.alertsOnly&&fcState.status===k?'active':''}" onclick="fcState.alertsOnly=false;fcState.status='${k}';fcRenderTable()">${label} (${c[k]||0})</div>`).join('');
+}
+function fcFiltered(){
+  return fcState.assets.filter(u=>{
+    const s=fcUnitStatus(u);
+    if(fcState.alertsOnly){ if(!fcNeedsAttention(u))return false; }
+    else if(fcState.status!=='all'){
+      if(fcState.status==='due'&&!(s==='due'||s==='never'))return false;
+      if(fcState.status==='exp_soon'&&!(s==='exp_soon'||s==='expired'))return false;
+      if(fcState.status==='active'&&s!=='active')return false;
+      if(fcState.status==='needs_fix'&&s!=='needs_fix')return false;
+    }
+    if(fcState.q){ const hay=[u.fa_id,u.location,u.building,u.fire_type].join(' ').toLowerCase(); if(hay.indexOf(fcState.q)<0)return false; }
+    return true;
+  });
+}
+const FC_ST_INFO={active:{c:'fc-st-active',t:'✅ พร้อมใช้'},needs_fix:{c:'fc-st-fix',t:'🔧 ต้องแก้ไข'},due:{c:'fc-st-due',t:'⏰ เกินกำหนดตรวจ'},never:{c:'fc-st-due',t:'⏰ ยังไม่เคยตรวจ'},exp_soon:{c:'fc-st-expsoon',t:'📅 ใกล้หมดอายุ'},expired:{c:'fc-st-fix',t:'❌ หมดอายุแล้ว'}};
+function fcRenderTable(){
+  fcRenderChips();
+  const tb=document.getElementById('fc-tbody'), empty=document.getElementById('fc-empty');
+  let data=fcFiltered();
+  data.sort((a,c)=>{ const rank={needs_fix:0,expired:1,due:2,never:2,exp_soon:3,active:4}; return (rank[fcUnitStatus(a)]||9)-(rank[fcUnitStatus(c)]||9); });
+  if(!data.length){ tb.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tb.innerHTML=data.map(u=>{
+    const s=fcUnitStatus(u), si=FC_ST_INFO[s]||FC_ST_INFO.active;
+    const expDays=fcDaysTo(u.expiry_date);
+    const expTxt=u.expiry_date?(`${esc(String(u.expiry_date).substring(0,10))}${expDays!==null&&expDays<0?' <span class="fc-exp-warn">(เกิน '+(-expDays)+'ว.)</span>':(expDays!==null&&expDays<=FC_EXP_SOON_DAYS?' <span class="fc-exp-warn">('+expDays+'ว.)</span>':'')}`):'—';
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px;font-weight:700">${esc(u.fa_id||'')}</td>
+      <td style="font-size:11.5px">${esc(u.location||'')}${u.building?'<br><span style="color:var(--text3);font-size:10px">'+esc(u.building)+'</span>':''}</td>
+      <td style="font-size:11px">${esc(u.fire_type||'')}${u.size_kg?' · '+esc(u.size_kg)+' กก.':''}</td>
+      <td style="font-size:11px;white-space:nowrap">${u.last_check?esc(String(u.last_check).substring(0,10)):'<span style="color:var(--text3)">ยังไม่ตรวจ</span>'}</td>
+      <td style="font-size:11px;white-space:nowrap">${expTxt}</td>
+      <td><span class="fc-st ${si.c}">${si.t}</span></td>
+      <td style="white-space:nowrap">
+        <button class="lf-act-btn lf-act-return" onclick="fcOpenInspect('${u.fa_id}')">${L('ตรวจ','Inspect')}</button>
+        <button class="lf-act-btn" onclick="fcOpenHistory('${u.fa_id}')">${L('ประวัติ','History')}</button>
+        <button class="lf-act-btn" onclick="fcEditAsset('${u.fa_id}')">${L('แก้ไข','Edit')}</button>
+      </td></tr>`;
+  }).join('');
+}
+function fcShowAlerts(){ fcState.alertsOnly=true; fcState.status='all'; fcState.q=''; const s=document.getElementById('fc-search'); if(s)s.value=''; fcRenderTable(); }
+
+// ---------- ทะเบียนถัง ----------
+function fcOpenAddAsset(){
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  ['fca-id','fca-building','fca-location','fca-size','fca-install','fca-expiry','fca-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fca-type').value='ผงเคมีแห้ง';
+  if(currentBranch&&currentBranch!=='all')document.getElementById('fca-branch').value=currentBranch;
+  document.getElementById('fc-asset-ttl').textContent=L('➕ เพิ่มถังดับเพลิง','➕ Add Unit');
+  document.getElementById('m-fc-asset').classList.add('show');
+}
+function fcEditAsset(id){
+  const u=fcState.assets.find(x=>x.fa_id===id); if(!u)return;
+  document.getElementById('fca-id').value=u.fa_id;
+  document.getElementById('fca-branch').value=u.branch||'SYY';
+  document.getElementById('fca-building').value=u.building||'';
+  document.getElementById('fca-location').value=u.location||'';
+  document.getElementById('fca-type').value=u.fire_type||'ผงเคมีแห้ง';
+  document.getElementById('fca-size').value=u.size_kg||'';
+  document.getElementById('fca-install').value=u.install_date||'';
+  document.getElementById('fca-expiry').value=u.expiry_date||'';
+  document.getElementById('fca-note').value=u.note||'';
+  document.getElementById('fc-asset-ttl').textContent=L('✏️ แก้ไขถัง','✏️ Edit Unit')+' '+u.fa_id;
+  document.getElementById('m-fc-asset').classList.add('show');
+}
+async function fcSaveAsset(){
+  const loc=document.getElementById('fca-location').value.trim();
+  const exp=document.getElementById('fca-expiry').value.trim();
+  if(!loc||!exp){ toast(L('กรุณากรอกจุดติดตั้งและวันหมดอายุ','Enter location & expiry'),'⚠️','info'); return; }
+  const btn=document.getElementById('fc-asset-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
+  const rec={ fa_id:document.getElementById('fca-id').value||'', branch:document.getElementById('fca-branch').value,
+    building:document.getElementById('fca-building').value.trim(), location:loc,
+    fire_type:document.getElementById('fca-type').value, size_kg:document.getElementById('fca-size').value.trim(),
+    install_date:document.getElementById('fca-install').value.trim(), expiry_date:exp,
+    note:document.getElementById('fca-note').value.trim() };
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'fa_save',access_token:authToken()},rec))})).json();
+    if(r&&r.success){ toast(L('บันทึกแล้ว','Saved'),'✅'); closeM('m-fc-asset'); fcLoadPage(); }
+    else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+  btn.disabled=false; btn.textContent=old;
+}
+
+// ---------- ตรวจถัง (Checklist) ----------
+function fcOpenInspect(id){
+  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  const u=fcState.assets.find(x=>x.fa_id===id); if(!u)return;
+  document.getElementById('fci-fa-id').value=id;
+  document.getElementById('fci-inspector').value='';
+  fcInspectPhoto=''; document.getElementById('fci-photo-prev').innerHTML='';
+  document.getElementById('fci-unit-info').innerHTML=`<b>${esc(u.fa_id)}</b> · ${esc(u.fire_type||'')} ${u.size_kg?esc(u.size_kg)+'กก.':''}<br><span style="color:var(--text3)">📍 ${esc(u.location||'')}${u.building?' · '+esc(u.building):''}</span>`;
+  // init checklist: default pass=true (ตรวจแล้วผ่าน) ให้กดเปลี่ยนเฉพาะข้อไม่ผ่าน
+  fcInspectItems=fcState.checklist.map(c=>({k:c.k,th:c.th,pass:true,note:''}));
+  fcRenderChecklist();
+  document.getElementById('m-fc-inspect').classList.add('show');
+}
+function fcRenderChecklist(){
+  const box=document.getElementById('fci-checklist');
+  box.innerHTML=fcInspectItems.map((it,i)=>`
+    <div class="fci-item">
+      <div class="fci-item-txt">${i+1}. ${esc(it.th)}</div>
+      <div class="fci-btns">
+        <button class="fci-tog ${it.pass?'pass-on':''}" onclick="fcTog(${i},true)">✓ ${L('ผ่าน','Pass')}</button>
+        <button class="fci-tog ${!it.pass?'fail-on':''}" onclick="fcTog(${i},false)">✗ ${L('ไม่ผ่าน','Fail')}</button>
+      </div>
+      <input class="fci-note ${!it.pass?'show':''}" id="fci-note-${i}" placeholder="${L('ระบุปัญหาที่พบ...','Describe issue...')}" value="${esc(it.note)}" oninput="fcInspectItems[${i}].note=this.value">
+    </div>`).join('');
+  fcUpdateSummary();
+}
+function fcTog(i,pass){ fcInspectItems[i].pass=pass; const note=document.getElementById('fci-note-'+i); if(note)note.classList.toggle('show',!pass); fcRenderChecklist(); }
+function fcUpdateSummary(){
+  const pass=fcInspectItems.filter(x=>x.pass).length, total=fcInspectItems.length;
+  const allPass=pass>=total;
+  const el=document.getElementById('fci-summary');
+  el.className='fci-summary '+(allPass?'ok':'bad');
+  el.textContent=allPass?`✅ ${L('ผ่านครบ','All passed')} ${pass}/${total} ${L('ข้อ','')}`:`⚠️ ${L('ผ่าน','Passed')} ${pass}/${total} ${L('ข้อ · มีรายการไม่ผ่าน','· has failures')}`;
+}
+async function fcPickInspectPhoto(input){
+  const f=(input.files||[])[0]; if(!f)return;
+  try{ fcInspectPhoto=await compressToDataURL(f); document.getElementById('fci-photo-prev').innerHTML=`<img src="${fcInspectPhoto}" style="max-width:120px;border-radius:8px;border:1px solid var(--border)">`; }catch(e){}
+  input.value='';
+}
+async function fcSaveInspection(){
+  const inspector=document.getElementById('fci-inspector').value.trim();
+  if(!inspector){ toast(L('กรุณาระบุชื่อผู้ตรวจ','Enter inspector'),'⚠️','info'); document.getElementById('fci-inspector').focus(); return; }
+  const failNoNote=fcInspectItems.filter(x=>!x.pass&&!x.note.trim());
+  if(failNoNote.length){ toast(L('กรุณาระบุปัญหาในข้อที่ไม่ผ่าน','Note the failed items'),'⚠️','info'); return; }
+  const btn=document.getElementById('fc-inspect-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
+  let imageUrl='';
+  if(fcInspectPhoto&&fcInspectPhoto.indexOf('data:')===0){
+    try{ const b64=fcInspectPhoto.split(',')[1];
+      const ur=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'firecheck_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
+      imageUrl=(ur&&(ur.imageUrl||ur.url))||'';
+    }catch(e){}
+  }
+  const u=fcState.assets.find(x=>x.fa_id===document.getElementById('fci-fa-id').value);
+  const items=fcInspectItems.map(x=>({k:x.k,pass:x.pass,note:x.note}));
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_save',fa_id:document.getElementById('fci-fa-id').value,branch:u?u.branch:'',inspector:inspector,check_date:fcToday(),items:items,image_url:imageUrl,access_token:authToken()})})).json();
+    if(r&&r.success){ toast(r.result==='pass'?L('ตรวจผ่าน บันทึกแล้ว','Passed & saved'):L('บันทึกแล้ว (มีข้อไม่ผ่าน)','Saved with failures'), r.result==='pass'?'✅':'⚠️'); closeM('m-fc-inspect'); fcLoadPage(); }
+    else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+  btn.disabled=false; btn.textContent=old;
+}
+
+// ---------- ประวัติ ----------
+async function fcOpenHistory(id){
+  const u=fcState.assets.find(x=>x.fa_id===id);
+  document.getElementById('fc-hist-ttl').textContent=L('📋 ประวัติการตรวจ ','📋 History ')+id;
+  document.getElementById('fc-hist-body').innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3)">${L('กำลังโหลด...','Loading...')}</div>`;
+  document.getElementById('m-fc-history').classList.add('show');
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_history',fa_id:id,access_token:authToken()})})).json();
+    const hist=(r&&r.history)||[];
+    if(!hist.length){ document.getElementById('fc-hist-body').innerHTML=`<div style="text-align:center;padding:24px;color:var(--text3)">${L('ยังไม่มีประวัติการตรวจ','No inspection history')}</div>`; return; }
+    document.getElementById('fc-hist-body').innerHTML=hist.map(h=>{
+      let items=[]; try{items=JSON.parse(h.items_json||'[]');}catch(e){}
+      const fails=items.filter(x=>!x.pass);
+      const passIcon=h.result==='pass'?'✅':'⚠️';
+      return `<div class="fc-hist-row">
+        <div class="fc-hist-head"><span>${passIcon} ${esc(String(h.check_date).substring(0,10))} · ${L('ผ่าน','Pass')} ${h.pass_count}/${h.total_count}</span><span style="font-weight:400;color:var(--text3);font-size:11px">👤 ${esc(h.inspector||'')}</span></div>
+        ${fails.length?`<div class="fc-hist-items fc-hist-fail">✗ ${L('ไม่ผ่าน','Failed')}: ${fails.map(f=>{const c=fcState.checklist.find(x=>x.k===f.k);return esc((c?c.th:f.k)+(f.note?' ('+f.note+')':''));}).join(' · ')}</div>`:`<div class="fc-hist-items" style="color:#16A34A">✓ ${L('ผ่านครบทุกข้อ','All items passed')}</div>`}
+        ${h.image_url?`<a href="${esc(h.image_url)}" target="_blank" style="font-size:11px;color:var(--accent)">📷 ${L('ดูรูปหลักฐาน','View photo')}</a>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){ document.getElementById('fc-hist-body').innerHTML=`<div style="text-align:center;padding:20px;color:#DC2626">${L('โหลดไม่สำเร็จ','Load failed')}</div>`; }
+}
+
+function fcExport(){
+  const data=fcFiltered();
+  const w=window.open('','_blank'); if(!w){toast(L('เปิดหน้าต่างไม่ได้','Popup blocked'),'⚠️','info');return;}
+  const rows=data.map(u=>{const s=fcUnitStatus(u),si=FC_ST_INFO[s]||FC_ST_INFO.active;return `<tr><td>${esc(u.fa_id)}</td><td>${esc(u.location||'')}</td><td>${esc(u.fire_type||'')} ${esc(u.size_kg||'')}</td><td>${esc(String(u.last_check||'').substring(0,10)||'-')}</td><td>${esc(String(u.expiry_date||'').substring(0,10)||'-')}</td><td>${si.t.replace(/[✅🔧⏰📅❌]/g,'')}</td></tr>`;}).join('');
+  w.document.write(`<html><head><title>Fire Extinguisher Report</title><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px}h1{font-size:18px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:5px;text-align:left}th{background:#f3f4f6}</style></head><body><h1>🧯 รายงานตรวจถังดับเพลิง (${data.length} ถัง)</h1><div style="font-size:11px;color:#666;margin-bottom:10px">Santhiya · SYY Service Hub · ${fcToday()}</div><table><thead><tr><th>รหัส</th><th>จุดติดตั้ง</th><th>ชนิด/ขนาด</th><th>ตรวจล่าสุด</th><th>หมดอายุ</th><th>สถานะ</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),500);
 }
 
 async function lfLoadPage(){
