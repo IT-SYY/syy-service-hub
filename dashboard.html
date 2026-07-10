@@ -5945,11 +5945,17 @@ function gotoGuestInbox(){
   renderTicketsPage();
 }
 function renderAll(){
-  renderGuestBanner();
-  renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderPendingBadge();renderRatingBar();renderFollowupAlert();
-  renderRecurringOverview();
-  if(document.body.classList.contains('tv')) renderTVBoard();
+  // เบา + เห็นได้ทุกหน้า (badge เมนู, banner แขก, แจ้งทวงถาม) — ทำเสมอ
+  renderPendingBadge(); renderGuestBanner(); renderFollowupAlert();
   const ap=document.querySelector('.page.active')?.id;
+  const onDash=(ap==='page-dashboard')||document.body.classList.contains('tv');
+  // งานหนัก (กราฟ/Kanban/Timeline/รายชื่อช่าง/KPI/เรตติ้ง) อยู่ในหน้า Dashboard เท่านั้น
+  // ข้ามเมื่ออยู่หน้าอื่น → กดรับงาน/มอบหมาย/บันทึกจากหน้า Tickets/Inbox เร็วขึ้นมาก
+  // (กราฟ render เองตอนกลับเข้าหน้า Dashboard ผ่าน showPage)
+  if(onDash){
+    renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderRatingBar();renderRecurringOverview();
+    if(document.body.classList.contains('tv')) renderTVBoard();
+  }
   if(ap==='page-tickets') renderTicketsPage();
   if(ap==='page-technicians') renderTechGrid();
   if(ap==='page-history') renderHistory();
@@ -8938,7 +8944,7 @@ function showPage(p,el,fromPop){
   if(sb) sb.classList.remove('open');
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
-  if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
+  if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
   if(p==='prtrack'){ prLoadPage(); }
   if(p==='lostfound'){ lfLoadPage(); }
   if(p==='firecheck'){ fireLoadPage(); }
