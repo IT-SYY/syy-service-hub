@@ -3763,6 +3763,12 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
       </div>
 
       <div class="prt-kpis" id="pr-kpis"></div>
+
+      <div id="pr-aging-banner" class="lf-overdue" style="display:none" onclick="prShowOverdue()">
+        <span class="lf-ob-ic">⏰</span>
+        <span class="lf-ob-tx"><b id="pr-aging-n">0</b> <span data-th="รายการค้างเกิน 90 วัน — ควรเร่งติดตาม/ชี้แจง (แตะเพื่อดู)" data-en="item(s) pending over 90 days — tap to view">รายการค้างเกิน 90 วัน — ควรเร่งติดตาม/ชี้แจง (แตะเพื่อดู)</span></span>
+        <span class="lf-ob-go">→</span>
+      </div>
       <div class="prt-progress-wrap" id="pr-progress-wrap" style="display:none">
         <div class="prt-progress-lbl"><span data-th="ความก้าวหน้า (Completed / รายการที่ไม่ถูกยกเลิก)" data-en="Progress (Completed / non-cancelled items)">ความก้าวหน้า (Completed / รายการที่ไม่ถูกยกเลิก)</span> <b id="pr-progress-pct">0%</b></div>
         <div class="prt-progress-bar"><div id="pr-progress-fill"></div></div>
@@ -3770,14 +3776,14 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
 
       <div class="prt-filters" id="pr-filters">
         <div class="prt-chips" id="pr-status-chips"></div>
-        <select class="prt-sel" id="pr-dept-sel" onchange="prFilter.dept=this.value;prPage=1;prRenderTable()"></select>
-        <input class="prt-search" id="pr-search" placeholder="🔍 ค้นหา PR# / รหัส / ชื่อรายการ / Supplier" oninput="prFilter.q=this.value.trim().toLowerCase();prPage=1;prRenderTable()">
+        <select class="prt-sel" id="pr-dept-sel" onchange="prFilter.dept=this.value;prFilter.aging='all';prPage=1;prRenderTable()"></select>
+        <input class="prt-search" id="pr-search" placeholder="🔍 ค้นหา PR# / รหัส / ชื่อรายการ / Supplier" oninput="prFilter.q=this.value.trim().toLowerCase();prFilter.aging='all';prPage=1;prRenderTable()">
       </div>
 
       <div class="prt-tablewrap" id="pr-tablewrap">
         <table class="prt-table" id="pr-table">
           <thead><tr>
-            <th data-th="วันที่" data-en="Date">วันที่</th><th data-th="แผนก" data-en="Department">แผนก</th><th>Store</th><th>PR#</th>
+            <th data-th="วันที่" data-en="Date">วันที่</th><th data-th="ค้างมา" data-en="Age">ค้างมา</th><th data-th="แผนก" data-en="Department">แผนก</th><th>Store</th><th>PR#</th>
             <th data-th="รหัส" data-en="Code">รหัส</th><th data-th="รายการ" data-en="Item">รายการ</th><th data-th="จำนวน" data-en="Qty">จำนวน</th>
             <th data-th="ราคาซื้อล่าสุด" data-en="Last Purchase">ราคาซื้อล่าสุด</th>
             <th data-th="สถานะ" data-en="Status">สถานะ</th><th>Supplier</th><th data-th="หมายเหตุ" data-en="Note">หมายเหตุ</th>
@@ -9083,7 +9089,7 @@ if ('serviceWorker' in navigator) {
 <script>
 /* ===================== PR TRACKER (บันทึก PR จัดซื้อ) ===================== */
 let prSummary=null, prMonth='', prMode='month', prCache={}, prRows=[], prPage=1, prEditRow=null, prParsed=null;
-const prFilter={status:'all',dept:'all',q:''};
+const prFilter={status:'all',dept:'all',q:'',aging:'all'};
 const PR_PAGE_SIZE=100;
 const PR_TH_M=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const PR_ST_LBL={completed:'✅ Completed',onprocess:'🔄 Onprocess',pending:'⏳ Pending',cancelled:'❌ ยกเลิก'};
@@ -9101,6 +9107,36 @@ function prNormStatus(s){
   return 'pending';
 }
 async function prApi(body){const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});return r.json();}
+
+/* ===== Aging: คำนวณจำนวนวันที่รายการค้าง (นับเฉพาะสถานะ pending/onprocess) ===== */
+const PR_AGE_LATE=30, PR_AGE_OVER=90;   // เกณฑ์ล่าช้า >30 วัน / ค้างนาน >90 วัน (แก้ได้จุดเดียว)
+function prAgeDays(r){
+  if(r.status!=='pending'&&r.status!=='onprocess') return null;   // นับเฉพาะรายการที่ยังค้าง
+  let days=null;
+  const m=String(r.item_date||'').match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if(m){
+    let dd=+m[1],mm=+m[2],y=+m[3];
+    if(y<100)y+=2000;
+    if(y>2400)y-=543;                                  // ปี พ.ศ. → ค.ศ.
+    const nowY=new Date().getFullYear();
+    if(y>nowY)y=nowY;                                  // กันปีพิมพ์ผิด (เช่น 2027) — บทเรียนจากไฟล์จริง
+    if(mm>=1&&mm<=12&&dd>=1&&dd<=31){ const d=new Date(y,mm-1,dd); if(!isNaN(d))days=Math.floor((Date.now()-d.getTime())/86400000); }
+  }
+  if(days===null||days<0){                             // parse ไม่ได้ หรือได้วันที่อนาคต (ผิดปกติ) → ใช้เดือนของรายการแทน
+    const mk=String(r.month_key||prMonth||'').match(/^(\d{4})-(\d{2})$/);
+    if(mk){ const d2=new Date(+mk[1],+mk[2]-1,1); const dd2=Math.floor((Date.now()-d2.getTime())/86400000); if(isFinite(dd2)&&dd2>=0)days=dd2; }
+  }
+  return (days!==null&&isFinite(days)&&days>=0)?days:null;
+}
+function prAgeBadge(r){
+  const days=prAgeDays(r);
+  if(days===null) return '<span style="color:var(--text3);font-size:10px">—</span>';
+  let bg='#059669';                                    // <30 เขียว
+  if(days>PR_AGE_OVER)bg='#DC2626';                    // >90 แดง
+  else if(days>PR_AGE_LATE)bg='#EA580C';               // 31-90 ส้ม
+  return `<span class="lf-age" style="background:${bg};color:#fff">${days} วัน${days>PR_AGE_OVER?' ⚠️':''}</span>`;
+}
+function prShowOverdue(){ prFilter.aging='over90'; prFilter.status='all'; prFilter.dept='all'; prFilter.q=''; const si=document.getElementById('pr-search'); if(si)si.value=''; prPage=1; prRenderStatusChips(); prRenderDeptSel(); prRenderTable(); toast('แสดงเฉพาะรายการค้างเกิน '+PR_AGE_OVER+' วัน — กดชิปสถานะใดก็ได้เพื่อล้างตัวกรอง','⏰','info'); }
 
 // ==================== FIRE EXTINGUISHER ====================
 let fireState={ assets:[], checklist:[], q:'', filter:'all', alertOnly:false };
@@ -9966,7 +10002,7 @@ async function prSelectMonth(mk){
   document.getElementById('pr-filters').style.display='';
   document.getElementById('pr-progress-wrap').style.display='';
   if(!prCache[mk]){
-    document.getElementById('pr-tbody').innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px">⏳ กำลังโหลดรายการเดือน '+prEsc(prMonthLabel(mk))+'...</td></tr>';
+    document.getElementById('pr-tbody').innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--text3);padding:24px">⏳ กำลังโหลดรายการเดือน '+prEsc(prMonthLabel(mk))+'...</td></tr>';
     try{
       const r=await prApi({action:'pr_list',month:mk});
       if(!r.success)throw new Error(r.error||'');
@@ -9975,15 +10011,16 @@ async function prSelectMonth(mk){
     }catch(e){toast('โหลดรายการไม่สำเร็จ: '+e.message,'⚠️','error');prCache[mk]=[];}
   }
   prRows=prCache[mk];
-  prFilter.status='all';prFilter.dept='all';prFilter.q='';
+  prFilter.status='all';prFilter.dept='all';prFilter.q='';prFilter.aging='all';
   const si=document.getElementById('pr-search');if(si)si.value='';
   prRenderKpis();prRenderStatusChips();prRenderDeptSel();prRenderTable();
 }
 
 function prCounts(rows){
-  const c={items:rows.length,completed:0,onprocess:0,pending:0,cancelled:0,prs:0};
+  const c={items:rows.length,completed:0,onprocess:0,pending:0,cancelled:0,prs:0,late30:0,over90:0};
   const set={};
-  rows.forEach(r=>{c[r.status]!==undefined&&c[r.status]++;if(r.pr_no)set[r.pr_no]=1;});
+  rows.forEach(r=>{c[r.status]!==undefined&&c[r.status]++;if(r.pr_no)set[r.pr_no]=1;
+    const a=prAgeDays(r); if(a!==null){ if(a>PR_AGE_OVER)c.over90++; else if(a>PR_AGE_LATE)c.late30++; }});
   c.prs=Object.keys(set).length;
   return c;
 }
@@ -10001,8 +10038,15 @@ function prRenderKpis(){
   const pct=denom>0?Math.round(c.completed*100/denom):0;
   document.getElementById('pr-progress-pct').textContent=pct+'%';
   document.getElementById('pr-progress-fill').style.width=pct+'%';
+  // KPI ค้างล่าช้า + banner ค้างเกิน 90 วัน
+  const kEl=document.getElementById('pr-kpis');
+  const lateHtml=`<div class="prt-kpi k-late" onclick="prShowLate()" style="cursor:pointer"><div class="n" style="color:#EA580C">${(c.late30+c.over90).toLocaleString()}</div><div class="l">⏰ ค้างล่าช้า (>${PR_AGE_LATE} วัน)</div></div>`;
+  kEl.insertAdjacentHTML('beforeend',lateHtml);
+  const ban=document.getElementById('pr-aging-banner');
+  if(ban){ ban.style.display=c.over90>0?'flex':'none'; const bn=document.getElementById('pr-aging-n'); if(bn)bn.textContent=c.over90.toLocaleString(); }
 }
-function prSetStatus(st){prFilter.status=st;prPage=1;prRenderStatusChips();prRenderTable();}
+function prShowLate(){ prFilter.aging='late30'; prFilter.status='all'; prFilter.dept='all'; prFilter.q=''; const si=document.getElementById('pr-search'); if(si)si.value=''; prPage=1; prRenderStatusChips(); prRenderDeptSel(); prRenderTable(); toast('แสดงเฉพาะรายการค้างเกิน '+PR_AGE_LATE+' วัน (เรียงนานสุดก่อน) — กดชิปสถานะเพื่อล้างตัวกรอง','⏰','info'); }
+function prSetStatus(st){prFilter.status=st;prFilter.aging='all';prPage=1;prRenderStatusChips();prRenderTable();}
 function prRenderStatusChips(){
   const c=prCounts(prRows);
   const opts=[['all','ทั้งหมด ('+c.items+')'],['pending','⏳ Pending ('+c.pending+')'],['onprocess','🔄 Onprocess ('+c.onprocess+')'],['completed','✅ Completed ('+c.completed+')'],['cancelled','❌ ยกเลิก ('+c.cancelled+')']];
@@ -10016,15 +10060,24 @@ function prRenderDeptSel(){
   const dl=document.getElementById('pra-dept-list');if(dl)dl.innerHTML=depts.map(d=>`<option value="${prEsc(d)}">`).join('');
 }
 function prFiltered(){
-  return prRows.filter(r=>{
+  let rows=prRows.filter(r=>{
     if(prFilter.status!=='all'&&r.status!==prFilter.status)return false;
     if(prFilter.dept!=='all'&&r.department!==prFilter.dept)return false;
+    if(prFilter.aging&&prFilter.aging!=='all'){
+      const a=prAgeDays(r);
+      if(a===null)return false;
+      if(prFilter.aging==='over90'&&a<=PR_AGE_OVER)return false;
+      if(prFilter.aging==='late30'&&a<=PR_AGE_LATE)return false;
+    }
     if(prFilter.q){
       const hay=(r.pr_no+' '+r.code+' '+r.stock_name+' '+r.supplier+' '+r.department+' '+r.last_purchase+' '+r.note).toLowerCase();
       if(hay.indexOf(prFilter.q)<0)return false;
     }
     return true;
   });
+  // ถ้ากรองค้างล่าช้าอยู่ → เรียงนานสุดก่อน
+  if(prFilter.aging&&prFilter.aging!=='all') rows.sort((a,b)=>(prAgeDays(b)||0)-(prAgeDays(a)||0));
+  return rows;
 }
 function prRenderTable(){
   const rows=prFiltered();
@@ -10032,11 +10085,12 @@ function prRenderTable(){
   if(prPage>totalPages)prPage=totalPages;
   const page=rows.slice((prPage-1)*PR_PAGE_SIZE,prPage*PR_PAGE_SIZE);
   const tb=document.getElementById('pr-tbody');
-  if(!page.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:24px">— ไม่พบรายการตามเงื่อนไข —</td></tr>';}
+  if(!page.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--text3);padding:24px">— ไม่พบรายการตามเงื่อนไข —</td></tr>';}
   else tb.innerHTML=page.map(r=>{
     const raw=r.status_raw&&prNormStatus(r.status_raw)!==r.status_raw.toLowerCase()?` title="สถานะเดิมในไฟล์: ${prEsc(r.status_raw)}"`:'';
     return `<tr>
       <td style="white-space:nowrap">${prEsc(String(r.item_date).split(' ')[0])}</td>
+      <td style="white-space:nowrap;text-align:center">${prAgeBadge(r)}</td>
       <td>${prEsc(r.department)}</td><td>${prEsc(r.store)}</td>
       <td style="font-family:'JetBrains Mono',monospace;white-space:nowrap">${prEsc(r.pr_no)}</td>
       <td style="font-family:'JetBrains Mono',monospace">${prEsc(r.code)}</td>
