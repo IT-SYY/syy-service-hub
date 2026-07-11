@@ -3234,6 +3234,35 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 .prt-pager button.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700;}
 .prt-empty{text-align:center;padding:44px 10px;color:var(--text3);font-size:12.5px;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);}
 
+
+/* PR: สรุปยอดค้างแยกแผนก + modal พิมพ์ */
+.pr-dept-sum{border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;background:var(--bg2);}
+.pr-ds-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text);background:var(--bg3);}
+.pr-ds-head:hover{filter:brightness(1.06);}
+.pr-ds-head b{color:#EA580C;font-size:14px;}
+.pr-ds-toggle{font-size:11px;color:var(--text3);transition:transform .2s;}
+.pr-dept-sum.collapsed .pr-ds-toggle{transform:rotate(-90deg);}
+.pr-dept-sum.collapsed .pr-ds-body{display:none;}
+.pr-ds-table td{font-size:11.5px;}
+.pr-ds-dept{font-weight:700;cursor:pointer;color:var(--accent);}
+.pr-ds-dept:hover{text-decoration:underline;}
+.pr-ds-n{font-weight:700;}
+.pr-ds-warn{color:#EA580C;font-weight:700;}
+.pr-ds-crit{color:#DC2626;font-weight:800;}
+.pr-ds-zero{color:var(--text3);}
+.pr-ds-print{font-size:10.5px;padding:2px 8px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;}
+.pr-ds-print:hover{border-color:var(--accent);color:var(--accent);}
+.pr-ds-total-row td{border-top:2px solid var(--border);font-weight:800;background:var(--bg3);}
+.pr-pr-opts{display:flex;flex-direction:column;gap:7px;}
+.pr-pr-opt{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;}
+.pr-pr-opt:hover{border-color:var(--accent);}
+.pr-pr-opt.on{border-color:var(--accent);background:rgba(59,130,246,0.07);}
+.pr-pr-opt .ppo-r{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;margin-top:2px;}
+.pr-pr-opt.on .ppo-r{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 3px var(--bg2);}
+.pr-pr-opt .ppo-t{font-size:12.5px;font-weight:600;color:var(--text);}
+.pr-pr-opt .ppo-s{font-size:10.5px;color:var(--text3);margin-top:1px;}
+.pr-print-hint{font-size:11px;color:var(--text3);background:var(--bg3);border-radius:8px;padding:8px 10px;margin-top:8px;}
+
 /* ===== FIRE EXTINGUISHER ===== */
 .fci-checklist{display:flex;flex-direction:column;gap:6px;margin:10px 0;}
 .fci-item{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;}
@@ -3757,7 +3786,7 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
         <div class="prt-actions">
           <button class="prt-btn prt-btn-green" id="pr-btn-import" onclick="prOpenImport()">📥 <span data-th="นำเข้า Excel" data-en="Import Excel">นำเข้า Excel</span></button>
           <button class="prt-btn" id="pr-btn-add" onclick="prOpenAdd()">➕ <span data-th="เพิ่มรายการ" data-en="Add Item">เพิ่มรายการ</span></button>
-          <button class="prt-btn" onclick="prPrint()">🖨️ <span data-th="พิมพ์สรุป" data-en="Print Summary">พิมพ์สรุป</span></button>
+          <button class="prt-btn" onclick="prOpenPrint()">🖨️ <span data-th="พิมพ์สรุป" data-en="Print Summary">พิมพ์สรุป</span></button>
           <button class="prt-btn" onclick="prRefresh()" title="รีเฟรช">🔄</button>
         </div>
       </div>
@@ -3772,6 +3801,31 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
       <div class="prt-progress-wrap" id="pr-progress-wrap" style="display:none">
         <div class="prt-progress-lbl"><span data-th="ความก้าวหน้า (Completed / รายการที่ไม่ถูกยกเลิก)" data-en="Progress (Completed / non-cancelled items)">ความก้าวหน้า (Completed / รายการที่ไม่ถูกยกเลิก)</span> <b id="pr-progress-pct">0%</b></div>
         <div class="prt-progress-bar"><div id="pr-progress-fill"></div></div>
+      </div>
+
+      <div class="pr-dept-sum" id="pr-dept-sum" style="display:none">
+        <div class="pr-ds-head" onclick="prToggleDeptSum()">
+          <span>🏢 <span data-th="สรุปยอดค้างแยกตามแผนก" data-en="Outstanding by Department">สรุปยอดค้างแยกตามแผนก</span> <b id="pr-ds-total">0</b> <span data-th="รายการ" data-en="items">รายการ</span></span>
+          <span class="pr-ds-toggle" id="pr-ds-toggle">▼</span>
+        </div>
+        <div class="pr-ds-body" id="pr-ds-body">
+          <div class="prt-tablewrap">
+            <table class="prt-table pr-ds-table">
+              <thead><tr>
+                <th data-th="แผนก" data-en="Department">แผนก</th>
+                <th style="text-align:center" data-th="ค้างทั้งหมด" data-en="Open">ค้างทั้งหมด</th>
+                <th style="text-align:center">⏳ Pending</th>
+                <th style="text-align:center">🔄 Onprocess</th>
+                <th style="text-align:center" data-th="ล่าช้า >30 วัน" data-en="Late >30d">ล่าช้า &gt;30 วัน</th>
+                <th style="text-align:center" data-th="ค้างนาน >90 วัน" data-en="Over 90d">ค้างนาน &gt;90 วัน</th>
+                <th style="text-align:center" data-th="ค้างเฉลี่ย" data-en="Avg age">ค้างเฉลี่ย</th>
+                <th style="text-align:center" data-th="นานสุด" data-en="Oldest">นานสุด</th>
+                <th style="text-align:center" data-th="พิมพ์" data-en="Print">พิมพ์</th>
+              </tr></thead>
+              <tbody id="pr-ds-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <div class="prt-filters" id="pr-filters">
@@ -4471,6 +4525,27 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
 
 <!-- EXPORT FILTER MODAL -->
 
+
+
+<!-- PR: เลือกขอบเขตการพิมพ์ -->
+<div class="overlay" id="m-pr-print">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-ttl"><span>🖨️ พิมพ์สรุป PR</span><button class="modal-x" onclick="closeM('m-pr-print')">×</button></div>
+    <div class="modal-field">
+      <label class="modal-lbl">เลือกสิ่งที่ต้องการพิมพ์</label>
+      <div class="pr-pr-opts" id="pr-print-opts"></div>
+    </div>
+    <div class="modal-field" id="pr-print-dept-wrap" style="display:none">
+      <label class="modal-lbl">เลือกแผนก</label>
+      <select class="modal-sel" id="pr-print-dept"></select>
+    </div>
+    <div class="pr-print-hint" id="pr-print-hint"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeM('m-pr-print')">ยกเลิก</button>
+      <button class="btn-ok" onclick="prDoPrint()">🖨️ พิมพ์</button>
+    </div>
+  </div>
+</div>
 
 <!-- FIRE: เพิ่ม/แก้ถัง -->
 <div class="overlay" id="m-fire-asset">
@@ -10013,7 +10088,7 @@ async function prSelectMonth(mk){
   prRows=prCache[mk];
   prFilter.status='all';prFilter.dept='all';prFilter.q='';prFilter.aging='all';
   const si=document.getElementById('pr-search');if(si)si.value='';
-  prRenderKpis();prRenderStatusChips();prRenderDeptSel();prRenderTable();
+  prRenderKpis();prRenderDeptSum();prRenderStatusChips();prRenderDeptSel();prRenderTable();
 }
 
 function prCounts(rows){
@@ -10116,6 +10191,7 @@ function prRenderTable(){
 /* ===== สรุปทั้งปี ===== */
 function prShowYear(){
   prMode='year';
+  const _ds=document.getElementById('pr-dept-sum');if(_ds)_ds.style.display='none';
   prRenderMonthChips(Object.keys(prSummary).sort());
   document.getElementById('pr-yearview').style.display='';
   document.getElementById('pr-tablewrap').style.display='none';
@@ -10293,12 +10369,139 @@ async function prDoImport(){
 }
 
 /* ===== พิมพ์สรุป ===== */
-function prPrint(){
+/* ===== สรุปยอดค้างแยกตามแผนก ===== */
+let prDeptSumOpen=true;
+function prToggleDeptSum(){
+  prDeptSumOpen=!prDeptSumOpen;
+  const el=document.getElementById('pr-dept-sum');
+  if(el)el.classList.toggle('collapsed',!prDeptSumOpen);
+}
+// รวมสถิติค้างของแต่ละแผนก (นับเฉพาะ pending/onprocess)
+function prDeptStats(rows){
+  const map={};
+  (rows||prRows).forEach(r=>{
+    if(r.status!=='pending'&&r.status!=='onprocess')return;
+    const d=String(r.department||'').trim()||'ไม่ระบุแผนก';
+    if(!map[d])map[d]={dept:d,open:0,pending:0,onprocess:0,late30:0,over90:0,ageSum:0,ageN:0,maxAge:0};
+    const m=map[d];
+    m.open++;
+    if(r.status==='pending')m.pending++; else m.onprocess++;
+    const a=prAgeDays(r);
+    if(a!==null){
+      m.ageSum+=a; m.ageN++;
+      if(a>m.maxAge)m.maxAge=a;
+      if(a>PR_AGE_OVER)m.over90++; else if(a>PR_AGE_LATE)m.late30++;
+    }
+  });
+  return Object.values(map).sort((a,b)=>(b.over90-a.over90)||(b.late30-a.late30)||(b.open-a.open));
+}
+function prRenderDeptSum(){
+  const wrap=document.getElementById('pr-dept-sum');
+  if(!wrap)return;
+  const stats=prDeptStats(prRows);
+  const totOpen=stats.reduce((s,x)=>s+x.open,0);
+  if(!totOpen){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  wrap.classList.toggle('collapsed',!prDeptSumOpen);
+  document.getElementById('pr-ds-total').textContent=totOpen.toLocaleString();
+  const cell=(n,cls)=>`<td style="text-align:center" class="${n>0?(cls||'pr-ds-n'):'pr-ds-zero'}">${n>0?n.toLocaleString():'—'}</td>`;
+  const t=(x)=>{
+    const avg=x.ageN?Math.round(x.ageSum/x.ageN):0;
+    return `<tr>
+      <td><span class="pr-ds-dept" onclick="prFilterDept('${prEsc(x.dept).replace(/'/g,"\\\\'")}')">${prEsc(x.dept)}</span></td>
+      ${cell(x.open)}${cell(x.pending)}${cell(x.onprocess)}
+      ${cell(x.late30,'pr-ds-warn')}${cell(x.over90,'pr-ds-crit')}
+      <td style="text-align:center" class="${avg>PR_AGE_OVER?'pr-ds-crit':avg>PR_AGE_LATE?'pr-ds-warn':''}">${x.ageN?avg+' วัน':'—'}</td>
+      <td style="text-align:center" class="${x.maxAge>PR_AGE_OVER?'pr-ds-crit':x.maxAge>PR_AGE_LATE?'pr-ds-warn':''}">${x.maxAge?x.maxAge+' วัน':'—'}</td>
+      <td style="text-align:center"><button class="pr-ds-print" onclick="prPrintDept('${prEsc(x.dept).replace(/'/g,"\\\\'")}')">🖨️</button></td>
+    </tr>`;
+  };
+  const sum={open:0,pending:0,onprocess:0,late30:0,over90:0,maxAge:0,ageSum:0,ageN:0};
+  stats.forEach(x=>{['open','pending','onprocess','late30','over90','ageSum','ageN'].forEach(k=>sum[k]+=x[k]);if(x.maxAge>sum.maxAge)sum.maxAge=x.maxAge;});
+  const avgAll=sum.ageN?Math.round(sum.ageSum/sum.ageN):0;
+  document.getElementById('pr-ds-tbody').innerHTML=stats.map(t).join('')
+    +`<tr class="pr-ds-total-row">
+      <td>รวมทุกแผนก (${stats.length} แผนก)</td>
+      <td style="text-align:center">${sum.open.toLocaleString()}</td>
+      <td style="text-align:center">${sum.pending.toLocaleString()}</td>
+      <td style="text-align:center">${sum.onprocess.toLocaleString()}</td>
+      <td style="text-align:center" class="${sum.late30?'pr-ds-warn':''}">${sum.late30.toLocaleString()}</td>
+      <td style="text-align:center" class="${sum.over90?'pr-ds-crit':''}">${sum.over90.toLocaleString()}</td>
+      <td style="text-align:center">${avgAll?avgAll+' วัน':'—'}</td>
+      <td style="text-align:center">${sum.maxAge?sum.maxAge+' วัน':'—'}</td>
+      <td></td>
+    </tr>`;
+}
+// คลิกชื่อแผนกในตารางสรุป → กรองตารางหลักเป็นแผนกนั้น (เฉพาะรายการค้าง)
+function prFilterDept(dept){
+  prFilter.dept=dept; prFilter.status='all'; prFilter.aging='all'; prFilter.q='';
+  const ds=document.getElementById('pr-dept-sel'); if(ds)ds.value=dept;
+  const si=document.getElementById('pr-search'); if(si)si.value='';
+  prPage=1; prRenderStatusChips(); prRenderTable();
+  toast('กรองเฉพาะแผนก '+dept,'🏢','info');
+}
+
+/* ===== พิมพ์: เลือกขอบเขตได้ ===== */
+let prPrintScope='view';   // view | month | dept | overdue
+function prOpenPrint(){
+  if(prMode==='year'){ prPrintRun('year'); return; }   // โหมดสรุปทั้งปี พิมพ์ทั้งปีเลย
+  prPrintScope='view';
+  const c=prCounts(prRows);
+  const shown=prFiltered().length;
+  const openAll=c.pending+c.onprocess;
+  const opts=[
+    ['view','📋 รายการที่กำลังดูอยู่ (ตามตัวกรอง)', shown.toLocaleString()+' รายการที่แสดงในตารางตอนนี้'],
+    ['month','📅 รายการค้างทั้งเดือน (แยกตามแผนก)', openAll.toLocaleString()+' รายการค้าง · '+prMonthLabel(prMonth)],
+    ['dept','🏢 เฉพาะแผนกที่เลือก (รายการค้าง)', 'เลือกแผนกด้านล่าง'],
+    ['overdue','🔴 เฉพาะรายการค้างเกิน '+PR_AGE_OVER+' วัน', c.over90.toLocaleString()+' รายการเร่งด่วน']
+  ];
+  document.getElementById('pr-print-opts').innerHTML=opts.map(([k,t,s])=>
+    `<div class="pr-pr-opt ${k===prPrintScope?'on':''}" data-k="${k}" onclick="prSetPrintScope('${k}')">
+      <div class="ppo-r"></div><div><div class="ppo-t">${t}</div><div class="ppo-s">${s}</div></div>
+    </div>`).join('');
+  // dropdown แผนก (เฉพาะแผนกที่มีรายการค้าง)
+  const stats=prDeptStats(prRows);
+  document.getElementById('pr-print-dept').innerHTML=stats.length
+    ? stats.map(x=>`<option value="${prEsc(x.dept)}">${prEsc(x.dept)} (ค้าง ${x.open} รายการ)</option>`).join('')
+    : '<option value="">— ไม่มีรายการค้าง —</option>';
+  prSetPrintScope('view');
+  document.getElementById('m-pr-print').classList.add('show');
+}
+function prSetPrintScope(k){
+  prPrintScope=k;
+  document.querySelectorAll('#pr-print-opts .pr-pr-opt').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
+  document.getElementById('pr-print-dept-wrap').style.display=(k==='dept')?'':'none';
+  const hints={
+    view:'พิมพ์ตามที่เห็นในตาราง — รวมทุกสถานะที่ตัวกรองปัจจุบันแสดงอยู่',
+    month:'พิมพ์รายการคงค้าง (Pending + Onprocess) ทั้งเดือน จัดกลุ่มตามแผนก พร้อมสรุปยอด',
+    dept:'พิมพ์เฉพาะรายการคงค้างของแผนกที่เลือก — เหมาะกับการส่งให้หัวหน้าแผนกนั้นติดตาม',
+    overdue:'พิมพ์เฉพาะรายการที่ค้างเกิน '+PR_AGE_OVER+' วัน เรียงนานสุดก่อน — เหมาะกับการเร่งติดตาม'
+  };
+  document.getElementById('pr-print-hint').textContent=hints[k]||'';
+}
+function prDoPrint(){
+  const dept=document.getElementById('pr-print-dept').value;
+  closeM('m-pr-print');
+  setTimeout(()=>prPrintRun(prPrintScope,dept),150);
+}
+// พิมพ์แผนกเดียวจากปุ่มในตารางสรุป (ทางลัด)
+function prPrintDept(dept){ prPrintRun('dept',dept); }
+
+// พิมพ์จริง — scope: view | month | dept | overdue | year
+function prPrintRun(scope, dept){
   const box=document.getElementById('pr-print');
   const now=new Date();
   const dts=('0'+now.getDate()).slice(-2)+'/'+('0'+(now.getMonth()+1)).slice(-2)+'/'+(now.getFullYear()+543)+' '+('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
-  const kb=(n,l)=>`<div class="kbox"><b>${Number(n).toLocaleString()}</b><span>${l}</span></div>`;
-  if(prMode==='year'&&prSummary){
+  const kb=(n,l)=>`<div class="kbox"><b>${typeof n==='number'?Number(n).toLocaleString():n}</b><span>${l}</span></div>`;
+  const doPrint=()=>{
+    document.body.classList.add('print-pr');
+    const cleanup=()=>{document.body.classList.remove('print-pr');window.removeEventListener('afterprint',cleanup);};
+    window.addEventListener('afterprint',cleanup);
+    setTimeout(()=>window.print(),80);
+  };
+
+  /* ---------- สรุปทั้งปี (เหมือนเดิม) ---------- */
+  if(scope==='year'&&prSummary){
     const months=Object.keys(prSummary).sort();
     const tot={items:0,prs:0,completed:0,onprocess:0,pending:0,cancelled:0};
     months.forEach(mk=>{const m=prSummary[mk];Object.keys(tot).forEach(k=>tot[k]+=(m[k]||0));});
@@ -10310,29 +10513,110 @@ function prPrint(){
     box.innerHTML=`<h1>🛒 สรุปสถานะ PR จัดซื้อ — ภาพรวมทั้งปี</h1><div class="sub">Santhiya Koh Yao Yai (SYY) · SYY Service Hub</div>
       ${kb(tot.items,'รายการทั้งหมด')}${kb(tot.prs,'จำนวนใบ PR')}${kb(tot.completed,'Completed')}${kb(tot.onprocess,'Onprocess')}${kb(tot.pending,'Pending')}${kb(tot.cancelled,'ยกเลิก')}
       ${tbl}<div class="foot"><span>พิมพ์เมื่อ ${dts}</span><span>SYY Service Hub — PR Tracker</span></div>`;
-  }else{
-    const c=prCounts(prRows);
-    const denom=c.items-c.cancelled;const pct=denom>0?Math.round(c.completed*100/denom):0;
-    const open=prRows.filter(r=>r.status==='pending'||r.status==='onprocess');
-    const byDept={};open.forEach(r=>{(byDept[r.department||'ไม่ระบุแผนก']=byDept[r.department||'ไม่ระบุแผนก']||[]).push(r);});
-    let tbl='<table><thead><tr><th style="width:60px">วันที่</th><th style="width:66px">PR#</th><th style="width:58px">รหัส</th><th>รายการ</th><th style="width:40px">จำนวน</th><th style="width:66px">ราคาซื้อล่าสุด</th><th style="width:70px">สถานะ</th><th>Supplier</th><th>หมายเหตุ</th></tr></thead><tbody>';
-    Object.keys(byDept).sort().forEach(d=>{
-      tbl+=`<tr><td class="dept-h" colspan="9">🏢 ${prEsc(d)} — คงค้าง ${byDept[d].length} รายการ</td></tr>`;
-      byDept[d].forEach(r=>{
-        tbl+=`<tr><td>${prEsc(String(r.item_date).split(' ')[0])}</td><td>${prEsc(r.pr_no)}</td><td>${prEsc(r.code)}</td><td>${prEsc(r.stock_name)}</td><td style="text-align:right">${prEsc(r.order_qty)}</td><td style="text-align:right">${prEsc(r.last_purchase)}</td><td>${r.status==='onprocess'?'Onprocess':'Pending'}</td><td>${prEsc(String(r.supplier).substring(0,34))}</td><td>${prEsc(r.note)}</td></tr>`;
-      });
-    });
-    tbl+='</tbody></table>';
-    box.innerHTML=`<h1>🛒 สรุปสถานะ PR จัดซื้อ — ${prEsc(prMonthLabel(prMonth))}</h1><div class="sub">Santhiya Koh Yao Yai (SYY) · SYY Service Hub</div>
-      ${kb(c.items,'รายการทั้งหมด')}${kb(c.prs,'จำนวนใบ PR')}${kb(c.completed,'Completed')}${kb(c.onprocess,'Onprocess')}${kb(c.pending,'Pending')}${kb(c.cancelled,'ยกเลิก')}${kb(pct+'%','ความก้าวหน้า')}
-      <div style="font-size:11px;font-weight:700;margin-top:8px">📌 รายการคงค้าง (Onprocess + Pending) รวม ${open.length.toLocaleString()} รายการ แยกตามแผนก</div>
-      ${open.length?tbl:'<div style="font-size:11px;color:#16A34A;margin-top:6px">🎉 ไม่มีรายการคงค้างในเดือนนี้</div>'}
-      <div class="foot"><span>พิมพ์เมื่อ ${dts}</span><span>SYY Service Hub — PR Tracker</span></div>`;
+    doPrint(); return;
   }
-  document.body.classList.add('print-pr');
-  const cleanup=()=>{document.body.classList.remove('print-pr');window.removeEventListener('afterprint',cleanup);};
-  window.addEventListener('afterprint',cleanup);
-  setTimeout(()=>window.print(),80);
+
+  /* ---------- เลือกชุดข้อมูลตาม scope ---------- */
+  let rows, title, subtitle, groupByDept=true, showAge=true;
+  if(scope==='view'){
+    rows=prFiltered();
+    const f=[];
+    if(prFilter.status!=='all')f.push('สถานะ: '+(PR_ST_LBL[prFilter.status]||prFilter.status).replace(/[^\u0E00-\u0E7Fa-zA-Z ]/g,'').trim());
+    if(prFilter.dept!=='all')f.push('แผนก: '+prFilter.dept);
+    if(prFilter.aging==='over90')f.push('ค้างเกิน '+PR_AGE_OVER+' วัน');
+    else if(prFilter.aging==='late30')f.push('ค้างเกิน '+PR_AGE_LATE+' วัน');
+    if(prFilter.q)f.push('ค้นหา: "'+prFilter.q+'"');
+    title='รายการ PR ตามที่เลือกดู';
+    subtitle=prMonthLabel(prMonth)+(f.length?' · ตัวกรอง — '+f.join(' | '):' · ทุกรายการ');
+    groupByDept=(prFilter.dept==='all');
+  }else if(scope==='dept'){
+    const d=dept||'';
+    rows=prRows.filter(r=>(r.status==='pending'||r.status==='onprocess')&&(String(r.department||'').trim()||'ไม่ระบุแผนก')===d);
+    rows.sort((a,b)=>(prAgeDays(b)||0)-(prAgeDays(a)||0));
+    title='รายการคงค้าง — แผนก '+d;
+    subtitle=prMonthLabel(prMonth)+' · เรียงตามระยะเวลาค้าง (นานสุดก่อน)';
+    groupByDept=false;
+  }else if(scope==='overdue'){
+    rows=prRows.filter(r=>{const a=prAgeDays(r);return a!==null&&a>PR_AGE_OVER;});
+    rows.sort((a,b)=>(prAgeDays(b)||0)-(prAgeDays(a)||0));
+    title='🔴 รายการค้างเกิน '+PR_AGE_OVER+' วัน (เร่งติดตาม)';
+    subtitle=prMonthLabel(prMonth)+' · เรียงตามระยะเวลาค้าง (นานสุดก่อน)';
+  }else{ // month
+    rows=prRows.filter(r=>r.status==='pending'||r.status==='onprocess');
+    title='รายการคงค้างทั้งหมด (Onprocess + Pending)';
+    subtitle=prMonthLabel(prMonth)+' · จัดกลุ่มตามแผนก';
+  }
+
+  if(!rows.length){
+    box.innerHTML=`<h1>🛒 ${prEsc(title)}</h1><div class="sub">Santhiya Koh Yao Yai (SYY) · ${prEsc(subtitle)}</div>
+      <div style="font-size:12px;color:#16A34A;margin-top:14px">🎉 ไม่มีรายการตามเงื่อนไขที่เลือก</div>
+      <div class="foot"><span>พิมพ์เมื่อ ${dts}</span><span>SYY Service Hub — PR Tracker</span></div>`;
+    doPrint(); return;
+  }
+
+  /* ---------- สถิติของชุดที่พิมพ์ ---------- */
+  const st={n:rows.length,pending:0,onprocess:0,completed:0,cancelled:0,late30:0,over90:0,ageSum:0,ageN:0};
+  const prSet={};
+  rows.forEach(r=>{
+    if(st[r.status]!==undefined)st[r.status]++;
+    if(r.pr_no)prSet[r.pr_no]=1;
+    const a=prAgeDays(r);
+    if(a!==null){st.ageSum+=a;st.ageN++;if(a>PR_AGE_OVER)st.over90++;else if(a>PR_AGE_LATE)st.late30++;}
+  });
+  const avgAge=st.ageN?Math.round(st.ageSum/st.ageN):0;
+  let kpis=kb(st.n,'รายการ')+kb(Object.keys(prSet).length,'ใบ PR');
+  if(st.pending)kpis+=kb(st.pending,'Pending');
+  if(st.onprocess)kpis+=kb(st.onprocess,'Onprocess');
+  if(st.completed)kpis+=kb(st.completed,'Completed');
+  if(st.cancelled)kpis+=kb(st.cancelled,'ยกเลิก');
+  if(st.ageN){kpis+=kb(st.late30+st.over90,'ค้าง >'+PR_AGE_LATE+' วัน')+kb(st.over90,'ค้าง >'+PR_AGE_OVER+' วัน')+kb(avgAge+' วัน','ค้างเฉลี่ย');}
+
+  /* ---------- ตาราง ---------- */
+  const th=`<thead><tr><th style="width:58px">วันที่</th>${showAge?'<th style="width:46px">ค้างมา</th>':''}<th style="width:62px">PR#</th><th style="width:54px">รหัส</th><th>รายการ</th><th style="width:38px">จำนวน</th><th style="width:60px">ราคาซื้อล่าสุด</th><th style="width:64px">สถานะ</th><th>Supplier</th><th>หมายเหตุ</th></tr></thead>`;
+  const cols=showAge?10:9;
+  const tr=(r)=>{
+    const a=prAgeDays(r);
+    const ageTxt=a===null?'-':(a+' วัน'+(a>PR_AGE_OVER?' ⚠':''));
+    const ageStyle=a===null?'':(a>PR_AGE_OVER?'color:#DC2626;font-weight:700':(a>PR_AGE_LATE?'color:#EA580C;font-weight:600':''));
+    const stTxt=({completed:'Completed',onprocess:'Onprocess',pending:'Pending',cancelled:'ยกเลิก'})[r.status]||r.status;
+    return `<tr>
+      <td>${prEsc(String(r.item_date).split(' ')[0])}</td>
+      ${showAge?`<td style="text-align:center;${ageStyle}">${ageTxt}</td>`:''}
+      <td>${prEsc(r.pr_no)}</td><td>${prEsc(r.code)}</td><td>${prEsc(r.stock_name)}</td>
+      <td style="text-align:right">${prEsc(r.order_qty)}</td>
+      <td style="text-align:right">${prEsc(r.last_purchase)}</td>
+      <td>${stTxt}</td>
+      <td>${prEsc(String(r.supplier).substring(0,32))}</td>
+      <td>${prEsc(r.note)}</td></tr>`;
+  };
+  let tbl='<table>'+th+'<tbody>';
+  if(groupByDept){
+    const byDept={};
+    rows.forEach(r=>{const d=String(r.department||'').trim()||'ไม่ระบุแผนก';(byDept[d]=byDept[d]||[]).push(r);});
+    Object.keys(byDept).sort((a,b)=>{
+      const oa=byDept[a].filter(r=>{const x=prAgeDays(r);return x!==null&&x>PR_AGE_OVER;}).length;
+      const ob=byDept[b].filter(r=>{const x=prAgeDays(r);return x!==null&&x>PR_AGE_OVER;}).length;
+      return (ob-oa)||(byDept[b].length-byDept[a].length)||a.localeCompare(b);
+    }).forEach(d=>{
+      const list=byDept[d].slice().sort((a,b)=>(prAgeDays(b)||0)-(prAgeDays(a)||0));
+      const o90=list.filter(r=>{const x=prAgeDays(r);return x!==null&&x>PR_AGE_OVER;}).length;
+      const l30=list.filter(r=>{const x=prAgeDays(r);return x!==null&&x>PR_AGE_LATE&&x<=PR_AGE_OVER;}).length;
+      const extra=[];
+      if(l30)extra.push('ล่าช้า '+l30);
+      if(o90)extra.push('⚠ ค้างนาน '+o90);
+      tbl+=`<tr><td class="dept-h" colspan="${cols}">🏢 ${prEsc(d)} — ${list.length} รายการ${extra.length?' ('+extra.join(' · ')+')':''}</td></tr>`;
+      list.forEach(r=>{tbl+=tr(r);});
+    });
+  }else{
+    rows.forEach(r=>{tbl+=tr(r);});
+  }
+  tbl+='</tbody></table>';
+
+  box.innerHTML=`<h1>🛒 ${prEsc(title)}</h1><div class="sub">Santhiya Koh Yao Yai (SYY) · ${prEsc(subtitle)}</div>
+    ${kpis}
+    ${tbl}
+    <div class="foot"><span>พิมพ์เมื่อ ${dts}</span><span>SYY Service Hub — PR Tracker</span></div>`;
+  doPrint();
 }
 </script>
 
