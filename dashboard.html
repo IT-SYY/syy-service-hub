@@ -3238,6 +3238,16 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 .prt-empty{text-align:center;padding:44px 10px;color:var(--text3);font-size:12.5px;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);}
 
 
+
+/* แบนเนอร์แนะนำเมนู (ทีมที่ไม่มีงานซ่อม เช่น จัดซื้อ) */
+.scope-hint{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,#0891B2,#0E7490);color:#fff;border-radius:12px;padding:13px 16px;margin-bottom:14px;}
+.scope-hint .sh-ic{font-size:24px;flex-shrink:0;}
+.scope-hint .sh-body{flex:1;min-width:0;}
+.scope-hint .sh-ttl{font-size:13.5px;font-weight:700;}
+.scope-hint .sh-sub{font-size:11.5px;opacity:.92;margin-top:2px;}
+.scope-hint .sh-btn{background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.5);color:#fff;font-family:'Prompt';font-size:12px;font-weight:600;padding:7px 14px;border-radius:9px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.scope-hint .sh-btn:hover{background:rgba(255,255,255,0.34);}
+
 /* PR: สรุปยอดค้างแยกแผนก + modal พิมพ์ */
 .pr-dept-sum{border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;background:var(--bg2);}
 .pr-ds-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text);background:var(--bg3);}
@@ -3606,6 +3616,15 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
 
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
+      <!-- แนะนำเมนูที่ถูกต้อง เมื่อทีมของผู้ใช้ไม่มีงานซ่อม แต่มีงานประเภทอื่น -->
+      <div id="scope-hint" class="scope-hint" style="display:none">
+        <span class="sh-ic" id="sh-ic">🛒</span>
+        <div class="sh-body">
+          <div class="sh-ttl" id="sh-ttl"></div>
+          <div class="sh-sub" id="sh-sub"></div>
+        </div>
+        <button class="sh-btn" id="sh-btn" onclick="scopeHintGo()">ไปที่เมนู →</button>
+      </div>
       <!-- แถบแจ้งเตือนงานจากลูกค้า (แสดงเมื่อมีงานลูกค้าค้างอยู่) -->
       <div id="guest-banner" class="guest-banner" style="display:none" onclick="gotoGuestInbox()">
         <span class="gb-bell">🛎️</span>
@@ -6089,6 +6108,7 @@ function renderAll(){
   // ข้ามเมื่ออยู่หน้าอื่น → กดรับงาน/มอบหมาย/บันทึกจากหน้า Tickets/Inbox เร็วขึ้นมาก
   // (กราฟ render เองตอนกลับเข้าหน้า Dashboard ผ่าน showPage)
   if(onDash){
+    renderScopeHint();
     renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderRatingBar();renderRecurringOverview();
     if(document.body.classList.contains('tv')) renderTVBoard();
   }
@@ -6127,6 +6147,51 @@ function filterFollowup(){ return tickets.filter(t=>hasPendingFollowup(t) && pas
 // ภาพรวม Dashboard (KPI/Kanban/Charts/Timeline) — ใช้งานซ่อมเสมอ ไม่ขึ้นกับหน้าที่เปิดอยู่ (inbox/โครงการ/PM)
 // กันบัก: กดรับ/ปิดงานจากหน้า inbox แล้ว renderAll ทำให้ Kanban dashboard โชว์ผิด (เฉพาะงานรอ คอลัมน์อื่นหาย)
 function getDashboardBase(){ return filterByWorkType('repair'); }
+
+/* ===== แนะนำเมนูที่ถูกต้อง เมื่อทีมของผู้ใช้ไม่มีงานซ่อม =====
+ * หน้า Dashboard แสดงเฉพาะงานซ่อม (work_type='repair') ตามการออกแบบ
+ * ทีมอย่าง "จัดซื้อ" จึงเห็นหน้าว่าง ทั้งที่มีงานของตัวเองอยู่ในเมนูอื่น
+ * → ตรวจว่าทีมของผู้ใช้มีงานประเภทไหนมากสุด แล้วชี้ทางไปเมนูนั้น
+ */
+const SCOPE_MENU_MAP={
+  purchase:{page:'purchase', ic:'🛒', th:'ติดตามงานจัดซื้อ',    en:'Track Procurement'},
+  claim:   {page:'claim',    ic:'📦', th:'ส่งซ่อม/เคลมนอก',      en:'Claim / External Repair'},
+  project: {page:'projects', ic:'📁', th:'งานโครงการ',           en:'Projects'},
+  pm:      {page:'pm',       ic:'🔧', th:'ปรุงรักษาตามแผน (PM)', en:'Preventive Maintenance'},
+};
+let scopeHintPage='';
+function renderScopeHint(){
+  const el=document.getElementById('scope-hint');
+  if(!el) return;
+  el.style.display='none';
+  if(scopeAll) return;                      // กด "ดูทุกแผนก" อยู่ → ไม่ต้องแนะนำ
+  if(getDashboardBase().length>0) return;   // มีงานซ่อมให้ดูอยู่แล้ว → ไม่ต้องแนะนำ
+
+  // นับงานของทีม/สาขาเราในแต่ละประเภท (นอกเหนือจากงานซ่อม)
+  const counts={};
+  Object.keys(SCOPE_MENU_MAP).forEach(function(wt){ counts[wt]=filterByWorkType(wt).length; });
+  const best=Object.keys(counts).filter(k=>counts[k]>0).sort((a,b)=>counts[b]-counts[a])[0];
+  if(!best) return;                         // ไม่มีงานประเภทไหนเลย → ปล่อยหน้าว่างตามปกติ
+
+  const m=SCOPE_MENU_MAP[best];
+  const teamTxt=(userTeams&&userTeams.length)?userTeams.join(', '):L('ทีมของคุณ','your team');
+  scopeHintPage=m.page;
+  document.getElementById('sh-ic').textContent=m.ic;
+  document.getElementById('sh-ttl').textContent=L(
+    `ทีม ${teamTxt} ไม่มีงานซ่อมบำรุง — งานของคุณอยู่ที่เมนู "${m.th}"`,
+    `No maintenance jobs for ${teamTxt} — your work is under "${m.en}"`);
+  document.getElementById('sh-sub').textContent=L(
+    `พบงานของทีมคุณ ${counts[best]} รายการ · หน้าแดชบอร์ดนี้แสดงเฉพาะงานซ่อมบำรุง`,
+    `${counts[best]} job(s) found · This dashboard shows maintenance jobs only`);
+  document.getElementById('sh-btn').textContent=L('ไปที่ '+m.th+' →', 'Go to '+m.en+' →');
+  el.style.display='flex';
+}
+function scopeHintGo(){
+  if(!scopeHintPage) return;
+  const nav=[...document.querySelectorAll('.nav-item')].find(e=>(e.getAttribute('onclick')||'').includes("'"+scopeHintPage+"'"));
+  showPage(scopeHintPage, nav||null);
+}
+
 
 // สีประจำแผนกช่าง (ตรงกับ Code.gs + ฟอร์ม) — ใช้กับงานซ่อมเท่านั้น
 const TEAM_COLORS={'IT Support':'#CA8A04','Engineering':'#DC2626','Landscape & Garden':'#16A34A','Environment':'#1D4ED8','Asset':'#C026D3','จัดซื้อ':'#0891B2'};
@@ -9172,7 +9237,7 @@ function showPage(p,el,fromPop){
   if(sb) sb.classList.remove('open');
   const bb=document.getElementById('back-btn');
   if(bb) bb.style.display=(p==='dashboard')?'none':'inline-block';
-  if(p==='dashboard'){ renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
+  if(p==='dashboard'){ renderScopeHint();renderKPI();renderCharts();renderKanban();renderTechList();renderTimeline();renderRatingBar();renderRecurringOverview();renderFollowupAlert(); }
   if(p==='prtrack'){ prLoadPage(); }
   if(p==='lostfound'){ lfLoadPage(); }
   if(p==='firecheck'){ fireLoadPage(); }
