@@ -4991,7 +4991,7 @@ function toggleTV(){
     renderTVBoard();
     // โหลดแผน PM สำหรับแผง "PM ใกล้ครบกำหนด" (ถ้ายังไม่มี)
     if(!pmPlansCache || !pmPlansCache.length){
-      fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})}).then(r=>r.json()).then(r=>{ if(r&&r.plans){ pmPlansCache=r.plans; if(document.body.classList.contains('tv')) renderTVBoard(); } }).catch(()=>{});
+      gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})}).then(r=>r.json()).then(r=>{ if(r&&r.plans){ pmPlansCache=r.plans; if(document.body.classList.contains('tv')) renderTVBoard(); } }).catch(()=>{});
     }
     tvClock=setInterval(updateTVClock,1000);
   }else{
@@ -5580,13 +5580,7 @@ function enterAs(user, degraded){
   requestNotifyPermission();
   try{ const c=_alertAudioCtx||(_alertAudioCtx=new(window.AudioContext||window.webkitAudioContext)()); if(c.state==='suspended') c.resume(); }catch(e){}  // ปลดล็อกเสียงด้วย gesture การ login
   showSkeletons(); loadData();
-  timer=setInterval(()=>{
-    // ข้ามการรีเฟรชอัตโนมัติ ถ้ามีหน้าต่าง (modal) เปิดอยู่ — ผู้ใช้กำลังกรอก/กดอยู่
-    if(document.querySelector('.overlay.show')) return;
-    // ข้าม 1 รอบหลังเพิ่งทำรายการ เพื่อไม่ให้อ่านข้อมูลเก่ามาทับสถานะที่เพิ่งอัปเดต
-    if(Date.now()-lastActionAt < 9000) return;
-    loadData(true);
-  },30000);
+  scheduleRefresh();   // รีเฟรชแบบปรับตัว (ดู scheduleRefresh/runAutoRefresh)
 }
 
 // ===== SKELETON (โหลดครั้งแรก) =====
@@ -5773,12 +5767,70 @@ document.addEventListener('keydown',function(e){
 })();
 
 // ===== LOAD =====
+/* ===== รีเฟรชแบบปรับตัว (แก้คอขวด Sheets API เมื่อเปิดหลายเครื่องพร้อมกัน) =====
+ * ปัญหาเดิม: ทุกเครื่องอ่าน TICKETS ทั้งชีตทุก 30 วิ ไม่ว่าจะดูอยู่หรือไม่
+ *            Sheets API จำกัด ~300 อ่าน/นาที/โปรเจกต์ → เปิดเกิน ~150 เครื่องจะเริ่มโดน 429
+ * แก้ 4 ทาง:
+ *   1) แท็บถูกซ่อน (สลับไปทำอย่างอื่น) → ไม่ยิงเลย กลับมาเมื่อไหร่โหลดทันที
+ *   2) ข้อมูลไม่เปลี่ยน → ยืดรอบถัดไป 30 → 45 → 67 → 100 → 120 วิ (สูงสุด)
+ *   3) มีข้อมูลใหม่ / ผู้ใช้เพิ่งกดอะไร → กลับมาไวเท่าเดิม (30 วิ)
+ *   4) โดน rate limit (429) → ถอยแบบทวีคูณ ไม่กระหน่ำซ้ำจนระบบล่มหนักกว่าเดิม
+ * จอ TV: คงรอบ 30 วิ เสมอ (ต้องสดตลอด)
+ */
+const REFRESH_MIN=30000, REFRESH_MAX=120000, REFRESH_ERR_MAX=300000;
+let refreshInterval=REFRESH_MIN, refreshTimer=null, lastDataFp='';
+function refreshMaxAllowed(){ return document.body.classList.contains('tv') ? REFRESH_MIN : REFRESH_MAX; }
+// ลายนิ้วมือข้อมูล — เทียบว่าชีตเปลี่ยนไหมโดยไม่ต้อง map ใหม่ทั้งชุด
+function fpHash(s){ let h=5381; for(let i=0;i<s.length;i++){ h=((h<<5)+h+s.charCodeAt(i))|0; } return h+'_'+s.length; }
+function scheduleRefresh(){
+  if(refreshTimer) clearTimeout(refreshTimer);
+  const jitter=Math.floor(Math.random()*5000);   // สุ่มกันทุกเครื่องยิงพร้อมกันเป็นระลอก
+  refreshTimer=setTimeout(runAutoRefresh, refreshInterval+jitter);
+}
+async function runAutoRefresh(){
+  try{
+    if(document.hidden){ scheduleRefresh(); return; }                       // แท็บถูกซ่อน — ไม่กินโควตา
+    if(document.querySelector('.overlay.show')){ scheduleRefresh(); return; } // กำลังกรอกฟอร์มอยู่
+    if(Date.now()-lastActionAt < 9000){ scheduleRefresh(); return; }        // เพิ่งกดไป รอให้ชีตนิ่งก่อน
+    if(Date.now()-lastActionAt < 60000) refreshInterval=REFRESH_MIN;        // ยังใช้งานอยู่ → ตามให้ไว
+    await loadData(true);
+  }catch(e){}
+  scheduleRefresh();
+}
+// กลับมาที่แท็บ → โหลดทันที + รีเซ็ตรอบให้ไว
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden || !currentUser) return;
+  refreshInterval=REFRESH_MIN;
+  if(!document.querySelector('.overlay.show')) loadData(true);
+  scheduleRefresh();
+  if(typeof chatPollNow==='function' && currentPage==='chat') chatPollNow();   // กลับมาดูแชต → ตามให้ไว
+});
+
 async function loadData(silent=false){
   if(!silent) document.getElementById('live-txt').textContent='กำลังโหลด...';
   try{
     // อ่านรวมหัวตาราง (แถว 1) เพื่อแมปตามชื่อคอลัมน์ — เพิ่ม/ย้ายคอลัมน์ได้โดยไม่พัง
     const res=await fetch(`${BASE}/TICKETS!A1:AZ5000?key=${API_KEY}`);
-    const d=await res.json();
+    // เกินโควตาอ่านของ Sheets API (เปิดพร้อมกันหลายเครื่อง) → ถอยแบบทวีคูณ ไม่กระหน่ำซ้ำ
+    if(res.status===429 || res.status===403 || res.status>=500){
+      refreshInterval=Math.min(Math.max(refreshInterval*2, 60000), REFRESH_ERR_MAX);
+      document.getElementById('live-txt').textContent='ระบบหนาแน่น · รอสักครู่';
+      return;
+    }
+    const _txt=await res.text();
+    const _fp=fpHash(_txt);
+    // ข้อมูลไม่เปลี่ยนจากรอบก่อน → ไม่ต้องแปลงข้อมูลใหม่ทั้งชุด + ยืดรอบถัดไป (ประหยัดโควตา)
+    if(!firstLoad && _fp===lastDataFp){
+      refreshInterval=Math.min(Math.round(refreshInterval*1.5), refreshMaxAllowed());
+      renderAll();   // วาดใหม่เพื่อให้ตัวนับเวลา/SLA เดินต่อ (ข้อมูลเดิม ไม่แตะ API เพิ่ม)
+      const nu=new Date();
+      document.getElementById('live-txt').textContent=`อัปเดต ${String(nu.getHours()).padStart(2,'0')}:${String(nu.getMinutes()).padStart(2,'0')}`;
+      if(!silent) toast(L('ข้อมูลเป็นปัจจุบันแล้ว','Already up to date'),'✅','success');
+      return;
+    }
+    lastDataFp=_fp;
+    refreshInterval=REFRESH_MIN;   // มีของใหม่ → กลับมาตามให้ไวเท่าเดิม
+    const d=JSON.parse(_txt);
     if(!d.values || d.values.length<2){tickets=[];renderAll();return;}
     const heads=d.values[0].map(h=>String(h||'').trim());
     const H={}; heads.forEach((h,i)=>{ if(h && !(h in H)) H[h]=i; });
@@ -7369,7 +7421,7 @@ async function renderPmReport(){
   card.innerHTML='<div class="report-title">🔧 กำหนดการบำรุงรักษา (PM)</div><div style="color:var(--text3);font-size:12px;padding:6px">⏳ กำลังโหลด...</div>';
   let plans=[];
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})})).json();
     plans=(r.plans||[]).filter(p=>p.active);
   }catch(e){ card.innerHTML='<div class="report-title">🔧 กำหนดการบำรุงรักษา (PM)</div><div style="color:var(--red);padding:6px">โหลดไม่สำเร็จ</div>'; return; }
   // กรองตามสาขา/ทีมที่เลือก
@@ -7709,7 +7761,7 @@ async function loadErrorLogs(){
   const box=document.getElementById('error-log-list');
   box.innerHTML='<div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลด...</div>';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_error_logs',limit:50,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_error_logs',limit:50,access_token:authToken()})})).json();
     if(!r.success){ box.innerHTML='<div style="color:var(--red);padding:20px;text-align:center">'+(r.error||'โหลดไม่สำเร็จ')+'</div>'; return; }
     const logs=r.logs||[];
     if(!logs.length){ box.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">✅ ไม่มี error บันทึกไว้</div>'; return; }
@@ -7736,7 +7788,7 @@ async function loadPmPlans(){
   const box=document.getElementById('pm-plans-list');
   box.innerHTML='<div class="loading" style="text-align:center;color:var(--text3);padding:20px">⏳ กำลังโหลด...</div>';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_pm_plans',access_token:authToken()})})).json();
     pmPlansCache=(r.plans||[]);
     renderPmPlansList();
   }catch(e){ box.innerHTML='<div style="color:var(--red);padding:20px">โหลดไม่สำเร็จ</div>'; }
@@ -7805,7 +7857,7 @@ async function savePmForm(){
     next_due:due, priority:document.getElementById('pf-priority').value, detail:document.getElementById('pf-detail').value.trim()
   };
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'save_pm_plan',plan:plan,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'save_pm_plan',plan:plan,access_token:authToken()})})).json();
     if(r.success){closeM('m-pmform');toast(L('บันทึกแผนแล้ว','Plan saved'),'💾','success');loadPmPlans();}
     else toast(L('บันทึกไม่สำเร็จ: ','Save failed: ')+(r.error||''),'❌','info');
   }catch(e){toast(L('เกิดข้อผิดพลาด','An error occurred'),'❌','info');}
@@ -8005,7 +8057,7 @@ async function loadDetailTimeline(ticketId){
   if(!box) return;
   box.innerHTML='<div style="color:var(--text3);font-size:12px;padding:4px 0">'+L('กำลังโหลดไทม์ไลน์...','Loading timeline...')+'</div>';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_progress',ticket_id:ticketId})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_progress',ticket_id:ticketId})})).json();
     const items=(r&&r.items)?r.items.filter(function(it){return (it.note&&String(it.note).trim())||parseInt(it.percent,10)>=0;}):[];
     if(!items.length){ box.innerHTML=''; return; }
     const rows=items.slice().reverse().map(function(it){
@@ -8088,6 +8140,43 @@ function openDetail(id){
 }
 let lastActionAt=0;   // เวลาทำรายการล่าสุด (กันรีเฟรชอัตโนมัติมาทับทันที)
 function closeM(id){document.getElementById(id).classList.remove('show'); lastActionAt=Date.now();}
+/* ===== gasFetch — ตัวแทน fetch() สำหรับเรียก GAS พร้อม retry อัตโนมัติเมื่อระบบยุ่ง =====
+ * ปัญหา: Apps Script มี LockService ตัวเดียวทั้งโปรเจกต์ เมื่อหลายคนกดพร้อมกัน
+ *        (รับงาน/มอบหมาย/ปิดงาน/แชต/บันทึกถัง ฯลฯ) คนที่รอเกิน waitLock จะได้ error "busy"
+ *        ทั้งที่งานตัวเองไม่ได้ชนกับใคร — เป็นคอขวดหลักตอนใช้งานพร้อมกันจำนวนมาก
+ * วิธีแก้: เจอ busy → รอสั้นๆ แล้วลองใหม่เองเงียบๆ (สูงสุด 4 ครั้ง) ผู้ใช้แทบไม่รู้สึก
+ * ปลอดภัย: retry เฉพาะกรณี "ยังไม่ได้ทำงาน" (จับล็อกไม่ได้ / โดน rate limit) เท่านั้น
+ *          ไม่ retry เมื่อเน็ตล้ม เพราะอาจเขียนข้อมูลไปแล้ว (กันบันทึกซ้ำ)
+ */
+const GAS_RETRY_DELAYS=[400,900,1800];   // หน่วงก่อนลองใหม่ (มิลลิวินาที) + สุ่มกันกระแทกพร้อมกัน
+let gasBusyRetries=0;                    // นับไว้ดูภาพรวมว่าระบบชนกันบ่อยแค่ไหน
+function _gasRes(status,txt){
+  return { ok:(status>=200&&status<300), status:status,
+    text:function(){ return Promise.resolve(txt); },
+    json:function(){ return Promise.resolve(JSON.parse(txt)); } };
+}
+function _gasIsBusy(status,txt){
+  if(status===429||status===503) return true;                       // โดนจำกัดอัตรา / เซิร์ฟเวอร์ไม่ว่าง
+  if(!txt) return false;
+  try{ const j=JSON.parse(txt);
+    return !!(j && j.success===false && /busy|lock|try again/i.test(String(j.error||'')));
+  }catch(e){ return false; }
+}
+async function gasFetch(url,opts){
+  const MAX=GAS_RETRY_DELAYS.length+1;
+  for(let i=0;i<MAX;i++){
+    const res=await fetch(url,opts);        // เน็ตล้ม → โยน error ออกไปเลย (ไม่ retry กันเขียนซ้ำ)
+    let txt=''; try{ txt=await res.text(); }catch(e){ txt=''; }
+    if(!_gasIsBusy(res.status,txt)) return _gasRes(res.status,txt);
+    if(i===MAX-1){                          // ลองครบแล้วยังยุ่ง → คืนข้อความที่ผู้ใช้เข้าใจได้
+      return _gasRes(200,JSON.stringify({success:false,busy:true,
+        error:'ระบบกำลังมีผู้ใช้พร้อมกันจำนวนมาก กรุณากดอีกครั้งใน 1-2 วินาที'}));
+    }
+    gasBusyRetries++;
+    await new Promise(r=>setTimeout(r,GAS_RETRY_DELAYS[i]+Math.floor(Math.random()*300)));
+  }
+}
+
 // ส่งคำสั่งไป GAS แบบทนทาน: ถ้าส่งถึงเซิร์ฟเวอร์แล้วแต่อ่าน response ไม่ได้ (redirect/timeout ของ GAS)
 // มักแปลว่าเซิร์ฟเวอร์ทำสำเร็จแล้ว → คืน soft:true เพื่อให้ผู้เรียกอัปเดตจอ + รีเฟรชยืนยันแทนการขึ้น error
 async function gasPost(body){
@@ -8097,7 +8186,7 @@ async function gasPost(body){
   const ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
   const timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, TIMEOUT) : null;
   try{
-    res = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined});
+    res = await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined});
   }catch(netErr){
     if(timer) clearTimeout(timer);
     return {ok:false, networkError:true, error:netErr.message};   // เครือข่ายล้ม/timeout
@@ -8106,7 +8195,7 @@ async function gasPost(body){
   let txt='';
   try{ txt = await res.text(); }catch(e){ txt=''; }
   if(txt){
-    try{ const j=JSON.parse(txt); return {ok:!!j.success, data:j, error:j.error}; }
+    try{ const j=JSON.parse(txt); return {ok:!!j.success, data:j, error:j.error, busy:!!j.busy}; }
     catch(parseErr){ /* parse JSON ไม่ได้ */ }
   }
   return {ok:true, soft:true};   // ส่งถึงแล้วแต่อ่าน response ไม่ได้ → ถือว่าน่าจะสำเร็จ
@@ -8610,7 +8699,7 @@ function doArchiveSearch(){
   archiveSearching = true;
   const box = document.getElementById('arch-result');
   box.innerHTML = '<div class="arch-hint">⏳ กำลังค้นหาในคลังประวัติ...</div>';
-  fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'search_archive', q: q.trim() }) })
+  gasFetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'search_archive', q: q.trim() }) })
     .then(function(r){ return r.json(); })
     .then(function(d){
       archiveSearching = false;
@@ -8675,7 +8764,7 @@ function playChatSound(){
 async function chatApi(body){
   try{
     const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),10000);   // กัน fetch ค้างนานเกินไป
-    const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body),signal:ctrl.signal}); clearTimeout(to);
+    const r=await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify(body),signal:ctrl.signal}); clearTimeout(to);
     return await r.json();
   }catch(e){ return {success:false,error:'network'}; }
 }
@@ -8760,24 +8849,26 @@ async function openChatThread(tid){
   document.getElementById('chat-head').innerHTML=head;
   document.getElementById('chat-msgs').innerHTML='<div class="chat-empty">'+L('กำลังโหลด...','Loading...')+'</div>';
   renderChatList();
+  chatPollNow();                 // เปิดห้องใหม่ → ตามข้อความให้ไวสุด
   await pollChatMessages(true);
 }
 let chatPollBusy=false;
 async function pollChatMessages(reset){
-  if(!chatCurrentTicket) return;
-  if(chatPollBusy && !reset) return;
+  if(!chatCurrentTicket) return false;
+  if(chatPollBusy && !reset) return false;
   chatPollBusy=true;
   const tid=chatCurrentTicket;
   if(reset){ chatMsgsCache=[]; chatLastMsgId=''; }
   try{
     const r=await chatApi({action:'chat_fetch',ticket_id:tid,after_id:chatLastMsgId});
-    if(tid!==chatCurrentTicket || !r || !r.success) return;
+    if(tid!==chatCurrentTicket || !r || !r.success) return false;
     const incoming=r.messages||[];
     let added=false;
     incoming.forEach(m=>{ if(!chatMsgsCache.some(x=>x.msg_id===m.msg_id)){ chatMsgsCache.push(m); added=true; } });
     if(chatMsgsCache.length) chatLastMsgId=chatMsgsCache[chatMsgsCache.length-1].msg_id;
     if(reset||added){ renderChatMessages(); }
     if(chatMsgsCache.length){ chatSetRead(chatCurrentTicket, chatMsgsCache[chatMsgsCache.length-1].msg_id, chatMsgsCache.length); updateChatBadge(); renderChatList(); }
+    return added;   // ★ บอกผู้เรียกว่ามีข้อความใหม่ไหม (ใช้ปรับความถี่ poll)
   } finally { chatPollBusy=false; }
 }
 function chatLightbox(src){
@@ -8835,6 +8926,8 @@ function chatRenderAttachPrev(){
     '<button onclick="chatClearAttach()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">×</button>';
 }
 function chatClearAttach(){ chatPendingAttach=null; chatRenderAttachPrev(); }
+// กำลังพิมพ์อยู่ = กำลังคุยกัน → ดึงข้อความให้ไวไว้ก่อน
+document.addEventListener('input',function(e){ if(e.target&&e.target.id==='chat-input') chatPollNow(); });
 async function sendAdminMessage(){
   const inp=document.getElementById('chat-input'); const msg=inp.value.trim();
   if((!msg && !chatPendingAttach)||!chatCurrentTicket) return;
@@ -8842,17 +8935,43 @@ async function sendAdminMessage(){
   const body={action:'chat_send',ticket_id:chatCurrentTicket,sender:'admin',sender_name:(currentUser&&currentUser.name)||'แอดมิน',message:msg};
   if(chatPendingAttach){ if(chatPendingAttach.img) body.image_url=chatPendingAttach.image_url; else { body.file_url=chatPendingAttach.file_url; body.file_name=chatPendingAttach.file_name; } }
   const r=await chatApi(body);
-  if(r&&r.success){ chatClearAttach(); await pollChatMessages(); loadChatThreads(); }
+  if(r&&r.success){ chatClearAttach(); chatPollNow(); await pollChatMessages(); loadChatThreads(); }
   else { toast(L('ส่งไม่สำเร็จ','Send failed'),'❌','error'); inp.value=msg; }
   btn.disabled=false; inp.focus();
 }
 function chatBackToList(){ const cw=document.querySelector('#page-chat .chat-wrap'); if(cw) cw.classList.remove('show-conv'); chatCurrentTicket=null; renderChatList(); }
 function renderChatPage(){ chatNotifyAsk(); const cw=document.querySelector('#page-chat .chat-wrap'); if(cw) cw.classList.remove('show-conv'); loadChatThreads(); }
-function startChatPoll(){
-  stopChatPoll();
-  chatPollTimer=setInterval(()=>{ if(currentPage==='chat'){ if(chatCurrentTicket) pollChatMessages(); loadChatThreads(); } },4000);
+/* ===== Chat poll แบบปรับตัว (ลดภาระ GAS ตอนคนใช้พร้อมกันเยอะ) =====
+ * เดิม: ยิง 2 call ทุก 4 วิ ตลอดเวลา แม้แท็บถูกซ่อน แม้ไม่มีใครพิมพ์
+ *       15 คนเปิดแชตค้างไว้ = ~7 call/วินาที กิน execution slot ของ GAS
+ * ใหม่:
+ *   - แท็บถูกซ่อน / ไม่ได้อยู่หน้าแชต → ไม่ยิงเลย
+ *   - ไม่มีข้อความใหม่ → ยืดรอบ 4 → 6 → 9 → 13 → 15 วิ (สูงสุด)
+ *   - มีข้อความใหม่ / เพิ่งส่งข้อความ / เพิ่งเปิดห้อง → กลับมาไว 4 วิ ทันที
+ *   - รายการห้องแชต (chat_threads) ไม่ต้องถี่เท่าข้อความ → ดึงทุก 3 รอบ
+ */
+const CHAT_POLL_MIN=4000, CHAT_POLL_MAX=15000;
+let chatPollInterval=CHAT_POLL_MIN, chatThreadsTick=0;
+function startChatPoll(){ stopChatPoll(); chatPollInterval=CHAT_POLL_MIN; chatThreadsTick=0; scheduleChatPoll(); }
+function stopChatPoll(){ if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer=null; } }
+function chatPollNow(){ chatPollInterval=CHAT_POLL_MIN; chatThreadsTick=0; }   // เรียกเมื่อมีความเคลื่อนไหว
+function scheduleChatPoll(){
+  if(chatPollTimer) clearTimeout(chatPollTimer);
+  chatPollTimer=setTimeout(runChatPoll, chatPollInterval+Math.floor(Math.random()*500));
 }
-function stopChatPoll(){ if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer=null; } }
+async function runChatPoll(){
+  try{
+    if(!document.hidden && currentPage==='chat'){
+      let changed=false;
+      if(chatCurrentTicket) changed = await pollChatMessages();
+      chatThreadsTick++;
+      if(chatThreadsTick>=3 || changed){ chatThreadsTick=0; await loadChatThreads(); }
+      if(changed) chatPollInterval=CHAT_POLL_MIN;                                        // มีข้อความใหม่ → ตามให้ไว
+      else chatPollInterval=Math.min(Math.round(chatPollInterval*1.5), CHAT_POLL_MAX);   // เงียบ → ยืดรอบ
+    }
+  }catch(e){}
+  scheduleChatPoll();
+}
 // อัปเดตเลขแจ้งเตือนที่เมนูซ้าย + เด้ง/เสียง ทุก 15 วิ แม้ไม่ได้เปิดหน้าแชต
 setInterval(function(){ try{ if(document.hidden) return; if(typeof currentPage==='undefined'||currentPage==='chat') return; if(typeof currentUser==='undefined'||!currentUser) return; if(document.querySelector('.overlay.show')) return; if(typeof lastActionAt!=='undefined' && Date.now()-lastActionAt<9000) return; loadChatThreads(); }catch(e){} }, 20000);
 
@@ -8927,7 +9046,7 @@ async function loadRoomTypes(){
   let types=ROOM_TYPES_DEFAULT.slice();
   // พยายามโหลดจาก Google Sheet (แท็บ ROOM_TYPES) — ถ้ามีจะใช้แทน default
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_room_types'})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_room_types'})})).json();
     if(r&&r.success&&Array.isArray(r.types)&&r.types.length) types=r.types;
   }catch(e){}
   const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
@@ -9181,7 +9300,7 @@ function prNormStatus(s){
   if(t.indexOf('proc')>=0||t.indexOf('รอบิล')>=0) return 'onprocess';
   return 'pending';
 }
-async function prApi(body){const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});return r.json();}
+async function prApi(body){const r=await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});return r.json();}
 
 /* ===== Aging: คำนวณจำนวนวันที่รายการค้าง (นับเฉพาะสถานะ pending/onprocess) ===== */
 const PR_AGE_LATE=30, PR_AGE_OVER=90;   // เกณฑ์ล่าช้า >30 วัน / ค้างนาน >90 วัน (แก้ได้จุดเดียว)
@@ -9251,7 +9370,7 @@ function fireNeedsAttention(a){ const s=fireStatus(a); return s==='fix'||s==='ex
 
 async function fireLoadPage(){
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fa_list',access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fa_list',access_token:authToken()})})).json();
     if(r&&r.success){ fireState.assets=r.items||[]; fireState.checklist=(r.checklist&&r.checklist.length)?r.checklist:FIRE_CL_DEFAULT; }
   }catch(e){ if(!fireState.checklist.length)fireState.checklist=FIRE_CL_DEFAULT; }
   fireRender();
@@ -9355,7 +9474,7 @@ async function fireSaveAsset(){
     size_kg:document.getElementById('faf-size').value.trim(), install_date:document.getElementById('faf-install').value.trim(),
     expiry_date:expiry, note:document.getElementById('faf-note').value.trim() };
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'fa_save',access_token:authToken()},rec))})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'fa_save',access_token:authToken()},rec))})).json();
     if(r&&r.success){ toast(L('บันทึกแล้ว','Saved'),'✅'); closeM('m-fire-asset'); fireLoadPage(); }
     else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
   }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
@@ -9419,7 +9538,7 @@ async function fireSaveCheck(){
   let imageUrl='';
   if(firePhoto&&firePhoto.indexOf('data:')===0){
     try{ const b64=firePhoto.split(',')[1];
-      const u=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'firecheck_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
+      const u=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'firecheck_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
       imageUrl=(u&&(u.imageUrl||u.url))||'';
     }catch(e){}
   }
@@ -9428,7 +9547,7 @@ async function fireSaveCheck(){
   const faid=document.getElementById('fcf-faid').value;
   const a=fireState.assets.find(x=>x.fa_id===faid);
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_save',fa_id:faid,branch:(a&&a.branch)||'',check_date:document.getElementById('fcf-date').value,inspector:inspector,items:items,image_url:imageUrl,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_save',fa_id:faid,branch:(a&&a.branch)||'',check_date:document.getElementById('fcf-date').value,inspector:inspector,items:items,image_url:imageUrl,access_token:authToken()})})).json();
     if(r&&r.success){ toast(r.result==='pass'?L('บันทึกแล้ว — ผ่านทั้งหมด ✅','Saved — All pass'):L(`บันทึกแล้ว — ผ่าน ${r.pass_count}/${r.total_count}`,`Saved — ${r.pass_count}/${r.total_count}`),r.result==='pass'?'✅':'⚠️'); closeM('m-fire-check'); fireLoadPage(); }
     else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
   }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
@@ -9443,7 +9562,7 @@ async function fireHistory(id){
   body.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">'+L('กำลังโหลด...','Loading...')+'</div>';
   document.getElementById('m-fire-history').classList.add('show');
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_history',fa_id:id,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_history',fa_id:id,access_token:authToken()})})).json();
     const hist=(r&&r.history)||[];
     if(!hist.length){ body.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">'+L('ยังไม่มีประวัติการตรวจ','No inspection history')+'</div>'; return; }
     body.innerHTML=hist.map(h=>{
@@ -9465,7 +9584,7 @@ async function fireRunDueCheck(){
   if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
   if(!confirm(L('ให้ระบบตรวจถังที่ถึงกำหนด แล้วสร้างงานตรวจให้ทีม Engineering อัตโนมัติ?','Generate inspection tasks for due extinguishers?')))return;
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fire_run_check',access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fire_run_check',access_token:authToken()})})).json();
     if(r&&r.success){ toast(r.created>0?L('สร้างงานตรวจ '+r.created+' รายการแล้ว','Created '+r.created+' task(s)'):L('ไม่มีถังที่ถึงกำหนด (หรือมีงานเปิดอยู่แล้ว)','No due items'),r.created>0?'✅':'ℹ️'); fireLoadPage(); }
     else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
   }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
@@ -9482,7 +9601,7 @@ function fireOpenReport(){
 async function fireLoadReport(){
   document.getElementById('frep-body').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)">'+L('กำลังโหลด...','Loading...')+'</div>';
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_list',branch:fireReportState.branch,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_list',branch:fireReportState.branch,access_token:authToken()})})).json();
     fireReportState.checks=(r&&r.checks)||[];
   }catch(e){ fireReportState.checks=[]; }
   fireRenderReport();
@@ -9642,7 +9761,7 @@ function fcNeedsAttention(u){ const s=fcUnitStatus(u); return s==='needs_fix'||s
 
 async function fcLoadPage(){
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fa_list',access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fa_list',access_token:authToken()})})).json();
     if(r&&r.success){ fcState.assets=r.items||[]; fcState.checklist=(r.checklist&&r.checklist.length)?r.checklist:FC_CHECKLIST_DEFAULT; }
   }catch(e){ if(!fcState.checklist.length)fcState.checklist=FC_CHECKLIST_DEFAULT; }
   if(!fcState.checklist.length)fcState.checklist=FC_CHECKLIST_DEFAULT;
@@ -9750,7 +9869,7 @@ async function fcSaveAsset(){
     install_date:document.getElementById('fca-install').value.trim(), expiry_date:exp,
     note:document.getElementById('fca-note').value.trim() };
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'fa_save',access_token:authToken()},rec))})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'fa_save',access_token:authToken()},rec))})).json();
     if(r&&r.success){ toast(L('บันทึกแล้ว','Saved'),'✅'); closeM('m-fc-asset'); fcLoadPage(); }
     else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
   }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
@@ -9805,14 +9924,14 @@ async function fcSaveInspection(){
   let imageUrl='';
   if(fcInspectPhoto&&fcInspectPhoto.indexOf('data:')===0){
     try{ const b64=fcInspectPhoto.split(',')[1];
-      const ur=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'firecheck_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
+      const ur=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'firecheck_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
       imageUrl=(ur&&(ur.imageUrl||ur.url))||'';
     }catch(e){}
   }
   const u=fcState.assets.find(x=>x.fa_id===document.getElementById('fci-fa-id').value);
   const items=fcInspectItems.map(x=>({k:x.k,pass:x.pass,note:x.note}));
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_save',fa_id:document.getElementById('fci-fa-id').value,branch:u?u.branch:'',inspector:inspector,check_date:fcToday(),items:items,image_url:imageUrl,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_save',fa_id:document.getElementById('fci-fa-id').value,branch:u?u.branch:'',inspector:inspector,check_date:fcToday(),items:items,image_url:imageUrl,access_token:authToken()})})).json();
     if(r&&r.success){ toast(r.result==='pass'?L('ตรวจผ่าน บันทึกแล้ว','Passed & saved'):L('บันทึกแล้ว (มีข้อไม่ผ่าน)','Saved with failures'), r.result==='pass'?'✅':'⚠️'); closeM('m-fc-inspect'); fcLoadPage(); }
     else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
   }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
@@ -9826,7 +9945,7 @@ async function fcOpenHistory(id){
   document.getElementById('fc-hist-body').innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3)">${L('กำลังโหลด...','Loading...')}</div>`;
   document.getElementById('m-fc-history').classList.add('show');
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_history',fa_id:id,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fc_history',fa_id:id,access_token:authToken()})})).json();
     const hist=(r&&r.history)||[];
     if(!hist.length){ document.getElementById('fc-hist-body').innerHTML=`<div style="text-align:center;padding:24px;color:var(--text3)">${L('ยังไม่มีประวัติการตรวจ','No inspection history')}</div>`; return; }
     document.getElementById('fc-hist-body').innerHTML=hist.map(h=>{
@@ -9852,7 +9971,7 @@ function fcExport(){
 
 async function lfLoadPage(){
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_list',access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_list',access_token:authToken()})})).json();
     if(r&&r.success&&Array.isArray(r.items)) lfState.items=r.items;
   }catch(e){ /* offline: คงข้อมูลเดิมใน memory */ }
   lfRender();
@@ -9963,7 +10082,7 @@ async function lfUploadPhoto(dataUrl){
   if(!dataUrl||dataUrl.indexOf('data:')!==0) return dataUrl||'';
   try{
     const b64=dataUrl.split(',')[1];
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'lostfound_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'upload_image',base64:b64,mimeType:'image/jpeg',fileName:'lostfound_'+Date.now()+'.jpg',skip_sheet:true,access_token:authToken()})})).json();
     return (r&&(r.imageUrl||r.url))||'';
   }catch(e){ return ''; }
 }
@@ -9982,7 +10101,7 @@ async function lfSave(){
     guest_name:document.getElementById('lfa-guest').value.trim(), note:document.getElementById('lfa-note').value.trim(), image_url:imageUrl };
   try{
     const action=rec.lf_id?'lf_update':'lf_add';
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:action,access_token:authToken()},rec))})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:action,access_token:authToken()},rec))})).json();
     if(r&&r.success){ toast(L('บันทึกแล้ว','Saved'),'✅'); closeM('m-lf-add'); lfLoadPage(); }
     else toast((r&&r.error)||L('บันทึกไม่สำเร็จ','Save failed'),'❌','error');
   }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
@@ -9991,13 +10110,13 @@ async function lfSave(){
 
 // ---------- เปลี่ยนสถานะ ----------
 async function lfMarkContact(id){
-  try{ const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'contact',access_token:authToken()})})).json();
+  try{ const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'contact',access_token:authToken()})})).json();
     if(r&&r.success){ const it=lfState.items.find(x=>x.lf_id===id); if(it)it.status='contact'; lfRender(); toast(L('อัปเดตแล้ว','Updated'),'📞'); } }catch(e){ toast(L('ไม่สำเร็จ','Failed'),'❌','error'); }
 }
 function lfDispose(id){
   const it=lfState.items.find(x=>x.lf_id===id); if(!it)return;
   if(!confirm(L('ยืนยันจำหน่ายออก (บริจาค/ทำลาย) รายการนี้?\n','Confirm dispose this item?\n')+esc(it.description||''))) return;
-  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'disposed',disposed_date:lfToday(),access_token:authToken()})}).then(r=>r.json()).then(r=>{
+  gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'disposed',disposed_date:lfToday(),access_token:authToken()})}).then(r=>r.json()).then(r=>{
     if(r&&r.success){ it.status='disposed'; it.disposed_date=lfToday(); lfRender(); toast(L('บันทึกการจำหน่ายออกแล้ว','Disposed'),'🗑️'); }
   }).catch(()=>toast(L('ไม่สำเร็จ','Failed'),'❌','error'));
 }
@@ -10024,7 +10143,7 @@ async function lfConfirmReturn(){
   let proofImg='';
   if(lfReturnPhoto&&lfReturnPhoto.indexOf('data:')===0) proofImg=await lfUploadPhoto(lfReturnPhoto);
   try{
-    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'returned',owner_name:owner,owner_contact:proof,return_proof:proofImg,returned_date:lfToday(),access_token:authToken()})})).json();
+    const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'lf_update',lf_id:id,status:'returned',owner_name:owner,owner_contact:proof,return_proof:proofImg,returned_date:lfToday(),access_token:authToken()})})).json();
     if(r&&r.success){ const it=lfState.items.find(x=>x.lf_id===id); if(it){it.status='returned';it.owner_name=owner;it.owner_contact=proof;it.returned_date=lfToday();} closeM('m-lf-return'); lfRender(); toast(L('บันทึกการคืนของแล้ว','Return recorded'),'✅'); }
     else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
   }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
