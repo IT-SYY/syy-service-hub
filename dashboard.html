@@ -2522,6 +2522,9 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .kb-card-top{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;}
 .kb-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);font-weight:600;}
 .kb-new{background:var(--red);color:#FFF;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;animation:blink 1s infinite;}
+.kb-cross{background:#7C3AED;color:#FFF;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;}
+.kb-card.cross-card{border-left-width:5px;box-shadow:inset 3px 0 0 rgba(124,58,237,0.35);}
+.cross-note{font-size:10px;color:#7C3AED;font-weight:600;margin-top:3px;}
 .kb-pri{font-size:10px;font-weight:700;margin-left:auto;}
 .kb-desc{font-size:12px;color:var(--text);font-weight:500;line-height:1.45;margin-bottom:6px;}
 .followup-flag{background:rgba(245,158,11,0.13);border:1.5px solid rgba(245,158,11,0.5);color:#D97706;font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;margin-bottom:6px;animation:fuBlink 1.1s ease-in-out infinite;}
@@ -5505,7 +5508,7 @@ async function finishAuth(){
     const res=await lookupRole(p.userId);
     if(res.netError) throw new Error('role_lookup_failed');  // โหลดรายชื่อไม่ได้ → ไปที่ retry
     if(!res.found){ showUserIdPanel(p); return; }   // คนใหม่ที่ยังไม่มีในรายชื่อ
-    enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[]}, false);
+    enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[], teams:res.teams||[]}, false);
   }catch(e){
     // ตรวจสิทธิ์ล้ม (เช่นเน็ตสะดุด) → ไม่ค้างหน้าจอ ให้ลองใหม่ได้
     /* silent: finishAuth error */
@@ -6148,6 +6151,9 @@ function filterByWorkType(wtype){
   });
 }
 // ตรวจสิทธิ์/สาขา/ทีม ที่ใช้ร่วมกัน (แยกออกมาเพื่อใช้กับโหมด inbox ด้วย)
+// เทียบชื่อทีมแบบยืดหยุ่น: ตัดเว้นวรรค + ตัวเล็ก (กันชีตพิมพ์ 'IT support' / 'Landscape&Garden' แล้วกรองพลาด)
+// ตรงกับ norm() ใน Code.gs
+function normTeam_(s){ return String(s||'').replace(/\s+/g,'').toLowerCase(); }
 function passesScope_(t, myName){
   myName = myName!==undefined ? myName : ((currentUser&&currentUser.name)||'');
   const sec=String(t.assigned_secondary||'');
@@ -6159,13 +6165,32 @@ function passesScope_(t, myName){
     if(userBranches.length>0 && t.branch && userBranches.indexOf(String(t.branch).toUpperCase())<0) return false;
     // กรองตามแผนก/ทีมที่ดูแล (ถ้าระบุ) — เห็นเฉพาะงานของทีมตัวเองเป็นตั้งต้น
     if(userTeams.length>0){
-      const tteam=String(t.team||t.department||'');
-      if(userTeams.indexOf(tteam)<0) return false;
+      const tteam=normTeam_(t.team||t.department);
+      if(!userTeams.some(function(x){ return normTeam_(x)===tteam; })) return false;
     }
   }
-  if(currentBranch!=='all' && String(t.branch||'').toUpperCase()!==currentBranch) return false;
-  if(!(currentTeam==='all'||t.team===currentTeam||t.department===currentTeam)) return false;
+  // ★ งานที่มอบหมายให้เราโดยตรง เห็นเสมอ แม้ข้ามสาขา/ข้ามทีม (กันงานหลุด ไม่มีใครรู้ว่าถูกมอบหมาย)
+  //   dropdown สาขา/ทีม จึงไม่กรองงานกลุ่มนี้ออก
+  if(!assignedToMe){
+    if(currentBranch!=='all' && String(t.branch||'').toUpperCase()!==currentBranch) return false;
+    // เทียบชื่อทีมจาก dropdown แบบยืดหยุ่นด้วย (กัน 'IT support' vs 'IT Support' ไม่ตรงกัน)
+    if(currentTeam!=='all'){
+      const ct=normTeam_(currentTeam);
+      if(normTeam_(t.team)!==ct && normTeam_(t.department)!==ct) return false;
+    }
+  }
   return true;
+}
+// งานนี้เป็นงานข้ามสาขา/ข้ามทีมที่มอบหมายให้เราไหม (ใช้ติดป้ายกำกับให้เห็นชัด)
+function isCrossScope_(t){
+  const myName=(currentUser&&currentUser.name)||'';
+  if(!myName) return false;
+  const sec=String(t.assigned_secondary||'');
+  const mine = (t.assigned_to===myName) || sec.split(',').map(x=>x.trim()).indexOf(myName)>=0;
+  if(!mine) return false;
+  const brOut = userBranches.length>0 && t.branch && userBranches.indexOf(String(t.branch).toUpperCase())<0;
+  const tmOut = userTeams.length>0 && !userTeams.some(function(x){ return normTeam_(x)===normTeam_(t.team||t.department); });
+  return !!(brOut || tmOut);
 }
 // โหมดงานรอมอบหมายทั้งหมด: รวมทุกประเภทงาน แต่เฉพาะที่ยังรอ (pending = ยังไม่มอบหมาย, assigned = มอบแล้วรอช่างรับ)
 function filterInbox(){
@@ -6453,6 +6478,8 @@ function mkCard(t){
   const desc=t.description.length>55?t.description.substring(0,55)+'…':t.description;
   const tid=t.ticket_id.length>22?t.ticket_id.substring(0,22)+'…':t.ticket_id;
   const newB=t._new?'<span class="kb-new">NEW</span>':'';
+  // งานข้ามสาขา/ข้ามทีมที่มอบหมายให้เราโดยตรง — ติดป้ายให้เห็นชัด ไม่ให้หลุด
+  const crossB=isCrossScope_(t)?`<span class="kb-cross" title="${L('งานข้ามทีม/สาขา ที่มอบหมายให้คุณโดยตรง','Cross-team job assigned to you')}">🔀 ${L('ข้ามทีม','CROSS')}</span>`:'';
   const pri=t.priority==='high'?{l:L('🔴 ฉุกเฉิน','🔴 Urgent'),c:'#EF4444'}:t.priority==='med'?{l:L('🟡 เร่งด่วน','🟡 High'),c:'#F59E0B'}:{l:L('🟢 ปกติ','🟢 Normal'),c:'#10B981'};
   const ts=t.created_at?t.created_at.substring(0,16):'';
   
@@ -6526,12 +6553,13 @@ function mkCard(t){
 
   const sc=t.status==='pending'?'pending':t.status==='assigned'?'assigned':t.status==='in_progress'?'inprog':'done';
   const etaOverCls=(es.state==='overdue')?' eta-over-card':'';
-  return `<div class="kb-card ${sc} ${t._new?'new-card':''}${etaOverCls}" style="border-left-color:${ticketColor(t)}" onclick="openDetail('${t.ticket_id}')">
+  return `<div class="kb-card ${sc} ${t._new?'new-card':''}${crossB?'cross-card':''}${etaOverCls}" style="border-left-color:${ticketColor(t)}" onclick="openDetail('${t.ticket_id}')">
     <div class="kb-card-top">
-      <span class="kb-id">${tid}</span>${newB}
+      <span class="kb-id">${tid}</span>${newB}${crossB}
       <span class="kb-pri" style="color:${pri.c}">${pri.l}</span>
       ${ratingHtml}
     </div>
+    ${crossB?`<div class="cross-note">🔀 ${L('มอบหมายให้คุณ','Assigned to you')} · ${esc(t.branch||'')} / ${esc(t.team||t.department||'')}</div>`:''}
     <div class="kb-desc">${desc||L('ไม่มีรายละเอียด','No details')}</div>
     ${hasPendingFollowup(t)?`<div class="followup-flag">🔔 ${L('ผู้แจ้งทวงถาม','Reporter followed up')}${parseInt(t.followup_count,10)>1?' ('+parseInt(t.followup_count,10)+')':''}${t.followup_msg?'<div class="followup-flag-msg">💬 '+esc(String(t.followup_msg).substring(0,80))+'</div>':''}</div>`:''}
     ${mkCardImage(t)}
