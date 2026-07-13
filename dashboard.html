@@ -6306,13 +6306,29 @@ function renderScopeHint(){
   const counts={};
   Object.keys(SCOPE_MENU_MAP).forEach(function(wt){ counts[wt]=filterByWorkType(wt).length; });
   const best=Object.keys(counts).filter(k=>counts[k]>0).sort((a,b)=>counts[b]-counts[a])[0];
-  if(!best) return;                         // ไม่มีงานประเภทไหนเลย → ปล่อยหน้าว่างตามปกติ
-  const m=SCOPE_MENU_MAP[best];
-  show(m, L(`พบงานของทีมคุณ ${counts[best]} รายการ · หน้าแดชบอร์ดนี้แสดงเฉพาะงานซ่อมบำรุง`,
-            `${counts[best]} job(s) found · This dashboard shows maintenance jobs only`));
+  if(best){
+    const m=SCOPE_MENU_MAP[best];
+    show(m, L(`พบงานของทีมคุณ ${counts[best]} รายการ · หน้าแดชบอร์ดนี้แสดงเฉพาะงานซ่อมบำรุง`,
+              `${counts[best]} job(s) found · This dashboard shows maintenance jobs only`));
+    return;
+  }
+
+  // 3) ไม่พบงานประเภทไหนเลย + มีทีมสังกัด → บอกสาเหตุ ไม่ปล่อยให้จอว่างเงียบๆ
+  //    (สาเหตุที่พบบ่อย: ชื่อทีมในชีต USERS สะกดไม่ตรงกับชื่อทีมที่ใช้ในงานจริง)
+  if(!(userTeams&&userTeams.length)) return;   // ไม่ได้ตั้งทีม = เห็นทุกทีมอยู่แล้ว → หน้าว่างจริงๆ
+  scopeHintPage='';
+  document.getElementById('sh-ic').textContent='🔎';
+  document.getElementById('sh-ttl').textContent=L(
+    `ไม่พบงานของทีม ${teamTxt}${userBranches.length?' สาขา '+userBranches.join('/'):''} ในระบบ`,
+    `No jobs found for ${teamTxt}`);
+  document.getElementById('sh-sub').textContent=L(
+    'อาจเป็นเพราะยังไม่มีงาน หรือชื่อทีมในชีต USERS สะกดไม่ตรงกับที่ใช้ในงานจริง — กดปุ่มเพื่อดูงานทุกแผนก',
+    'No jobs yet, or team name in USERS sheet does not match — tap to view all departments');
+  document.getElementById('sh-btn').textContent=L('🌐 ดูงานทุกแผนก','🌐 View all');
+  el.style.display='flex';
 }
 function scopeHintGo(){
-  if(!scopeHintPage) return;
+  if(!scopeHintPage){ toggleScope(); return; }   // ไม่มีเมนูปลายทาง → เปิดดูทุกแผนกแทน
   const nav=[...document.querySelectorAll('.nav-item')].find(e=>(e.getAttribute('onclick')||'').includes("'"+scopeHintPage+"'"));
   showPage(scopeHintPage, nav||null);
 }
