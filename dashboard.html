@@ -3245,7 +3245,9 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 .usr-legend b{color:var(--text2);}
 .usr-role{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;}
 .usr-role-admin{background:#FEE2E2;color:#991B1B;} .usr-role-tech{background:#DBEAFE;color:#1E40AF;}
-.usr-role-dept{background:#EDE9FE;color:#5B21B6;}  .usr-role-viewer{background:#F1F5F9;color:#64748B;}
+.usr-role-dept{background:#EDE9FE;color:#5B21B6;}
+.role-badge.role-dept{background:#EDE9FE;color:#5B21B6;}
+body.dark .role-badge.role-dept{background:#4C1D95;color:#DDD6FE;}  .usr-role-viewer{background:#F1F5F9;color:#64748B;}
 body.dark .usr-role-admin{background:#7F1D1D;color:#FECACA;} body.dark .usr-role-tech{background:#1E3A8A;color:#BFDBFE;}
 body.dark .usr-role-dept{background:#4C1D95;color:#DDD6FE;}  body.dark .usr-role-viewer{background:#334155;color:#CBD5E1;}
 .usr-menus-cell{font-size:10.5px;color:var(--text2);line-height:1.6;}
@@ -5694,7 +5696,7 @@ function enterAs(user, degraded){
   document.body.classList.toggle('viewer', userRole==='viewer');
   const rb=document.getElementById('role-badge');
   if(rb){
-    const map={admin:['role-admin','🛡 ผู้ดูแล'],tech:['role-tech','🔧 ช่าง'],viewer:['role-viewer','👁 ผู้ชม']};
+    const map={admin:['role-admin','🛡 ผู้ดูแล'],tech:['role-tech','🔧 ช่าง'],dept:['role-dept','🏢 แผนก'],viewer:['role-viewer','👁 ผู้ชม']};
     const m=map[userRole]||map.viewer;
     rb.className='role-badge '+m[0];
     rb.textContent=(user.name?user.name+' · ':'')+m[1].split(' ')[1];
@@ -6273,9 +6275,34 @@ function renderScopeHint(){
   if(!el) return;
   el.style.display='none';
   if(scopeAll) return;                      // กด "ดูทุกแผนก" อยู่ → ไม่ต้องแนะนำ
-  if(getDashboardBase().length>0) return;   // มีงานซ่อมให้ดูอยู่แล้ว → ไม่ต้องแนะนำ
 
   const teamTxt=(userTeams&&userTeams.length)?userTeams.join(', '):L('ทีมของคุณ','your team');
+  const showTo=function(page,ic,label,sub){
+    scopeHintPage=page;
+    document.getElementById('sh-ic').textContent=ic;
+    document.getElementById('sh-ttl').textContent=label;
+    document.getElementById('sh-sub').textContent=sub;
+    document.getElementById('sh-btn').textContent=L('ไปที่เมนูของคุณ →','Go to your menu →');
+    el.style.display='flex';
+  };
+
+  // ★ 0) role dept ที่ไม่มีสิทธิ์จัดการงานซ่อม → หน้านี้ไม่ใช่งานของเขา ชี้ไปเมนูที่เขาดูแล
+  //    (ตรงกว่าการดูทีม เพราะ admin ติ๊กสิทธิ์เมนูไว้ชัดเจนแล้ว)
+  if(userRole==='dept' && !canManage('tickets')){
+    const PRIORITY=['prtrack','purchase','claim','projects','pm','lostfound','firecheck','chat','technicians','report'];
+    const mine=PRIORITY.filter(m=>userPerms.indexOf(m)>=0);
+    if(mine.length){
+      const first=mine[0];
+      const lbl=MENU_LABELS[first]||first;
+      showTo(first, (lbl.match(/^\S+/)||['📌'])[0],
+        L(`หน้านี้แสดงเฉพาะงานซ่อมบำรุง — งานที่คุณดูแลอยู่เมนูอื่น`,`This dashboard shows maintenance jobs only`),
+        L('เมนูที่คุณจัดการได้: '+mine.map(m=>MENU_LABELS[m]||m).join(' · '),
+          'Your menus: '+mine.map(m=>MENU_LABELS[m]||m).join(' · ')));
+      return;
+    }
+  }
+
+  if(getDashboardBase().length>0) return;   // มีงานซ่อมให้ดูอยู่แล้ว → ไม่ต้องแนะนำ
   const show=function(m,subTxt){
     scopeHintPage=m.page;
     document.getElementById('sh-ic').textContent=m.ic;
@@ -7097,7 +7124,7 @@ function renderTechGrid(){
 }
 // แปลง role code → ป้ายอ่านง่าย (ถ้าไม่ตรง คืนค่าเดิม)
 function roleLabel(r){
-  const map={admin:'ผู้ดูแลระบบ', tech:'ช่าง / Technician', viewer:'ผู้ชม'};
+  const map={admin:'ผู้ดูแลระบบ', tech:'ช่าง / Technician', dept:'หัวหน้าแผนก', viewer:'ผู้ชม'};
   return map[String(r||'').toLowerCase()] || r || '';
 }
 
