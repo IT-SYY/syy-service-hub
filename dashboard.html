@@ -3536,10 +3536,14 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
     <button class="auth-btn" id="auth-btn" onclick="doLogin()">เข้าสู่ระบบด้วย LINE</button>
     <div class="auth-status" id="auth-status"></div>
     <div id="auth-extra" style="display:none;margin-top:18px;text-align:left">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">หากต้องการสิทธิ์จัดการงาน ส่ง <b>LINE User ID</b> นี้ให้ผู้ดูแลระบบเพื่อเพิ่มเข้าระบบ:</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">ส่ง <b>LINE User ID</b> นี้ให้ผู้ดูแลระบบ เพื่อขออนุมัติเข้าใช้งาน:</div>
       <div style="display:flex;gap:8px;align-items:stretch">
         <div id="uid-value" style="flex:1;font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text)"></div>
         <button id="uid-copy" onclick="copyUserId()" style="flex-shrink:0;border:1px solid var(--border);background:var(--bg2);color:var(--text);border-radius:8px;padding:0 12px;font-family:'Prompt',sans-serif;font-size:12px;cursor:pointer">📋 คัดลอก</button>
+      </div>
+      <div id="auth-tracker" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:7px">ต้องการติดตามสถานะงานที่แจ้งไว้? เปิดได้เลยโดยไม่ต้องขอสิทธิ์</div>
+        <a href="https://it-syy.github.io/syy-service-hub/tracker.html" style="display:block;text-align:center;text-decoration:none;border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:9px;font-size:13px;font-weight:600">📊 เปิดหน้าติดตามงาน</a>
       </div>
     </div>
   </div>
@@ -5627,7 +5631,10 @@ async function finishAuth(){
     const p=await liff.getProfile();
     const res=await lookupRole(p.userId);
     if(res.netError) throw new Error('role_lookup_failed');  // โหลดรายชื่อไม่ได้ → ไปที่ retry
-    if(!res.found){ showUserIdPanel(p); return; }   // คนใหม่ที่ยังไม่มีในรายชื่อ
+    // ★ ต้องมีรายชื่อในระบบเท่านั้นจึงเข้าหน้า Dashboard ได้ (admin เป็นคนอนุมัติ)
+    //   หน้าติดตามงาน (tracker.html) ยังเปิดให้ทุกคนเหมือนเดิม
+    if(!res.found){ showUserIdPanel(p, 'notfound'); return; }   // ยังไม่มีชื่อในระบบ → รออนุมัติ
+    if(res.blocked){ showUserIdPanel(p, 'blocked'); return; }   // มีชื่อ แต่บัญชีถูกปิดใช้งาน
     enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[], teams:res.teams||[], perms:res.perms||[]}, false);
   }catch(e){
     // ตรวจสิทธิ์ล้ม (เช่นเน็ตสะดุด) → ไม่ค้างหน้าจอ ให้ลองใหม่ได้
@@ -5637,22 +5644,26 @@ async function finishAuth(){
     document.getElementById('auth-btn').setAttribute('onclick','location.reload()');
   }
 }
-// แสดง userId ให้ผู้ใช้ใหม่คัดลอกส่งแอดมิน (เพื่อเพิ่มเข้าแท็บ USERS)
-function showUserIdPanel(p){
+// ★ หน้าจอ "รอการอนุมัติ" — คนที่ยังไม่มีชื่อในระบบ (หรือถูกปิดบัญชี) เข้า Dashboard ไม่ได้
+//   ให้คัดลอก LINE User ID ส่งให้ผู้ดูแลระบบเพิ่มเข้าเมนู "จัดการผู้ใช้"
+function showUserIdPanel(p, reason){
   window._pendingUser={userId:p.userId, name:p.displayName};
+  const blocked=(reason==='blocked');
   document.getElementById('auth-msg').innerHTML=
-    '<b>'+(p.displayName||'ยินดีต้อนรับ')+'</b><br>บัญชีนี้ยังไม่ได้รับสิทธิ์จัดการงาน';
+    '<b>'+esc(p.displayName||'ยินดีต้อนรับ')+'</b><br>'
+    + (blocked
+        ? '<span style="color:var(--red)">บัญชีนี้ถูกปิดใช้งาน</span><br><span style="font-size:12px">กรุณาติดต่อผู้ดูแลระบบเพื่อเปิดใช้งานอีกครั้ง</span>'
+        : '<span style="color:#D97706">🔒 บัญชีนี้ยังไม่ได้รับอนุญาตให้เข้าใช้ระบบ</span><br><span style="font-size:12px">ต้องได้รับการอนุมัติจากผู้ดูแลระบบก่อน</span>');
   setStatus('');
-  const box=document.getElementById('auth-extra');
-  box.style.display='block';
+  document.getElementById('auth-extra').style.display='block';
   document.getElementById('uid-value').textContent=p.userId;
   const btn=document.getElementById('auth-btn');
-  btn.textContent='เข้าใช้แบบดูอย่างเดียว';
-  btn.setAttribute('onclick','enterViewer()');
-}
-function enterViewer(){
-  const u=window._pendingUser||{};
-  enterAs({userId:u.userId, name:u.name, role:'viewer'}, false);
+  btn.textContent=L('↻ ตรวจสอบสิทธิ์อีกครั้ง','↻ Check again');
+  btn.disabled=false;
+  btn.setAttribute('onclick','location.reload()');   // อนุมัติแล้วกดปุ่มนี้เข้าได้เลย
+  // เสนอทางเลือกที่ยังเปิดสาธารณะ: หน้าติดตามงาน
+  const tr=document.getElementById('auth-tracker');
+  if(tr) tr.style.display='block';
 }
 function copyUserId(){
   const v=document.getElementById('uid-value').textContent;
@@ -5672,7 +5683,7 @@ async function lookupRole(userId){
         const branches=(row[4]||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
         const teams=(row[5]||'').split(',').map(x=>x.trim()).filter(Boolean);
         const perms=(row[7]||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);   // H = perms
-        if(!active) return {role:'viewer', found:true, branches:branches, teams:teams, perms:[]};
+        if(!active) return {role:'viewer', found:true, blocked:true, branches:branches, teams:teams, perms:[]};   // บัญชีถูกปิด → เข้าไม่ได้
         const role=(row[2]||'viewer').trim().toLowerCase();
         return {role:['admin','tech','dept','viewer'].includes(role)?role:'viewer', found:true, branches:branches, teams:teams, perms:perms};
       }
