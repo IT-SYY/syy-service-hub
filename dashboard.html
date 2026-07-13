@@ -3239,6 +3239,28 @@ body.viewer .viewer-note{display:inline-flex;align-items:center;gap:5px;font-siz
 
 
 
+
+/* จัดการผู้ใช้ + สิทธิ์รายเมนู */
+.usr-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--text3);margin-bottom:12px;padding:9px 12px;background:var(--bg2);border-radius:9px;}
+.usr-legend b{color:var(--text2);}
+.usr-role{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;}
+.usr-role-admin{background:#FEE2E2;color:#991B1B;} .usr-role-tech{background:#DBEAFE;color:#1E40AF;}
+.usr-role-dept{background:#EDE9FE;color:#5B21B6;}  .usr-role-viewer{background:#F1F5F9;color:#64748B;}
+body.dark .usr-role-admin{background:#7F1D1D;color:#FECACA;} body.dark .usr-role-tech{background:#1E3A8A;color:#BFDBFE;}
+body.dark .usr-role-dept{background:#4C1D95;color:#DDD6FE;}  body.dark .usr-role-viewer{background:#334155;color:#CBD5E1;}
+.usr-menus-cell{font-size:10.5px;color:var(--text2);line-height:1.6;}
+.usr-menu-tag{display:inline-block;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:1px 6px;margin:1px 2px 1px 0;}
+.usr-off{opacity:.45;}
+.usr-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.usr-chip{font-size:11.5px;padding:5px 11px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;color:var(--text2);user-select:none;}
+.usr-chip.on{border-color:var(--accent);background:rgba(59,130,246,0.1);color:var(--accent);font-weight:600;}
+.usr-menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:6px;max-height:34vh;overflow:auto;padding:2px;}
+.usr-menu-item{display:flex;align-items:center;gap:7px;font-size:12px;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);user-select:none;}
+.usr-menu-item.on{border-color:#16A34A;background:rgba(22,163,74,0.08);}
+.usr-menu-item .umi-box{width:17px;height:17px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:transparent;}
+.usr-menu-item.on .umi-box{background:#16A34A;border-color:#16A34A;color:#fff;}
+.usr-active{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text);cursor:pointer;}
+
 /* แบนเนอร์แนะนำเมนู (ทีมที่ไม่มีงานซ่อม เช่น จัดซื้อ) */
 .scope-hint{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,#0891B2,#0E7490);color:#fff;border-radius:12px;padding:13px 16px;margin-bottom:14px;}
 .scope-hint .sh-ic{font-size:24px;flex-shrink:0;}
@@ -3551,6 +3573,7 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
     <div class="nav-item" onclick="showPage('purchase',this)"><span class="nav-icon">🛒</span><span data-th="ติดตามงานจัดซื้อ" data-en="Track Procurement">ติดตามงานจัดซื้อ</span><span class="nav-badge" id="purchase-badge">0</span></div>
     <div class="nav-item" onclick="showPage('prtrack',this)"><span class="nav-icon">🧾</span><span data-th="บันทึก PR จัดซื้อ" data-en="PR Records">บันทึก PR จัดซื้อ</span></div>
     <div class="nav-item" onclick="showPage('lostfound',this)"><span class="nav-icon">🔍</span><span data-th="ของหาย-ของเก็บได้" data-en="Lost & Found">ของหาย-ของเก็บได้</span><span class="nav-badge" id="lf-badge" style="display:none">0</span></div>
+    <div class="nav-item" id="nav-users" style="display:none" onclick="showPage('users',this)"><span class="nav-icon">👤</span><span data-th="จัดการผู้ใช้" data-en="Users">จัดการผู้ใช้</span></div>
     <div class="nav-item" onclick="showPage('firecheck',this)"><span class="nav-icon">🧯</span><span data-th="ถังดับเพลิง" data-en="Fire Extinguishers">ถังดับเพลิง</span><span class="nav-badge" id="fire-badge" style="display:none">0</span></div>
     <div class="nav-item" onclick="showPage('chat',this)"><span class="nav-icon">💬</span><span data-th="แชตติดตามงาน" data-en="Chat">แชตติดตามงาน</span><span class="nav-badge" id="chat-badge" style="background:var(--red)">0</span></div>
     <div class="nav-item" onclick="openExternal('https://it-syy.github.io/syy-service-hub/tracker.html')"><span class="nav-icon">🔗</span><span data-th="หน้าติดตามสถานะงาน" data-en="Status Tracker">หน้าติดตามสถานะงาน</span></div>
@@ -3947,6 +3970,41 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
     </div>
 
     <!-- REPORT PAGE -->
+    <!-- USERS MANAGEMENT (admin เท่านั้น) -->
+    <div class="page" id="page-users">
+      <div class="prt-toolbar">
+        <div class="lf-head">👤 <span data-th="จัดการผู้ใช้และสิทธิ์" data-en="Users & Permissions">จัดการผู้ใช้และสิทธิ์</span></div>
+        <div class="prt-actions">
+          <button class="prt-btn" onclick="usrOpenEdit()">➕ <span data-th="เพิ่มผู้ใช้" data-en="Add user">เพิ่มผู้ใช้</span></button>
+          <button class="prt-btn" onclick="usrLoad()" title="รีเฟรช">🔄</button>
+        </div>
+      </div>
+      <div class="usr-legend">
+        <span><b>admin</b> ผู้ดูแลระบบ — ทุกเมนู + จัดการสิทธิ์</span>
+        <span><b>tech</b> ทีมงาน — จัดการได้ทุกเมนู</span>
+        <span><b>dept</b> แผนก — เฉพาะเมนูที่ติ๊กให้</span>
+        <span><b>viewer</b> ดูอย่างเดียว</span>
+      </div>
+      <div class="prt-tablewrap">
+        <table class="prt-table" id="usr-table">
+          <thead><tr>
+            <th data-th="ชื่อ" data-en="Name">ชื่อ</th>
+            <th data-th="สิทธิ์" data-en="Role">สิทธิ์</th>
+            <th data-th="สาขา" data-en="Branches">สาขา</th>
+            <th data-th="ทีม" data-en="Teams">ทีม</th>
+            <th data-th="เมนูที่จัดการได้" data-en="Manageable menus">เมนูที่จัดการได้</th>
+            <th data-th="สถานะ" data-en="Active">สถานะ</th>
+            <th data-th="จัดการ" data-en="Action">จัดการ</th>
+          </tr></thead>
+          <tbody id="usr-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prt-empty" id="usr-empty" style="display:none">
+        <div style="font-size:34px">👤</div>
+        <div data-th="ยังไม่มีผู้ใช้ในระบบ" data-en="No users yet">ยังไม่มีผู้ใช้ในระบบ</div>
+      </div>
+    </div>
+
     <!-- FIRE EXTINGUISHER PAGE -->
     <div class="page" id="page-firecheck">
       <div class="prt-toolbar">
@@ -4566,6 +4624,47 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
       <button class="btn-cancel" onclick="closeM('m-pr-print')">ยกเลิก</button>
       <button class="btn-ok" onclick="prDoPrint()">🖨️ พิมพ์</button>
     </div>
+  </div>
+</div>
+
+
+<!-- USERS: เพิ่ม/แก้ไขผู้ใช้ + ติ๊กสิทธิ์เมนู -->
+<div class="overlay" id="m-user">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-ttl"><span id="usr-ttl">👤 เพิ่มผู้ใช้</span><button class="modal-x" onclick="closeM('m-user')">×</button></div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:2"><label class="modal-lbl">LINE User ID <span style="color:var(--red)">*</span></label>
+        <input class="modal-sel" id="usr-uid" placeholder="Uxxxxxxxx...">
+      </div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">รหัสพนักงาน</label><input class="modal-sel" id="usr-emp" placeholder="E001"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:2"><label class="modal-lbl">ชื่อ <span style="color:var(--red)">*</span></label><input class="modal-sel" id="usr-name" placeholder="ชื่อที่แสดงในระบบ"></div>
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สิทธิ์ (role)</label>
+        <select class="modal-sel" id="usr-role" onchange="usrToggleMenus()">
+          <option value="viewer">viewer — ดูอย่างเดียว</option>
+          <option value="dept">dept — แผนก (ติ๊กเมนู)</option>
+          <option value="tech">tech — ทีมงานเต็มสิทธิ์</option>
+          <option value="admin">admin — ผู้ดูแลระบบ</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="modal-field" style="flex:1"><label class="modal-lbl">สาขาที่ดูแล <span style="color:var(--text3);font-size:10px">(ว่าง = ทุกสาขา)</span></label>
+        <div class="usr-chips" id="usr-branches"></div>
+      </div>
+    </div>
+    <div class="modal-field"><label class="modal-lbl">ทีมที่สังกัด <span style="color:var(--text3);font-size:10px">(ว่าง = เห็นงานทุกทีม)</span></label>
+      <div class="usr-chips" id="usr-teams"></div>
+    </div>
+    <div class="modal-field" id="usr-menus-wrap">
+      <label class="modal-lbl">✅ เมนูที่จัดการได้ <span style="color:var(--text3);font-size:10px">(เมนูที่ไม่ติ๊ก = ดูได้อย่างเดียว)</span></label>
+      <div class="usr-menu-grid" id="usr-menus"></div>
+    </div>
+    <div class="modal-field">
+      <label class="usr-active"><input type="checkbox" id="usr-active" checked> <span>เปิดใช้งานบัญชีนี้ (ปิด = กลายเป็นดูอย่างเดียว)</span></label>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-user')">ยกเลิก</button><button class="btn-ok" id="usr-ok" onclick="usrSave()">💾 บันทึก</button></div>
   </div>
 </div>
 
@@ -5527,7 +5626,7 @@ async function finishAuth(){
     const res=await lookupRole(p.userId);
     if(res.netError) throw new Error('role_lookup_failed');  // โหลดรายชื่อไม่ได้ → ไปที่ retry
     if(!res.found){ showUserIdPanel(p); return; }   // คนใหม่ที่ยังไม่มีในรายชื่อ
-    enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[], teams:res.teams||[]}, false);
+    enterAs({userId:p.userId, name:p.displayName, role:res.role, branches:res.branches||[], teams:res.teams||[], perms:res.perms||[]}, false);
   }catch(e){
     // ตรวจสิทธิ์ล้ม (เช่นเน็ตสะดุด) → ไม่ค้างหน้าจอ ให้ลองใหม่ได้
     /* silent: finishAuth error */
@@ -5562,7 +5661,7 @@ function copyUserId(){
 // อ่านแท็บ USERS: คอลัมน์ A=userId, B=name, C=role, D=active
 async function lookupRole(userId){
   try{
-    const r=await fetch(`${BASE}/USERS!A2:F200?key=${API_KEY}`);
+    const r=await fetch(`${BASE}/USERS!A2:H200?key=${API_KEY}`);   // H = perms (สิทธิ์รายเมนู)
     const d=await r.json();
     const rows=d.values||[];
     for(const row of rows){
@@ -5570,19 +5669,20 @@ async function lookupRole(userId){
         const active=(row[3]===undefined||String(row[3]).toLowerCase()!=='false');
         const branches=(row[4]||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
         const teams=(row[5]||'').split(',').map(x=>x.trim()).filter(Boolean);
-        if(!active) return {role:'viewer', found:true, branches:branches, teams:teams};
+        const perms=(row[7]||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);   // H = perms
+        if(!active) return {role:'viewer', found:true, branches:branches, teams:teams, perms:[]};
         const role=(row[2]||'viewer').trim().toLowerCase();
-        return {role:['admin','tech','viewer'].includes(role)?role:'viewer', found:true, branches:branches, teams:teams};
+        return {role:['admin','tech','dept','viewer'].includes(role)?role:'viewer', found:true, branches:branches, teams:teams, perms:perms};
       }
     }
-    return {role:'viewer', found:false, branches:[], teams:[]}; // โหลดรายชื่อได้ แต่ไม่พบ userId นี้จริง
+    return {role:'viewer', found:false, branches:[], teams:[], perms:[]}; // โหลดรายชื่อได้ แต่ไม่พบ userId นี้จริง
   }catch(e){
     /* silent: lookupRole error */
     return {netError:true, found:false}; // โหลดรายชื่อไม่ได้ (เน็ตสะดุด) — ให้ผู้เรียกลองใหม่ ไม่ใช่ตัดสินว่าไม่มีสิทธิ์
   }
 }
 function enterAs(user, degraded){
-  currentUser=user; userRole=user.role; userBranches=user.branches||[]; userTeams=user.teams||[];
+  currentUser=user; userRole=user.role; userBranches=user.branches||[]; userTeams=user.teams||[]; userPerms=user.perms||[];
   buildBranchFilter();
   buildTeamFilter();
   updateScopeBtn();
@@ -5590,6 +5690,7 @@ function enterAs(user, degraded){
   loadLeaves();
   updateEngineeringMenu();
   const elNav=document.getElementById('nav-errorlog'); if(elNav) elNav.style.display=(userRole==='admin')?'flex':'none';
+  const elUsr=document.getElementById('nav-users'); if(elUsr) elUsr.style.display=(userRole==='admin')?'flex':'none';
   document.body.classList.toggle('viewer', userRole==='viewer');
   const rb=document.getElementById('role-badge');
   if(rb){
@@ -6159,6 +6260,13 @@ const SCOPE_MENU_MAP={
   project: {page:'projects', ic:'📁', th:'งานโครงการ',           en:'Projects'},
   pm:      {page:'pm',       ic:'🔧', th:'ปรุงรักษาตามแผน (PM)', en:'Preventive Maintenance'},
 };
+// ★ ทีมที่ "งานหลัก" ไม่ได้อยู่ในระบบ TICKETS เลย — ผูกทีมกับเมนูบ้านของตัวเองโดยตรง
+//   เช่น ทีมจัดซื้อ ทำงานที่เมนู "บันทึก PR จัดซื้อ" (เก็บข้อมูลคนละชีต)
+//   เพิ่มทีมใหม่ในอนาคต: เติมที่นี่จุดเดียว (คีย์ = ชื่อทีมแบบตัดเว้นวรรค/ตัวเล็ก)
+const TEAM_HOME_MENU={
+  'จัดซื้อ':     {page:'prtrack', ic:'📋', th:'บันทึก PR จัดซื้อ', en:'PR Tracking'},
+  'procurement': {page:'prtrack', ic:'📋', th:'บันทึก PR จัดซื้อ', en:'PR Tracking'},
+};
 let scopeHintPage='';
 function renderScopeHint(){
   const el=document.getElementById('scope-hint');
@@ -6167,24 +6275,41 @@ function renderScopeHint(){
   if(scopeAll) return;                      // กด "ดูทุกแผนก" อยู่ → ไม่ต้องแนะนำ
   if(getDashboardBase().length>0) return;   // มีงานซ่อมให้ดูอยู่แล้ว → ไม่ต้องแนะนำ
 
-  // นับงานของทีม/สาขาเราในแต่ละประเภท (นอกเหนือจากงานซ่อม)
+  const teamTxt=(userTeams&&userTeams.length)?userTeams.join(', '):L('ทีมของคุณ','your team');
+  const show=function(m,subTxt){
+    scopeHintPage=m.page;
+    document.getElementById('sh-ic').textContent=m.ic;
+    document.getElementById('sh-ttl').textContent=L(
+      `ทีม ${teamTxt} ไม่มีงานซ่อมบำรุง — งานของคุณอยู่ที่เมนู "${m.th}"`,
+      `No maintenance jobs for ${teamTxt} — your work is under "${m.en}"`);
+    document.getElementById('sh-sub').textContent=subTxt;
+    document.getElementById('sh-btn').textContent=L('ไปที่ '+m.th+' →', 'Go to '+m.en+' →');
+    el.style.display='flex';
+  };
+
+  // 1) ทีมนี้มี "เมนูบ้าน" ที่กำหนดไว้ไหม (เช่น จัดซื้อ → บันทึก PR) — เช็คก่อนเสมอ
+  //    เพราะงานของทีมกลุ่มนี้ไม่ได้อยู่ใน TICKETS จึงนับจำนวนจากที่นี่ไม่ได้
+  for(let i=0;i<(userTeams||[]).length;i++){
+    const home=TEAM_HOME_MENU[normTeam_(userTeams[i])];
+    if(home){
+      const nPurchase=filterByWorkType('purchase').length;   // งานจัดซื้อใน TICKETS (ถ้ามี)
+      show(home, nPurchase>0
+        ? L(`มีงานติดตามจัดซื้ออีก ${nPurchase} รายการที่เมนู "ติดตามงานจัดซื้อ" · หน้านี้แสดงเฉพาะงานซ่อมบำรุง`,
+            `${nPurchase} job(s) also under "Track Procurement" · This dashboard shows maintenance jobs only`)
+        : L('หน้าแดชบอร์ดนี้แสดงเฉพาะงานซ่อมบำรุง — งานจัดซื้ออยู่คนละเมนู',
+            'This dashboard shows maintenance jobs only'));
+      return;
+    }
+  }
+
+  // 2) ทีมทั่วไป: นับงานของทีม/สาขาเราในแต่ละประเภท แล้วชี้ไปเมนูที่มีงานมากสุด
   const counts={};
   Object.keys(SCOPE_MENU_MAP).forEach(function(wt){ counts[wt]=filterByWorkType(wt).length; });
   const best=Object.keys(counts).filter(k=>counts[k]>0).sort((a,b)=>counts[b]-counts[a])[0];
   if(!best) return;                         // ไม่มีงานประเภทไหนเลย → ปล่อยหน้าว่างตามปกติ
-
   const m=SCOPE_MENU_MAP[best];
-  const teamTxt=(userTeams&&userTeams.length)?userTeams.join(', '):L('ทีมของคุณ','your team');
-  scopeHintPage=m.page;
-  document.getElementById('sh-ic').textContent=m.ic;
-  document.getElementById('sh-ttl').textContent=L(
-    `ทีม ${teamTxt} ไม่มีงานซ่อมบำรุง — งานของคุณอยู่ที่เมนู "${m.th}"`,
-    `No maintenance jobs for ${teamTxt} — your work is under "${m.en}"`);
-  document.getElementById('sh-sub').textContent=L(
-    `พบงานของทีมคุณ ${counts[best]} รายการ · หน้าแดชบอร์ดนี้แสดงเฉพาะงานซ่อมบำรุง`,
-    `${counts[best]} job(s) found · This dashboard shows maintenance jobs only`);
-  document.getElementById('sh-btn').textContent=L('ไปที่ '+m.th+' →', 'Go to '+m.en+' →');
-  el.style.display='flex';
+  show(m, L(`พบงานของทีมคุณ ${counts[best]} รายการ · หน้าแดชบอร์ดนี้แสดงเฉพาะงานซ่อมบำรุง`,
+            `${counts[best]} job(s) found · This dashboard shows maintenance jobs only`));
 }
 function scopeHintGo(){
   if(!scopeHintPage) return;
@@ -6216,6 +6341,48 @@ function filterByWorkType(wtype){
   });
 }
 // ตรวจสิทธิ์/สาขา/ทีม ที่ใช้ร่วมกัน (แยกออกมาเพื่อใช้กับโหมด inbox ด้วย)
+
+/* ===== ระบบสิทธิ์รายเมนู (เฟส 2) =====
+ * role: admin/tech = จัดการได้ทุกเมนู · dept = เฉพาะเมนูที่ admin ติ๊กให้ · viewer = ดูอย่างเดียว
+ * userPerms = รายชื่อเมนูที่ role dept จัดการได้ (อ่านจากชีต USERS คอลัมน์ H)
+ */
+const MENU_KEYS=['dashboard','inbox','tickets','projects','pm','claim','purchase','prtrack',
+                 'lostfound','firecheck','chat','qrgen','technicians','history','archive','report'];
+const MENU_LABELS={
+  dashboard:'📊 แดชบอร์ด', inbox:'📥 งานรอมอบหมาย', tickets:'🎫 Tickets ซ่อมบำรุง',
+  projects:'📁 งานโครงการ', pm:'🔧 บำรุงรักษาตามแผน', claim:'📦 ส่งซ่อม/เคลมนอก',
+  purchase:'🛒 ติดตามงานจัดซื้อ', prtrack:'🧾 บันทึก PR จัดซื้อ', lostfound:'🔍 ของหาย-ของเก็บได้',
+  firecheck:'🧯 ถังดับเพลิง', chat:'💬 แชตติดตามงาน', qrgen:'🏷️ สร้าง QR ห้องพัก',
+  technicians:'👥 ทีมช่าง', history:'📋 ประวัติงาน', archive:'🗄️ ค้นประวัติ', report:'📈 รายงาน'
+};
+let userPerms=[];   // เมนูที่ role dept จัดการได้
+
+// ผู้ใช้จัดการเมนูนี้ได้ไหม (ไม่ระบุ menu = ใช้หน้าปัจจุบัน)
+function canManage(menu){
+  if(userRole==='admin'||userRole==='tech') return true;
+  if(userRole!=='dept') return false;                       // viewer
+  const m=String(menu||currentPage||'').toLowerCase();
+  return userPerms.indexOf(m)>=0;
+}
+// เช็คสิทธิ์ก่อนกดปุ่มแก้ไข — คืน true ถ้าห้ามทำ (พร้อมแจ้งเตือน)
+function blockNoPerm(menu){
+  if(canManage(menu)) return false;
+  if(userRole==='viewer'){ toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode'),'👁','info'); return true; }
+  const lbl=MENU_LABELS[String(menu||currentPage||'')]||L('เมนูนี้','this menu');
+  toast(L('คุณไม่มีสิทธิ์จัดการ '+lbl+' — ติดต่อผู้ดูแลระบบ','No permission for '+lbl),'🔒','info');
+  return true;
+}
+// งานใบนี้อยู่ในความรับผิดชอบของเมนูไหน (ตัดสินจากประเภทงาน ไม่ใช่หน้าที่กำลังดู)
+// เช่น กดมอบหมายงานเคลมจากหน้าแดชบอร์ด ก็ยังต้องมีสิทธิ์เมนู "ส่งซ่อม/เคลมนอก"
+const WT_MENU={repair:'tickets', project:'projects', pm:'pm', claim:'claim', purchase:'purchase'};
+function ticketMenu(id){
+  const t=tickets.find(x=>x.ticket_id===id);
+  if(!t) return currentPage;
+  return WT_MENU[String(t.work_type||'repair').toLowerCase()]||'tickets';
+}
+// เมนูปัจจุบันที่จะส่งไปให้ backend ตรวจซ้ำ (กันคนแก้โค้ดฝั่งเบราว์เซอร์)
+function actionMenu(menu){ return String(menu||currentPage||'').toLowerCase(); }
+
 // เทียบชื่อทีมแบบยืดหยุ่น: ตัดเว้นวรรค + ตัวเล็ก (กันชีตพิมพ์ 'IT support' / 'Landscape&Garden' แล้วกรองพลาด)
 // ตรงกับ norm() ใน Code.gs
 function normTeam_(s){ return String(s||'').replace(/\s+/g,'').toLowerCase(); }
@@ -7364,7 +7531,7 @@ function renderRatingBar(){
 
 // ===== MODALS =====
 function openAssign(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   const br=t.branch||'';
@@ -7446,7 +7613,7 @@ function rebuildSecondary(preChecked){
   }).join('');
 }
 function openAccept(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-accept-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">มอบหมายให้: ${t.assigned_to||'—'} เมื่อ ${t.assigned_at||'—'}</span>`;
@@ -7593,7 +7760,7 @@ function apPickDoc(input){
 }
 function apClearDoc(){ apDocFile=null; document.getElementById('ap-doc-preview').innerHTML=''; document.getElementById('ap-doc').value=''; }
 function openAddPurchase(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm('purchase')) return;
   ['ap-dept','ap-prno','ap-budget','ap-item','ap-desc'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('ap-priority').value='low';
   apPhotos=[]; apDocFile=null; renderApPreviews(); apClearDoc();
@@ -7648,7 +7815,7 @@ function renderPsPreviews(){
   box.innerHTML=purchasePhotos.map((d,i)=>'<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)"><button type="button" onclick="psRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>').join('');
 }
 function openPurchaseStage(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm('purchase')) return;
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);
   document.getElementById('ps-stage').value=(t&&t.claim_stage)||'รับ PR';
@@ -7685,7 +7852,7 @@ async function doPurchaseStage(){
   btn.disabled=false;btn.textContent=_o;
 }
 function openAddClaim(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm('claim')) return;
   ['ac-device','ac-model','ac-serial','ac-usage','ac-desc','ac-dept'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ac-priority').value='low';
   acPhotos=[]; acDocFile=null; renderAcPreviews(); acClearDoc();
@@ -7757,7 +7924,7 @@ function renderCsPreviews(){
   box.innerHTML=claimPhotos.map((d,i)=>'<div style="position:relative"><img src="'+d+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)"><button type="button" onclick="csRemovePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#DC2626;color:#fff;font-size:11px;cursor:pointer;line-height:1">×</button></div>').join('');
 }
 function openClaimStage(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm('claim')) return;
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);
   document.getElementById('cs-stage').value=(t&&t.claim_stage)||'ส่งซ่อม';
@@ -7873,7 +8040,7 @@ async function loadErrorLogs(){
 let pmPlansCache=[];
 const PM_FREQ_LABEL={day:'วัน',week:'สัปดาห์',month:'เดือน',quarter:'ไตรมาส',year:'ปี'};
 async function openPmPlans(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm('pm')) return;
   document.getElementById('m-pmplans').classList.add('show');
   await loadPmPlans();
 }
@@ -7966,7 +8133,7 @@ function removePmPlan(id,name){
 }
 // ===== เพิ่มงานโครงการ (admin สร้างเอง) =====
 function openAddProject(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm('projects')) return;
   document.getElementById('ap-title').value='';
   document.getElementById('ap-building').value='';
   document.getElementById('ap-desc').value='';
@@ -8001,7 +8168,7 @@ async function doAddProject(){
 }
 // ===== ย้ายงานซ่อม → งานโครงการ (งานบานปลาย) =====
 function moveToProject(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   if(!confirm('ย้ายงานนี้ไปเป็น "งานโครงการ"?\n\nงานจะออกจากหน้างานซ่อมบำรุง ไปอยู่ในเมนูงานโครงการ (สถานะและประวัติคงเดิม) เหมาะกับงานที่บานปลายเกินซ่อมเล็ก')) return;
   const t=tickets.find(x=>x.ticket_id===id);
   gasPost({action:'convert_project',ticket_id:id,access_token:authToken()}).then(r=>{
@@ -8012,7 +8179,7 @@ function moveToProject(id){
 }
 // ===== โอนงานข้ามแผนก/สาขา =====
 function openTransfer(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   const br=t.branch?'<span style="color:var(--green);font-weight:600"> ['+t.branch+']</span>':'';
@@ -8044,7 +8211,7 @@ async function doTransfer(){
 }
 // ปฏิเสธงานใหม่ (pending)
 function rejectPending(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   const reason=prompt('เหตุผลที่ปฏิเสธงานนี้ (เช่น งานซ้ำ / ไม่ใช่งานซ่อม / ข้อมูลไม่ครบ):');
   if(reason===null) return;
   const t=tickets.find(x=>x.ticket_id===id);
@@ -8057,7 +8224,7 @@ function rejectPending(id){
 // ===== อัปเดตความคืบหน้า (สำหรับงานที่กำลังทำแต่ยังไม่เสร็จ) =====
 var M_PCT_OPTIONS=[10,25,50,75,90];
 function openProgress(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   const br=t.branch?'<span style="color:var(--green);font-weight:600"> ['+t.branch+']</span>':'';
@@ -8114,7 +8281,7 @@ async function doProgress(){
 }
 // เปิดงานที่ถูกปฏิเสธกลับมาใหม่ (กู้คืน)
 function reopenTicket(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only mode'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   if(!confirm('เปิดงานนี้กลับมาเป็น "รอดำเนินการ" ใหม่?')) return;
   const t=tickets.find(x=>x.ticket_id===id);
   gasPost({action:'reopen',ticket_id:id,access_token:authToken()}).then(r=>{
@@ -8124,7 +8291,7 @@ function reopenTicket(id){
   });
 }
 function openDone(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','View-only mode, cannot edit'),'👁','info');return;}
+  if(blockNoPerm(ticketMenu(id))) return;
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
   document.getElementById('m-done-info').innerHTML=`<strong>${t.ticket_id}</strong>${t.category} · ${t.building||t.location} ${t.room?'ห้อง '+t.room:''}<br><span style="color:var(--text3)">ผู้รับงาน: ${t.assigned_to||'ไม่ระบุ'}</span>`;
@@ -8273,6 +8440,16 @@ async function gasFetch(url,opts){
 // ส่งคำสั่งไป GAS แบบทนทาน: ถ้าส่งถึงเซิร์ฟเวอร์แล้วแต่อ่าน response ไม่ได้ (redirect/timeout ของ GAS)
 // มักแปลว่าเซิร์ฟเวอร์ทำสำเร็จแล้ว → คืน soft:true เพื่อให้ผู้เรียกอัปเดตจอ + รีเฟรชยืนยันแทนการขึ้น error
 async function gasPost(body){
+  // แนบเมนูที่เกี่ยวข้อง ให้ backend ตรวจสิทธิ์ซ้ำ (ฝั่ง client เชื่อไม่ได้ 100%)
+  // งานที่ทำกับ ticket → ใช้เมนูตามประเภทงาน (เช่น งานเคลม = เมนู claim) ไม่ใช่หน้าที่กำลังดู
+  try{
+    if(body && !body.menu){
+      if(body._menu) body.menu=actionMenu(body._menu);
+      else if(body.ticket_id) body.menu=ticketMenu(body.ticket_id);
+      else if(body.liff_data) body.menu=WT_MENU[String(body.liff_data.work_type||'repair').toLowerCase()]||'tickets';
+      else if(body.action) body.menu=actionMenu();
+    }
+  }catch(e){}
   let res;
   // timeout กันปุ่มค้างเมื่อเซิร์ฟเวอร์แขวน: อัปโหลดไฟล์ให้เวลานานกว่า action ทั่วไป
   const TIMEOUT = (body && body.action==='upload_image') ? 90000 : 30000;
@@ -9022,6 +9199,7 @@ function chatClearAttach(){ chatPendingAttach=null; chatRenderAttachPrev(); }
 // กำลังพิมพ์อยู่ = กำลังคุยกัน → ดึงข้อความให้ไวไว้ก่อน
 document.addEventListener('input',function(e){ if(e.target&&e.target.id==='chat-input') chatPollNow(); });
 async function sendAdminMessage(){
+  if(blockNoPerm('chat')) return;
   const inp=document.getElementById('chat-input'); const msg=inp.value.trim();
   if((!msg && !chatPendingAttach)||!chatCurrentTicket) return;
   const btn=document.getElementById('chat-send-btn'); btn.disabled=true; inp.value='';
@@ -9221,7 +9399,8 @@ function showPage(p,el,fromPop){
     qrgen:L('🏷️ สร้าง QR ห้องพัก','🏷️ Guest QR Generator'),
     prtrack:L('🧾 บันทึก PR จัดซื้อ','🧾 PR Records'),
     lostfound:L('🔍 ของหาย-ของเก็บได้','🔍 Lost & Found'),
-    firecheck:L('🧯 ตรวจถังดับเพลิง','🧯 Fire Extinguisher Inspection')
+    firecheck:L('🧯 ตรวจถังดับเพลิง','🧯 Fire Extinguisher Inspection'),
+    users:L('👤 จัดการผู้ใช้และสิทธิ์','👤 Users & Permissions')
   };
   document.getElementById('page-title').textContent=titles[p]||'Dashboard';
   // สลับ UI ของหน้า tickets ตามประเภทงาน
@@ -9241,6 +9420,7 @@ function showPage(p,el,fromPop){
   if(p==='prtrack'){ prLoadPage(); }
   if(p==='lostfound'){ lfLoadPage(); }
   if(p==='firecheck'){ fireLoadPage(); }
+  if(p==='users'){ usrLoad(); }
   // ล้างตัวกรองที่ค้างจากหน้าก่อน (status/priority/category/ค้นหา/ช่าง/วันที่) เมื่อเข้าหน้ากลุ่ม Ticket ผ่านเมนู
   // กันบัก: badge นับงานดิบ แต่ตารางกรองด้วยค่าเก่า → ตัวเลขไม่ตรง / ตารางว่างดูเหมือนโหลดค้าง
   // (gotoTickets/goToMemberTasks ตั้งค่าตัวกรองหลัง showPage อยู่แล้ว จึงไม่ได้รับผลกระทบ)
@@ -9425,6 +9605,103 @@ function prAgeBadge(r){
 }
 function prShowOverdue(){ prFilter.aging='over90'; prFilter.status='all'; prFilter.dept='all'; prFilter.q=''; const si=document.getElementById('pr-search'); if(si)si.value=''; prPage=1; prRenderStatusChips(); prRenderDeptSel(); prRenderTable(); toast('แสดงเฉพาะรายการค้างเกิน '+PR_AGE_OVER+' วัน — กดชิปสถานะใดก็ได้เพื่อล้างตัวกรอง','⏰','info'); }
 
+// ==================== จัดการผู้ใช้ + สิทธิ์รายเมนู (admin เท่านั้น) ====================
+let usrList=[], usrEditing=null;
+const USR_BRANCHES=['STY','SYY','SPN','SNT','SKC'];
+const USR_TEAMS=['IT Support','Engineering','Landscape & Garden','Environment','Asset','Housekeeping','F&B','Front Office','จัดซื้อ'];
+
+async function usrLoad(){
+  if(userRole!=='admin'){ toast(L('เฉพาะผู้ดูแลระบบ','Admins only'),'🔒','info'); return; }
+  const tb=document.getElementById('usr-tbody');
+  tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">⏳ กำลังโหลด...</td></tr>';
+  try{
+    const r=await gasPost({action:'users_list', menu:'users'});
+    if(r.ok&&r.data){ usrList=r.data.users||[]; usrRender(); }
+    else { tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">'+esc((r.error||'โหลดไม่สำเร็จ'))+'</td></tr>'; }
+  }catch(e){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">เชื่อมต่อไม่สำเร็จ</td></tr>'; }
+}
+function usrRender(){
+  const tb=document.getElementById('usr-tbody'), empty=document.getElementById('usr-empty');
+  if(!usrList.length){ tb.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const order={admin:0,tech:1,dept:2,viewer:3};
+  const rows=usrList.slice().sort((a,b)=>(order[a.role]??9)-(order[b.role]??9)||String(a.name).localeCompare(String(b.name)));
+  tb.innerHTML=rows.map(u=>{
+    const menus=(u.role==='admin'||u.role==='tech')
+      ? '<span style="color:#16A34A;font-weight:600">ทุกเมนู</span>'
+      : (u.role==='dept'
+          ? ((u.perms||[]).length
+              ? (u.perms||[]).map(m=>`<span class="usr-menu-tag">${esc(MENU_LABELS[m]||m)}</span>`).join('')
+              : '<span style="color:#DC2626">ยังไม่ได้ให้สิทธิ์เมนูใด</span>')
+          : '<span style="color:var(--text3)">— ดูอย่างเดียว —</span>');
+    return `<tr class="${u.active?'':'usr-off'}">
+      <td><b>${esc(u.name||'-')}</b><br><span style="font-family:monospace;font-size:9.5px;color:var(--text3)">${esc(String(u.userId).substring(0,14))}…</span></td>
+      <td><span class="usr-role usr-role-${esc(u.role)}">${esc(u.role)}</span></td>
+      <td style="font-size:11.5px">${(u.branches||[]).join(', ')||'<span style="color:var(--text3)">ทุกสาขา</span>'}</td>
+      <td style="font-size:11.5px">${(u.teams||[]).join(', ')||'<span style="color:var(--text3)">ทุกทีม</span>'}</td>
+      <td class="usr-menus-cell">${menus}</td>
+      <td>${u.active?'<span style="color:#16A34A">✅ ใช้งาน</span>':'<span style="color:var(--text3)">⛔ ปิด</span>'}</td>
+      <td><button class="lf-act-btn" onclick="usrOpenEdit('${esc(u.userId)}')">แก้ไข</button></td>
+    </tr>`;
+  }).join('');
+}
+function usrOpenEdit(uid){
+  if(userRole!=='admin'){ toast(L('เฉพาะผู้ดูแลระบบ','Admins only'),'🔒','info'); return; }
+  const u=uid?usrList.find(x=>x.userId===uid):null;
+  usrEditing=u||null;
+  document.getElementById('usr-ttl').textContent=u?('✏️ แก้ไข '+(u.name||u.userId)):'👤 เพิ่มผู้ใช้';
+  document.getElementById('usr-uid').value=u?u.userId:'';
+  document.getElementById('usr-uid').disabled=!!u;    // แก้ไขคนเดิม → เปลี่ยน userId ไม่ได้
+  document.getElementById('usr-name').value=u?(u.name||''):'';
+  document.getElementById('usr-emp').value=u?(u.emp_id||''):'';
+  document.getElementById('usr-role').value=u?u.role:'viewer';
+  document.getElementById('usr-active').checked=u?!!u.active:true;
+  // สาขา
+  const br=(u&&u.branches)||[];
+  document.getElementById('usr-branches').innerHTML=USR_BRANCHES.map(b=>
+    `<div class="usr-chip ${br.indexOf(b)>=0?'on':''}" data-b="${b}" onclick="this.classList.toggle('on')">${b}</div>`).join('');
+  // ทีม
+  const tm=(u&&u.teams)||[];
+  document.getElementById('usr-teams').innerHTML=USR_TEAMS.map(t=>
+    `<div class="usr-chip ${tm.some(x=>normTeam_(x)===normTeam_(t))?'on':''}" data-t="${esc(t)}" onclick="this.classList.toggle('on')">${esc(t)}</div>`).join('');
+  // เมนู
+  const pm=(u&&u.perms)||[];
+  document.getElementById('usr-menus').innerHTML=MENU_KEYS.map(m=>
+    `<div class="usr-menu-item ${pm.indexOf(m)>=0?'on':''}" data-m="${m}" onclick="this.classList.toggle('on')">
+      <span class="umi-box">✓</span><span>${esc(MENU_LABELS[m]||m)}</span></div>`).join('');
+  usrToggleMenus();
+  document.getElementById('m-user').classList.add('show');
+}
+// role อื่นไม่ต้องติ๊กเมนู (admin/tech = ทุกเมนู, viewer = ดูอย่างเดียว)
+function usrToggleMenus(){
+  const role=document.getElementById('usr-role').value;
+  const wrap=document.getElementById('usr-menus-wrap');
+  wrap.style.display=(role==='dept')?'':'none';
+}
+async function usrSave(){
+  const uid=document.getElementById('usr-uid').value.trim();
+  const name=document.getElementById('usr-name').value.trim();
+  if(!uid||!name){ toast(L('กรุณากรอก User ID และชื่อ','Enter User ID and name'),'⚠️','info'); return; }
+  const role=document.getElementById('usr-role').value;
+  const branches=[...document.querySelectorAll('#usr-branches .usr-chip.on')].map(e=>e.dataset.b);
+  const teams=[...document.querySelectorAll('#usr-teams .usr-chip.on')].map(e=>e.dataset.t);
+  const perms=(role==='dept')?[...document.querySelectorAll('#usr-menus .usr-menu-item.on')].map(e=>e.dataset.m):[];
+  if(role==='dept'&&!perms.length){
+    if(!confirm(L('ยังไม่ได้ติ๊กเมนูใดเลย — ผู้ใช้จะดูได้อย่างเดียว ยืนยันไหม?','No menu selected — user will be view-only. Continue?'))) return;
+  }
+  const btn=document.getElementById('usr-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
+  try{
+    const r=await gasPost({action:'users_save', menu:'users', userId:uid, name:name,
+      emp_id:document.getElementById('usr-emp').value.trim(), role:role,
+      active:document.getElementById('usr-active').checked, branches:branches, teams:teams, perms:perms});
+    if(r.ok){ toast(L('บันทึกสิทธิ์แล้ว','Saved'),'✅'); closeM('m-user'); usrLoad();
+      if(uid===(currentUser&&currentUser.userId)) toast(L('คุณแก้สิทธิ์ตัวเอง — รีเฟรชหน้าเพื่อให้มีผล','You edited your own perms — reload page'),'ℹ️','info');
+    }
+    else toast((r.error||L('ไม่สำเร็จ','Failed')),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+  btn.disabled=false; btn.textContent=old;
+}
+
 // ==================== FIRE EXTINGUISHER ====================
 let fireState={ assets:[], checklist:[], q:'', filter:'all', alertOnly:false };
 let fireChecks={};  // {k:{pass,note}} ระหว่างตรวจ
@@ -9536,7 +9813,7 @@ function fireShowAlerts(){ fireState.alertOnly=true; fireState.filter='all'; fir
 
 // ---------- เพิ่ม/แก้ถัง ----------
 function fireOpenAsset(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  if(blockNoPerm('firecheck')) return;
   ['faf-id','faf-loc','faf-building','faf-size','faf-install','faf-expiry','faf-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('faf-type').value='ผงเคมีแห้ง';
   if(currentBranch&&currentBranch!=='all')document.getElementById('faf-branch').value=currentBranch;
@@ -9576,7 +9853,7 @@ async function fireSaveAsset(){
 
 // ---------- Checklist ตรวจถัง ----------
 function fireOpenCheck(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  if(blockNoPerm('firecheck')) return;
   const a=fireState.assets.find(x=>x.fa_id===id); if(!a)return;
   document.getElementById('fcf-faid').value=id;
   document.getElementById('fcf-asset-info').innerHTML=`<b>${esc(a.fa_id)}</b> · ${esc(a.fire_type||'')}${a.size_kg?' '+esc(a.size_kg)+'kg':''}<br><span style="color:var(--text3)">📍 ${esc(a.location||'')} ${a.building?'· '+esc(a.building):''}</span>`;
@@ -9674,7 +9951,7 @@ async function fireHistory(id){
 }
 
 async function fireRunDueCheck(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  if(blockNoPerm('firecheck')) return;
   if(!confirm(L('ให้ระบบตรวจถังที่ถึงกำหนด แล้วสร้างงานตรวจให้ทีม Engineering อัตโนมัติ?','Generate inspection tasks for due extinguishers?')))return;
   try{
     const r=await(await gasFetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'fire_run_check',access_token:authToken()})})).json();
@@ -9930,7 +10207,7 @@ function fcShowAlerts(){ fcState.alertsOnly=true; fcState.status='all'; fcState.
 
 // ---------- ทะเบียนถัง ----------
 function fcOpenAddAsset(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  if(blockNoPerm('firecheck')) return;
   ['fca-id','fca-building','fca-location','fca-size','fca-install','fca-expiry','fca-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('fca-type').value='ผงเคมีแห้ง';
   if(currentBranch&&currentBranch!=='all')document.getElementById('fca-branch').value=currentBranch;
@@ -9971,7 +10248,7 @@ async function fcSaveAsset(){
 
 // ---------- ตรวจถัง (Checklist) ----------
 function fcOpenInspect(id){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  if(blockNoPerm('firecheck')) return;
   const u=fcState.assets.find(x=>x.fa_id===id); if(!u)return;
   document.getElementById('fci-fa-id').value=id;
   document.getElementById('fci-inspector').value='';
@@ -10141,7 +10418,7 @@ function lfShowOverdue(){ lfState.overdueOnly=true; lfState.status='all'; lfStat
 
 // ---------- เพิ่ม/แก้ไข ----------
 function lfOpenAdd(){
-  if(userRole==='viewer'){toast(L('โหมดดูอย่างเดียว','View-only'),'👁','info');return;}
+  if(blockNoPerm('lostfound')) return;
   ['lfa-id','lfa-loc','lfa-desc','lfa-by','lfa-guest','lfa-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('lfa-date').value=lfToday();
   document.getElementById('lfa-cat').value='other';
@@ -10435,6 +10712,7 @@ function prShowYear(){
 
 /* ===== แก้ไขสถานะรายการ ===== */
 function prOpenEdit(itemId){
+  if(blockNoPerm('prtrack')) return;
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว ไม่สามารถแก้ไขได้','👁','info');return;}
   const r=prRows.find(x=>x.item_id===itemId);if(!r)return;
   prEditRow=r;
@@ -10466,6 +10744,7 @@ async function prSaveEdit(){
 
 /* ===== เพิ่มรายการเดียว ===== */
 function prOpenAdd(){
+  if(blockNoPerm('prtrack')) return;
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
   document.getElementById('m-pr-add').classList.add('show');
 }
@@ -10494,6 +10773,7 @@ function prLoadSheetJS(){
   });
 }
 function prOpenImport(){
+  if(blockNoPerm('prtrack')) return;
   if(userRole==='viewer'){toast('โหมดดูอย่างเดียว','👁','info');return;}
   prParsed=null;
   document.getElementById('pr-file').value='';
