@@ -8442,6 +8442,8 @@ async function gasFetch(url,opts){
 async function gasPost(body){
   // แนบเมนูที่เกี่ยวข้อง ให้ backend ตรวจสิทธิ์ซ้ำ (ฝั่ง client เชื่อไม่ได้ 100%)
   // งานที่ทำกับ ticket → ใช้เมนูตามประเภทงาน (เช่น งานเคลม = เมนู claim) ไม่ใช่หน้าที่กำลังดู
+  // แนบ token อัตโนมัติถ้ายังไม่มี (กันลืม — action ที่ต้องตรวจสิทธิ์จะพังเงียบๆ)
+  try{ if(body && body.action && !body.access_token && typeof authToken==='function'){ const _t=authToken(); if(_t) body.access_token=_t; } }catch(e){}
   try{
     if(body && !body.menu){
       if(body._menu) body.menu=actionMenu(body._menu);
@@ -9615,7 +9617,7 @@ async function usrLoad(){
   const tb=document.getElementById('usr-tbody');
   tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">⏳ กำลังโหลด...</td></tr>';
   try{
-    const r=await gasPost({action:'users_list', menu:'users'});
+    const r=await gasPost({action:'users_list', menu:'users', access_token:authToken()});
     if(r.ok&&r.data){ usrList=r.data.users||[]; usrRender(); }
     else { tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">'+esc((r.error||'โหลดไม่สำเร็จ'))+'</td></tr>'; }
   }catch(e){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">เชื่อมต่อไม่สำเร็จ</td></tr>'; }
@@ -9691,7 +9693,7 @@ async function usrSave(){
   }
   const btn=document.getElementById('usr-ok'); const old=btn.textContent; btn.disabled=true; btn.textContent=L('กำลังบันทึก...','Saving...');
   try{
-    const r=await gasPost({action:'users_save', menu:'users', userId:uid, name:name,
+    const r=await gasPost({action:'users_save', menu:'users', access_token:authToken(), userId:uid, name:name,
       emp_id:document.getElementById('usr-emp').value.trim(), role:role,
       active:document.getElementById('usr-active').checked, branches:branches, teams:teams, perms:perms});
     if(r.ok){ toast(L('บันทึกสิทธิ์แล้ว','Saved'),'✅'); closeM('m-user'); usrLoad();
