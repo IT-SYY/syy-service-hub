@@ -361,7 +361,9 @@
             <button type="button" class="media-btn" onclick="document.getElementById('photo-input').click()"><span class="mb-ic">🖼️</span><span class="mb-t">เลือกรูป</span><span class="mb-s">Gallery</span></button>
           </div>
         </div>
-        <div class="media-grp">
+        <!-- ★ ปิดระบบแนบวิดีโอชั่วคราว (เหลือเฉพาะรูปภาพ)
+             เปิดกลับ: ลบ style="display:none" ออก + เปิด VIDEO_ENABLED=true ในสคริปต์ -->
+        <div class="media-grp" id="media-grp-video" style="display:none">
           <div class="media-grp-lbl">🎥 วิดีโอ <span>· สั้นไม่เกิน 10 วินาที / 10MB</span></div>
           <div class="media-btns">
             <button type="button" class="media-btn" onclick="document.getElementById('video-cam').click()"><span class="mb-ic">🎬</span><span class="mb-t">ถ่ายวิดีโอ</span><span class="mb-s">Record</span></button>
@@ -377,7 +379,7 @@
           <div class="upload-status" id="upload-status">กำลังเตรียมรูปภาพ...</div>
           <div class="upload-bar-wrap"><div class="upload-bar" id="upload-bar"></div></div>
         </div>
-        <div class="photo-preview" id="video-preview"></div>
+        <div class="photo-preview" id="video-preview" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -655,7 +657,14 @@ function clearDoc(){
   document.getElementById('doc-input').value='';
 }
 // แนบ/ถ่ายวิดีโอสั้น — เช็คขนาด (≤10MB) + ความยาว (≤10 วิ) ก่อนเก็บ
+/* ★★★ สวิตช์เปิด/ปิดระบบแนบวิดีโอ ★★★
+ * false = ปิด (เหลือเฉพาะแนบรูปภาพ)  ·  true = เปิดกลับ
+ * ตอนเปิดกลับ: ตั้งเป็น true + ลบ style="display:none" ที่ <div id="media-grp-video">
+ * งานเก่าที่เคยแนบวิดีโอไว้ ยังดูได้ตามปกติ (ไม่กระทบข้อมูลเดิม) */
+const VIDEO_ENABLED = false;
+
 function handleVideo(input){
+  if(!VIDEO_ENABLED){ if(input) input.value=''; return; }   // ปิดอยู่ → ไม่รับไฟล์วิดีโอ
   const f = input.files && input.files[0];
   if (!f) return;
   const MAX_MB = 10, MAX_SEC = 10;
@@ -1118,7 +1127,7 @@ async function submitForm() {
 
   // Step 1.6: อัปโหลดวิดีโอสั้น (ถ้ามี) — มี progress จริง + ลองใหม่ถ้าล้มเหลว
   let videoUrl = '';
-  if (state.videoFile) {
+  if (VIDEO_ENABLED && state.videoFile) {   // ★ ปิดระบบวิดีโอ → ข้ามขั้นตอนนี้ทั้งหมด
     document.getElementById('loading-title').textContent = 'กำลังอัปโหลดวิดีโอ...';
     document.getElementById('loading-sub').textContent   = 'Uploading video...';
     document.getElementById('loading-detail').textContent = 'ขนาด '+state.videoFile.sizeMB+'MB · อย่าปิดหน้านี้';
