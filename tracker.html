@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadData() {
   showLoading();
   try {
-    const res = await fetch(`${BASE}/TICKETS!A1:AZ1000?key=${API_KEY}`);
+    const res = await fetch(`${BASE}/TICKETS!A1:AZ?key=${API_KEY}`);
     const d   = await res.json();
     if (!d.values || d.values.length<2) { allTickets = []; render(); return; }
     const heads=d.values[0].map(h=>String(h||'').trim());
@@ -481,7 +481,7 @@ async function loadData() {
     })).filter(t => t.ticket_id);
     // โหลดไทม์ไลน์ความคืบหน้าจากแท็บ PROGRESS แล้วผูกเข้าแต่ละงาน
     try {
-      const pr = await fetch(`${BASE}/PROGRESS!A1:F5000?key=${API_KEY}`);
+      const pr = await fetch(`${BASE}/PROGRESS!A1:F?key=${API_KEY}`);
       const pd = await pr.json();
       if (pd.values && pd.values.length > 1) {
         const ph = pd.values[0].map(h=>String(h||'').trim().toLowerCase());
