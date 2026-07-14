@@ -440,7 +440,7 @@ async function loadFormConfig(){
 }
 
 async function loadCategories(){
-  const r = await fetch(CFG_BASE + 'TEAMS!A1:Z50?key=' + CFG_API_KEY);
+  const r = await fetch(CFG_BASE + 'TEAMS!A1:Z?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
@@ -458,7 +458,7 @@ async function loadCategories(){
 }
 
 async function loadBuildings(){
-  const r = await fetch(CFG_BASE + 'BUILDINGS!A1:B200?key=' + CFG_API_KEY);
+  const r = await fetch(CFG_BASE + 'BUILDINGS!A1:B?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
@@ -476,7 +476,7 @@ async function loadBuildings(){
 }
 
 async function loadDepartments(){
-  const r = await fetch(CFG_BASE + 'DEPARTMENTS!A1:Z100?key=' + CFG_API_KEY);
+  const r = await fetch(CFG_BASE + 'DEPARTMENTS!A1:Z?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
@@ -494,7 +494,7 @@ async function loadDepartments(){
 
 // LOCATIONS เป็นทางเลือก: ถ้ามีแท็บและข้อมูล จะเติมเป็นตัวเลือกแนะนำ (พิมพ์เองก็ได้)
 async function loadLocations(){
-  const r = await fetch(CFG_BASE + 'LOCATIONS!A1:B300?key=' + CFG_API_KEY);
+  const r = await fetch(CFG_BASE + 'LOCATIONS!A1:B?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
