@@ -362,8 +362,8 @@ function normClaimStage(v){
 }
 
 // ===== CONFIG =====
-const SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
-const API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
+const SHEET_ID = '';
+const API_KEY  = ''   // ★ ลบแล้ว — ค้นหาผ่าน GAS (track_lookup);
 const BASE     = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
 const LIFF_URL = 'https://liff.line.me/2010241158-ll8R9q4T';
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbxNRg18-U48-Zd9GkVwiVG0clEvkekWIaFmdJXFj5MeDGzKTApCP83AZObCKwXUjosykA/exec';
@@ -425,97 +425,75 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('search-input').value = id;
     searchQuery = id.toLowerCase();
   }
-  loadData(); // แสดงรายการทั้งหมดทันทีตั้งแต่เปิดหน้า
+  loadData(); // ★ ถ้าไม่มีคำค้น จะขึ้นหน้าจอเชิญให้ค้นหา (ไม่โชว์งานทั้งหมดอีกต่อไป)
 });
 
 // ===== LOAD DATA =====
 async function loadData() {
+  // ★ ความปลอดภัย: เดิมโหลด TICKETS ทั้งชีตมากรองในเบราว์เซอร์
+  //   → ใครเปิดหน้านี้ก็ดูดข้อมูลทุกงาน (ชื่อแขก เลขห้อง) ออกไปได้
+  //   ตอนนี้ค้นฝั่งเซิร์ฟเวอร์: ต้องระบุชื่อผู้แจ้ง/เลขงาน แล้วได้เฉพาะที่ตรงเท่านั้น
+  const q = String(searchQuery || '').trim();
+  if (q.length < 2) { allTickets = []; render(); showSearchPrompt(); return; }
   showLoading();
   try {
-    const res = await fetch(`${BASE}/TICKETS!A1:AZ?key=${API_KEY}`);
-    const d   = await res.json();
-    if (!d.values || d.values.length<2) { allTickets = []; render(); return; }
-    const heads=d.values[0].map(h=>String(h||'').trim());
-    const H={}; heads.forEach((h,i)=>{ if(h && !(h in H)) H[h]=i; });
-    const g=(r,name,alt)=>{ const i=(name in H)?H[name]:((alt&&alt in H)?H[alt]:-1); return i>=0?(r[i]||''):''; };
-    allTickets = d.values.slice(1).map(r => ({
-      ticket_id:    g(r,'ticket_id'),
-      created_at:   g(r,'created_at'),
-      branch:       g(r,'branch'),
-      reporter_dept:g(r,'reporter_dept'),
-      work_type:g(r,'work_type'),
-      claim_stage:g(r,'claim_stage'),
-      doc_url:g(r,'doc_url'),
-      followup_count: g(r,'followup_count'),
-      followup_at: g(r,'followup_at'),
-      staff_reply: g(r,'staff_reply'),
-      staff_reply_at: g(r,'staff_reply_at'),
-      progress_pct: g(r,'progress'),
-      progress_log: '',
-      department:   g(r,'department','team'),
-      reported_by:  g(r,'reported_by','displayName'),
-      category:     g(r,'category'),
-      location:     g(r,'location','building'),
-      room:         g(r,'room'),
-      description:  g(r,'description'),
-      priority:     g(r,'priority')||'low',
-      status:       g(r,'status')||'pending',
-      assigned_to:  g(r,'assigned_to'),
-      assigned_secondary: g(r,'assigned_secondary'),
-      assigned_at:  g(r,'assigned_at'),
-      resolved_at:  g(r,'resolved_at'),
-      duration_min: g(r,'duration_min'),
-      image_url:    g(r,'image_url'),
-      video_url:    g(r,'video_url'),
-      done_image_url: g(r,'done_image_url'),
-      rating:       g(r,'rating'),
-      notes:        g(r,'notes'),
-      team:         g(r,'team','department'),
-      building:     g(r,'building','location'),
-      displayName:  g(r,'displayName','reported_by'),
-      accepted_at:  g(r,'accepted_at'),
-      rejected_at:  g(r,'rejected_at'),
-      reject_reason:g(r,'reject_reason'),
-      response_min: g(r,'response_min'),
-      completion_min:g(r,'completion_min'),
-    })).filter(t => t.ticket_id);
-    // โหลดไทม์ไลน์ความคืบหน้าจากแท็บ PROGRESS แล้วผูกเข้าแต่ละงาน
-    try {
-      const pr = await fetch(`${BASE}/PROGRESS!A1:F?key=${API_KEY}`);
-      const pd = await pr.json();
-      if (pd.values && pd.values.length > 1) {
-        const ph = pd.values[0].map(h=>String(h||'').trim().toLowerCase());
-        const pi = ph.indexOf('timestamp'), idi = ph.indexOf('ticket_id'),
-              pci = ph.indexOf('percent'), ni = ph.indexOf('note'), ai = ph.indexOf('actor'), imi = ph.indexOf('image_url');
-        const byTicket = {};
-        for (let i=1; i<pd.values.length; i++){
-          const row = pd.values[i]; const tid = String(row[idi]||'').trim();
-          if(!tid) continue;
-          (byTicket[tid] = byTicket[tid] || []).push({
-            p: parseInt(row[pci],10)||0, n: row[ni]||'', t: row[pi]||'', by: row[ai]||'', img: (imi>=0?(row[imi]||''):'')
-          });
-        }
-        allTickets.forEach(t=>{
-          const log = byTicket[t.ticket_id];
-          if(log && log.length){
-            t.progress_log = JSON.stringify(log);
-            if(!t.progress_pct) t.progress_pct = String(log[log.length-1].p);
-          }
-        });
-      }
-    } catch(e){ console.log('progress load:', e); }
-    updateCounts();
+    const isTid = /^TK-/i.test(q);
+    const body = { action:'track_lookup' };
+    if (isTid) body.ticket_id = q; else body.q = q;
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify(body) });
+    const r = await res.json();
+    if (!r || !r.success) { allTickets = []; render(); showError(r && r.error ? r.error : 'ค้นหาไม่สำเร็จ'); return; }
+
+    const P = {};   // ไทม์ไลน์ของงานที่ค้นเจอ (เซิร์ฟเวอร์ส่งมาเฉพาะที่เกี่ยวข้อง)
+    (r.progress || []).forEach(function(p){
+      (P[p.ticket_id] = P[p.ticket_id] || []).push(p);
+    });
+
+    allTickets = (r.tickets || []).map(function(o){
+      return {
+        ticket_id:o.ticket_id||'', created_at:o.created_at||'', branch:o.branch||'',
+        reporter_dept:o.reporter_dept||'', work_type:o.work_type||'', claim_stage:o.claim_stage||'',
+        doc_url:o.doc_url||'', followup_count:o.followup_count||'', followup_at:o.followup_at||'',
+        staff_reply:o.staff_reply||'', staff_reply_at:o.staff_reply_at||'',
+        progress_pct:o.progress||'', progress_log:'',
+        department:o.department||o.team||'', reported_by:o.reported_by||o.displayName||'',
+        category:o.category||'', location:o.building||'', room:o.room||'',
+        description:o.description||'', priority:o.priority||'low', status:o.status||'pending',
+        assigned_to:o.assigned_to||'', assigned_secondary:'', assigned_at:o.assigned_at||'',
+        resolved_at:o.resolved_at||'', duration_min:o.duration_min||'',
+        image_url:o.image_url||'', video_url:o.video_url||'', done_image_url:o.done_image_url||'',
+        rating:o.rating||'', notes:o.notes||'',
+        team:o.team||o.department||'', building:o.building||'',
+        displayName:o.displayName||o.reported_by||'',
+        accepted_at:o.accepted_at||'', rejected_at:'', reject_reason:'',
+        response_min:'', completion_min:'',
+        timeline: (P[o.ticket_id] || [])
+      };
+    }).filter(function(t){ return t.ticket_id; });
+
     render();
-  } catch(e) {
-    console.error(e);
-    showError();
+  } catch (e) {
+    allTickets = []; render(); showError('เชื่อมต่อไม่สำเร็จ');
   }
+}
+// หน้าจอเชิญให้ค้นหา (แทนการโชว์งานทั้งหมด)
+function showSearchPrompt(){
+  const box=document.getElementById('ticket-list') || document.querySelector('.list') || document.body;
+  if(box) box.innerHTML='<div style="text-align:center;padding:40px 16px;color:#94A3B8">'
+    +'<div style="font-size:38px">🔍</div>'
+    +'<div style="font-size:15px;font-weight:600;margin-top:8px;color:#475569">ค้นหางานของคุณ</div>'
+    +'<div style="font-size:12.5px;margin-top:6px">พิมพ์ <b>ชื่อผู้แจ้ง</b> หรือ <b>เลขงาน (TK-...)</b> แล้วกดค้นหา</div></div>';
+}
+function showError(msg){
+  const box=document.getElementById('ticket-list') || document.querySelector('.list');
+  if(box) box.innerHTML='<div style="text-align:center;padding:36px 16px;color:#DC2626;font-size:13px">⚠️ '+String(msg)+'</div>';
 }
 
 function loadAll() {
+  // ★ ไม่มีการ "ดูทั้งหมด" อีกต่อไป (กันดูดข้อมูล) — ล้างช่องค้นหาแล้วให้ค้นใหม่
   searchQuery = '';
   document.getElementById('search-input').value = '';
-  loadData();
+  allTickets = []; render(); showSearchPrompt();
 }
 
 // ===== SEARCH =====
