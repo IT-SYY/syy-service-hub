@@ -421,32 +421,9 @@ let state = {
 };
 
 // ===== โหลด config ฟอร์มจาก Google Sheet (categories / buildings / departments / locations) =====
-const CFG_SHEET_ID = '';
-const CFG_API_KEY  = ''   // ★ ลบแล้ว — ข้อมูลตั้งต้นมาจาก GAS (get_master);
-/* ★ ความปลอดภัย: เดิมอ่าน Google Sheets ตรงจากเบราว์เซอร์ (ต้องเปิดชีตสาธารณะ + ฝัง API key)
- *   ตอนนี้ดึงข้อมูลตั้งต้น (ทีม/อาคาร/แผนก/จุดติดตั้ง) ผ่าน GAS ครั้งเดียว แล้วแจกให้ทุกฟังก์ชัน
- *   ทำเป็น shim ครอบ fetch เดิม → ไม่ต้องแก้ logic ของ loadCategories/loadBuildings/... เลย */
-let _masterCache=null, _masterPromise=null;
-async function getMasterData(){
-  if(_masterCache) return _masterCache;
-  if(!_masterPromise){
-    _masterPromise=(async()=>{
-      const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_master'})});
-      const d=await r.json();
-      _masterCache=(d&&d.success)?d:{buildings:[],locations:[],departments:[],teams:[],room_types:[]};
-      return _masterCache;
-    })();
-  }
-  return _masterPromise;
-}
-// เลียนแบบรูปแบบเดิมของ Sheets API ({values:[[...]]}) เพื่อให้โค้ดเดิมใช้ต่อได้ทันที
-async function cfgFetch(tab){
-  const m=await getMasterData();
-  const map={TEAMS:'teams', BUILDINGS:'buildings', DEPARTMENTS:'departments', LOCATIONS:'locations', ROOM_TYPES:'room_types'};
-  const vals=m[map[tab]]||[];
-  return { json: async()=>({values: vals}) };
-}
-const CFG_BASE     = '';   // ★ ไม่ใช้แล้ว
+const CFG_SHEET_ID = '16d8BSjSAOQxb6vEezcNY9tYR12xh5A9wl_fD3_OMWRE';
+const CFG_API_KEY  = 'AIzaSyBdXjabwX6ZIV4VJsdlV-Oq8oL99xNPUTc';
+const CFG_BASE     = 'https://sheets.googleapis.com/v4/spreadsheets/' + CFG_SHEET_ID + '/values/';
 
 // แมปชื่อทีม → code (กันเว้นวรรค/ตัวเล็กใหญ่)
 function teamNorm(s){ return String(s||'').replace(/\s+/g,'').toLowerCase(); }
@@ -463,7 +440,7 @@ async function loadFormConfig(){
 }
 
 async function loadCategories(){
-  const r = await cfgFetch('TEAMS');
+  const r = await fetch(CFG_BASE + 'TEAMS!A1:Z?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
@@ -481,7 +458,7 @@ async function loadCategories(){
 }
 
 async function loadBuildings(){
-  const r = await cfgFetch('BUILDINGS');
+  const r = await fetch(CFG_BASE + 'BUILDINGS!A1:B?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
@@ -499,7 +476,7 @@ async function loadBuildings(){
 }
 
 async function loadDepartments(){
-  const r = await cfgFetch('DEPARTMENTS');
+  const r = await fetch(CFG_BASE + 'DEPARTMENTS!A1:Z?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
@@ -517,7 +494,7 @@ async function loadDepartments(){
 
 // LOCATIONS เป็นทางเลือก: ถ้ามีแท็บและข้อมูล จะเติมเป็นตัวเลือกแนะนำ (พิมพ์เองก็ได้)
 async function loadLocations(){
-  const r = await cfgFetch('LOCATIONS');
+  const r = await fetch(CFG_BASE + 'LOCATIONS!A1:B?key=' + CFG_API_KEY);
   const d = await r.json();
   const vals = d.values || [];
   if (vals.length < 2) return;
