@@ -3181,6 +3181,21 @@ body.light .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,
 .pager-info{font-size:12px;color:var(--text2);}
 .print-report{display:none;}
 /* ===== LOGIN GATE ===== */
+
+/* Login 2 ทางเลือก + เมนูบัญชี */
+.auth-tabs{display:flex;gap:6px;margin:14px 0 16px;background:var(--bg3);padding:4px;border-radius:11px;}
+.auth-tab{flex:1;text-align:center;font-size:12.5px;font-weight:600;padding:9px 6px;border-radius:8px;cursor:pointer;color:var(--text3);transition:all .15s;}
+.auth-tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.auth-input{width:100%;box-sizing:border-box;font-family:'Prompt',sans-serif;font-size:14px;padding:12px 14px;margin-bottom:9px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg2);color:var(--text);}
+.auth-input:focus{outline:none;border-color:var(--accent);}
+.auth-hint{font-size:11.5px;color:var(--text3);margin-top:11px;text-align:center;}
+.acct-menu{position:absolute;top:46px;right:14px;z-index:900;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.18);padding:5px;display:flex;flex-direction:column;gap:2px;}
+.acct-menu button{background:none;border:none;color:var(--text);font-family:'Prompt',sans-serif;font-size:12.5px;text-align:left;padding:8px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;}
+.acct-menu button:hover{background:var(--bg3);}
+.usr-pw-box{border:1px dashed var(--border);border-radius:10px;padding:11px 13px;margin-top:10px;background:var(--bg3);}
+.usr-pw-ttl{font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:9px;}
+.usr-pw-ttl span{font-weight:400;font-size:10.5px;color:var(--text3);}
+.usr-pw-note{font-size:11px;color:var(--text3);margin-top:7px;}
 #auth-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;}
 #auth-gate.hidden{display:none;}
 .auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-lg);padding:36px 30px;max-width:380px;width:100%;text-align:center;}
@@ -3532,8 +3547,20 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
   <div class="auth-card">
     <div class="auth-logo">🔧</div>
     <h2>SYY Service Hub</h2>
-    <p id="auth-msg">เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม<br>ใช้บัญชี LINE ของทีมงาน</p>
-    <button class="auth-btn" id="auth-btn" onclick="doLogin()">เข้าสู่ระบบด้วย LINE</button>
+    <p id="auth-msg">เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม</p>
+    <div class="auth-tabs" id="auth-tabs">
+      <div class="auth-tab active" id="tab-line" onclick="authSwitchTab('line')">💬 LINE</div>
+      <div class="auth-tab" id="tab-pw" onclick="authSwitchTab('pw')">🔑 ชื่อผู้ใช้ / รหัสผ่าน</div>
+    </div>
+    <div id="auth-pane-line">
+      <button class="auth-btn" id="auth-btn" onclick="doLogin()">เข้าสู่ระบบด้วย LINE</button>
+    </div>
+    <div id="auth-pane-pw" style="display:none">
+      <input class="auth-input" id="pw-user" placeholder="ชื่อผู้ใช้ (username)" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('pw-pass').focus()">
+      <input class="auth-input" id="pw-pass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')doPasswordLogin()">
+      <button class="auth-btn" id="pw-btn" onclick="doPasswordLogin()">เข้าสู่ระบบ</button>
+      <div class="auth-hint">ยังไม่มีชื่อผู้ใช้? ติดต่อผู้ดูแลระบบเพื่อขอตั้งรหัสผ่าน</div>
+    </div>
     <div class="auth-status" id="auth-status"></div>
     <div id="auth-extra" style="display:none;margin-top:18px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:6px">ส่ง <b>LINE User ID</b> นี้ให้ผู้ดูแลระบบ เพื่อขออนุมัติเข้าใช้งาน:</div>
@@ -3628,7 +3655,11 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
     <div class="topbar-search"><span style="color:var(--text3)">🔍</span><input type="text" data-th-ph="ค้นหา..." data-en-ph="Search..." placeholder="ค้นหา..." id="search-input" oninput="onSearch()"></div>
     <button class="btn-lang" id="lang-btn" onclick="toggleLang()" title="เปลี่ยนภาษา / Language">🌐 <span id="lang-btn-txt">TH</span></button>
     <div class="live-dot"></div><span class="live-txt" id="live-txt">Live</span>
-    <span id="role-badge"></span>
+    <span id="role-badge" onclick="openAccountMenu()" style="cursor:pointer" title="บัญชีของฉัน"></span>
+    <span id="acct-menu" class="acct-menu" style="display:none">
+      <button onclick="openChangePassword();closeAccountMenu()">🔑 เปลี่ยนรหัสผ่าน</button>
+      <button onclick="doLogout()">🚪 ออกจากระบบ</button>
+    </span>
     <span class="viewer-note">👁 ดูอย่างเดียว</span>
     <div class="topbar-actions">
       <button class="btn-tb" id="scope-btn" onclick="toggleScope()" style="display:none" title="สลับมุมมองแผนก"></button>
@@ -4670,6 +4701,16 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
     <div class="modal-field">
       <label class="usr-active"><input type="checkbox" id="usr-active" checked> <span>เปิดใช้งานบัญชีนี้ (ปิด = กลายเป็นดูอย่างเดียว)</span></label>
     </div>
+    <div class="usr-pw-box">
+      <div class="usr-pw-ttl">🔑 เข้าระบบด้วยชื่อผู้ใช้/รหัสผ่าน <span>(ทางเลือกนอกเหนือจาก LINE — เว้นว่างได้)</span></div>
+      <div style="display:flex;gap:8px">
+        <div class="modal-field" style="flex:1;margin:0"><label class="modal-lbl">ชื่อผู้ใช้ (username)</label>
+          <input class="modal-sel" id="usr-username" placeholder="เช่น nid" autocomplete="off"></div>
+        <div class="modal-field" style="flex:1;margin:0"><label class="modal-lbl">รหัสผ่าน</label>
+          <input class="modal-sel" id="usr-password" type="password" placeholder="เว้นว่าง = ไม่เปลี่ยน" autocomplete="new-password"></div>
+      </div>
+      <div class="usr-pw-note" id="usr-pw-note"></div>
+    </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeM('m-user')">ยกเลิก</button><button class="btn-ok" id="usr-ok" onclick="usrSave()">💾 บันทึก</button></div>
   </div>
 </div>
@@ -5572,7 +5613,99 @@ function getVisibleMembers(){
   return members;
 }
 function setStatus(m){const e=document.getElementById('auth-status');if(e)e.textContent=m;}
-function authToken(){ try{ return (typeof liff!=='undefined'&&liff.getAccessToken)?(liff.getAccessToken()||''):''; }catch(e){ return ''; } }
+
+/* ===== เข้าสู่ระบบด้วย username/password (ทางเลือกที่ 2) =====
+ * ใช้ session token จาก GAS แทน LINE token — action เดิมทั้งหมดใช้ต่อได้ทันที
+ * (ฝั่ง GAS: verifyLineToken รับได้ทั้ง 2 แบบ — ดู codegs_password_login.js)
+ */
+const SESSION_KEY='syy_session';
+let sessionToken='';
+function loadSession(){ try{ sessionToken=localStorage.getItem(SESSION_KEY)||''; }catch(e){ sessionToken=''; } return sessionToken; }
+function saveSession(t){ sessionToken=t||''; try{ if(t) localStorage.setItem(SESSION_KEY,t); else localStorage.removeItem(SESSION_KEY); }catch(e){} }
+
+function authSwitchTab(which){
+  const isPw=(which==='pw');
+  const tl=document.getElementById('tab-line'), tp=document.getElementById('tab-pw');
+  if(tl) tl.classList.toggle('active',!isPw);
+  if(tp) tp.classList.toggle('active',isPw);
+  const pl=document.getElementById('auth-pane-line'), pp=document.getElementById('auth-pane-pw');
+  if(pl) pl.style.display=isPw?'none':'';
+  if(pp) pp.style.display=isPw?'':'none';
+  setStatus('');
+  if(isPw) setTimeout(function(){ const e=document.getElementById('pw-user'); if(e)e.focus(); },80);
+}
+
+async function doPasswordLogin(){
+  const u=document.getElementById('pw-user').value.trim();
+  const p=document.getElementById('pw-pass').value;
+  if(!u||!p){ setStatus('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'); return; }
+  const btn=document.getElementById('pw-btn'); btn.disabled=true; btn.textContent='กำลังเข้าสู่ระบบ...';
+  setStatus('');
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'auth_login',username:u,password:p})})).json();
+    if(!r||!r.success){
+      setStatus((r&&r.error)?r.error:'เข้าสู่ระบบไม่สำเร็จ');
+      btn.disabled=false; btn.textContent='เข้าสู่ระบบ'; return;
+    }
+    saveSession(r.token);
+    document.getElementById('pw-pass').value='';
+    enterAs({userId:r.userId, name:r.name||u, role:r.role, branches:r.branches||[], teams:r.teams||[], perms:r.perms||[]}, false);
+  }catch(e){
+    setStatus('เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่');
+    btn.disabled=false; btn.textContent='เข้าสู่ระบบ';
+  }
+}
+
+// เข้าอัตโนมัติถ้ามี session ค้างอยู่ (ไม่ต้อง login ใหม่ทุกครั้ง — อายุ 30 วัน)
+async function tryResumeSession(){
+  const t=loadSession();
+  if(!t) return false;
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'whoami',access_token:t})})).json();
+    if(r&&r.success&&r.found&&!r.blocked){
+      enterAs({userId:r.userId||'', name:r.name||'ผู้ใช้', role:r.role, branches:r.branches||[], teams:r.teams||[], perms:r.perms||[]}, false);
+      return true;
+    }
+  }catch(e){}
+  saveSession('');
+  return false;
+}
+
+async function doLogout(){
+  if(!confirm(L('ออกจากระบบ?','Log out?'))) return;
+  const t=sessionToken;
+  saveSession('');
+  if(t){ try{ await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'auth_logout',access_token:t})}); }catch(e){} }
+  location.reload();
+}
+
+function openAccountMenu(){
+  const m=document.getElementById('acct-menu');
+  if(m) m.style.display=(m.style.display==='none')?'flex':'none';
+}
+function closeAccountMenu(){ const m=document.getElementById('acct-menu'); if(m)m.style.display='none'; }
+document.addEventListener('click',function(e){
+  const m=document.getElementById('acct-menu'), b=document.getElementById('role-badge');
+  if(m && m.style.display!=='none' && !m.contains(e.target) && e.target!==b) m.style.display='none';
+});
+
+async function openChangePassword(){
+  const oldPw=prompt(L('รหัสผ่านเดิม:','Current password:'));
+  if(oldPw===null) return;
+  const newPw=prompt(L('รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร):','New password (min 6 chars):'));
+  if(newPw===null) return;
+  if(String(newPw).length<6){ toast(L('รหัสผ่านใหม่สั้นเกินไป','Password too short'),'⚠️','info'); return; }
+  try{
+    const r=await(await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'auth_change_pw',access_token:authToken(),old_password:oldPw,new_password:newPw})})).json();
+    if(r&&r.success) toast(L('เปลี่ยนรหัสผ่านแล้ว','Password changed'),'✅');
+    else toast((r&&r.error)||L('ไม่สำเร็จ','Failed'),'❌','error');
+  }catch(e){ toast(L('เชื่อมต่อไม่สำเร็จ','Connection error'),'❌','error'); }
+}
+
+function authToken(){
+  if(sessionToken) return sessionToken;   // ★ เข้าด้วย username/password
+  try{ return (typeof liff!=='undefined'&&liff.getAccessToken)?(liff.getAccessToken()||''):''; }catch(e){ return ''; }
+}
 
 let liffReady=false;   // LIFF init เสร็จหรือยัง (กันกดปุ่มก่อนพร้อม)
 function setLoginBtn(enabled, text){
@@ -5583,33 +5716,40 @@ function setLoginBtn(enabled, text){
   if(text) b.textContent=text;
 }
 async function initAuth(){
-  setLoginBtn(false);  // ปิดปุ่มไว้ก่อน จนกว่า LIFF จะพร้อม (กันกดซ้ำตอนยังไม่พร้อม)
+  setLoginBtn(false);
+  // ★ 1) มี session ค้างอยู่ไหม (เคยเข้าด้วยรหัสผ่าน) → เข้าเลย
+  setStatus(L('กำลังตรวจสอบสิทธิ์...','Checking...'));
+  try{ if(await tryResumeSession()) return; }catch(e){}
+
+  // 2) ลองเชื่อม LINE
   try{
     setStatus(L('กำลังเชื่อมต่อ LINE...','Connecting to LINE...'));
-    // กัน liff.init ค้างถาวร: ตั้ง timeout 12 วินาที ถ้าเกินถือว่าล้ม
     await Promise.race([
       liff.init({liffId:LIFF_ID_DASH, withLoginOnExternalBrowser:true}),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('liff_init_timeout')),12000))
     ]);
     liffReady=true;
     if(!liff.isLoggedIn()){
-      document.getElementById('auth-msg').innerHTML=L('เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม<br>ใช้บัญชี LINE ของทีมงาน','Sign in to manage maintenance jobs<br>Use your team LINE account');
+      document.getElementById('auth-msg').innerHTML=L('เข้าสู่ระบบเพื่อจัดการงานแจ้งซ่อม','Sign in to manage maintenance jobs');
       setStatus('');
       setLoginBtn(true, L('เข้าสู่ระบบด้วย LINE','Sign in with LINE'));
-      return; // รอผู้ใช้กดปุ่ม
+      return;
     }
     await finishAuth();
   }catch(e){
-    /* silent: LIFF init error */
+    // ★ LINE ใช้ไม่ได้ (เปิดนอกแอป LINE) → เสนอเข้าด้วยรหัสผ่าน
+    //   เดิม: ปล่อยเข้าเป็น "ผู้เยี่ยมชม" อัตโนมัติ = ประตูหลัง → ปิดแล้ว
+    liffReady=false;
+    setStatus('');
     if(e && e.message==='liff_init_timeout'){
-      // init ค้าง → ให้ผู้ใช้ลองใหม่ แทนที่จะค้างหน้าจอตลอด
-      setStatus(L('เชื่อมต่อ LINE ช้า กรุณาลองใหม่','LINE connection slow, please retry'));
-      setLoginBtn(true, L('↻ ลองเชื่อมต่อใหม่','↻ Retry connection'));
+      document.getElementById('auth-msg').innerHTML=L('เชื่อมต่อ LINE ช้า — เข้าด้วยชื่อผู้ใช้/รหัสผ่านแทนได้','LINE slow — use username/password');
+      setLoginBtn(true, L('↻ ลองเชื่อมต่อ LINE ใหม่','↻ Retry LINE'));
       document.getElementById('auth-btn').setAttribute('onclick','location.reload()');
-      return;
+    }else{
+      document.getElementById('auth-msg').innerHTML=L('เปิดนอกแอป LINE — กรุณาเข้าด้วยชื่อผู้ใช้และรหัสผ่าน','Opened outside LINE — sign in with username/password');
+      setLoginBtn(true, L('เข้าสู่ระบบด้วย LINE','Sign in with LINE'));
     }
-    // LIFF ใช้ไม่ได้จริง (เช่นเปิดไฟล์ตรงๆ) → เข้าโหมดดูอย่างเดียวแบบ degrade
-    enterAs({name:L('ผู้เยี่ยมชม','Visitor'),role:'viewer'}, true);
+    authSwitchTab('pw');
   }
 }
 function doLogin(){
@@ -9684,7 +9824,7 @@ function prAgeBadge(r){
 function prShowOverdue(){ prFilter.aging='over90'; prFilter.status='all'; prFilter.dept='all'; prFilter.q=''; const si=document.getElementById('pr-search'); if(si)si.value=''; prPage=1; prRenderStatusChips(); prRenderDeptSel(); prRenderTable(); toast('แสดงเฉพาะรายการค้างเกิน '+PR_AGE_OVER+' วัน — กดชิปสถานะใดก็ได้เพื่อล้างตัวกรอง','⏰','info'); }
 
 // ==================== จัดการผู้ใช้ + สิทธิ์รายเมนู (admin เท่านั้น) ====================
-let usrList=[], usrEditing=null;
+let usrList=[], usrEditing=null, usrAccounts=[];
 const USR_BRANCHES=['STY','SYY','SPN','SNT','SKC'];
 const USR_TEAMS=['IT Support','Engineering','Landscape & Garden','Environment','Asset','Housekeeping','F&B','Front Office','จัดซื้อ'];
 
@@ -9694,6 +9834,10 @@ async function usrLoad(){
   tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">⏳ กำลังโหลด...</td></tr>';
   try{
     const r=await gasPost({action:'users_list', menu:'users', access_token:authToken()});
+    try{
+      const a=await gasPost({action:'auth_list', menu:'users', access_token:authToken()});
+      usrAccounts=(a.ok&&a.data&&a.data.accounts)?a.data.accounts:[];
+    }catch(e){ usrAccounts=[]; }
     if(r.ok&&r.data){ usrList=r.data.users||[]; usrRender(); }
     else { tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">'+esc((r.error||'โหลดไม่สำเร็จ'))+'</td></tr>'; }
   }catch(e){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">เชื่อมต่อไม่สำเร็จ</td></tr>'; }
@@ -9748,6 +9892,12 @@ function usrOpenEdit(uid){
     `<div class="usr-menu-item ${pm.indexOf(m)>=0?'on':''}" data-m="${m}" onclick="this.classList.toggle('on')">
       <span class="umi-box">✓</span><span>${esc(MENU_LABELS[m]||m)}</span></div>`).join('');
   usrToggleMenus();
+  const acc=(usrAccounts||[]).find(a=>a.userId===(u&&u.userId));
+  document.getElementById('usr-username').value=acc?acc.username:'';
+  document.getElementById('usr-password').value='';
+  document.getElementById('usr-pw-note').textContent=acc
+    ? ('✅ ตั้งรหัสผ่านไว้แล้ว — เว้นช่องรหัสว่างถ้าไม่ต้องการเปลี่ยน')
+    : 'ยังไม่ได้ตั้งรหัสผ่าน — กรอกทั้ง 2 ช่องเพื่อเปิดให้เข้าระบบด้วยรหัสผ่าน';
   document.getElementById('m-user').classList.add('show');
 }
 // role อื่นไม่ต้องติ๊กเมนู (admin/tech = ทุกเมนู, viewer = ดูอย่างเดียว)
@@ -9772,7 +9922,14 @@ async function usrSave(){
     const r=await gasPost({action:'users_save', menu:'users', access_token:authToken(), userId:uid, name:name,
       emp_id:document.getElementById('usr-emp').value.trim(), role:role,
       active:document.getElementById('usr-active').checked, branches:branches, teams:teams, perms:perms});
-    if(r.ok){ toast(L('บันทึกสิทธิ์แล้ว','Saved'),'✅'); closeM('m-user'); usrLoad();
+    if(r.ok){
+      const un=document.getElementById('usr-username').value.trim().toLowerCase();
+      const pw=document.getElementById('usr-password').value;
+      if(un){
+        const pr=await gasPost({action:'auth_set_pw', menu:'users', access_token:authToken(), userId:uid, username:un, password:pw, name:name});
+        if(!pr.ok) toast((pr.error||'ตั้งรหัสผ่านไม่สำเร็จ'),'⚠️','error');
+      }
+      toast(L('บันทึกสิทธิ์แล้ว','Saved'),'✅'); closeM('m-user'); usrLoad();
       if(uid===(currentUser&&currentUser.userId)) toast(L('คุณแก้สิทธิ์ตัวเอง — รีเฟรชหน้าเพื่อให้มีผล','You edited your own perms — reload page'),'ℹ️','info');
     }
     else toast((r.error||L('ไม่สำเร็จ','Failed')),'❌','error');
