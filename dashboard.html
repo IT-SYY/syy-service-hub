@@ -9741,10 +9741,16 @@ document.addEventListener('click',e=>{
 <script>
 // ===== PWA: ลงทะเบียน Service Worker =====
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW register failed:', e); });
-  });
-}
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      reg.addEventListener('updatefound', function(){
+        var nw=reg.installing;
+        if(nw) nw.addEventListener('statechange', function(){
+          if(nw.state==='installed' && navigator.serviceWorker.controller){ nw.postMessage('skipWaiting'); }
+        });
+      });
+      reg.update();
+    }).catch(function(e){ console.log('SW register failed:', e); });
+  }
 </script>
 <!-- ===== PR Tracker: Modals ===== -->
 <div class="overlay" id="m-pr-import">
