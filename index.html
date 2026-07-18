@@ -433,10 +433,14 @@ const TEAM_CODE_BY_NORM = {
 
 // categories จากชีต (เติมทับ object เดิมถ้าโหลดสำเร็จ) — key = code (it/eng/ls/env)
 async function loadFormConfig(){
-  try { await loadCategories(); } catch(e){ console.log('cat cfg:', e); }
-  try { await loadBuildings(); }  catch(e){ console.log('bld cfg:', e); }
-  try { await loadDepartments(); }catch(e){ console.log('dep cfg:', e); }
-  try { await loadLocations(); }  catch(e){ console.log('loc cfg:', e); }
+  // โหลด config ทั้ง 4 ชุดพร้อมกัน (เดิมโหลดทีละตัว รอกันเป็นทอดๆ ทำให้ฟอร์มเปิดช้า)
+  // ใช้ allSettled: ถ้าชุดใดล้มเหลว ชุดที่เหลือยังใช้ได้ตามปกติ
+  await Promise.allSettled([
+    loadCategories().catch(function(e){ console.log('cat cfg:', e); }),
+    loadBuildings().catch(function(e){ console.log('bld cfg:', e); }),
+    loadDepartments().catch(function(e){ console.log('dep cfg:', e); }),
+    loadLocations().catch(function(e){ console.log('loc cfg:', e); })
+  ]);
 }
 
 async function loadCategories(){
