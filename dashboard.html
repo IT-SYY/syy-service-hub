@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SYY Service Hub — Dashboard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06C755">
@@ -3554,6 +3554,67 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
 .ta-more{font-size:11px;color:var(--text3,#64748B);padding:4px 10px;font-style:italic;}
 .ta-close{display:block;width:calc(100% - 36px);margin:4px 18px 18px;padding:13px;border:none;border-radius:11px;background:#10B981;color:#fff;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;}
 .ta-close:active{transform:scale(0.98);}
+
+/* ============ MOBILE FIX 1: SAFE-AREA (iPhone มีติ่ง / แถบ home) ============ */
+.topbar{
+  padding-top:env(safe-area-inset-top,0px);
+  height:calc(50px + env(safe-area-inset-top,0px));
+  padding-left:calc(16px + env(safe-area-inset-left,0px));
+  padding-right:calc(16px + env(safe-area-inset-right,0px));
+}
+.sidebar{
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);
+}
+.content{
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  padding-left:calc(12px + env(safe-area-inset-left,0px));
+  padding-right:calc(12px + env(safe-area-inset-right,0px));
+}
+.acct-menu{ top:calc(52px + env(safe-area-inset-top,0px)); right:calc(14px + env(safe-area-inset-right,0px)); }
+.overlay .modal{ margin-bottom:env(safe-area-inset-bottom,0px); }
+.ta-close{ margin-bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+.footer-bar,.fab,.bottom-bar{ padding-bottom:calc(12px + env(safe-area-inset-bottom,0px)); }
+.auth-gate,.auth-card{ padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+/* ============ MOBILE FIX 2: กัน iOS ซูมอัตโนมัติตอนแตะช่องกรอก ============ */
+/* iOS Safari ซูมเองถ้า font-size < 16px — บังคับ 16px เฉพาะจอมือถือ */
+@media (max-width:768px){
+  input,select,textarea,
+  .auth-input,.modal-inp,.modal-sel,.modal-ta{
+    font-size:16px !important;
+  }
+  .modal-inp,.modal-sel,.modal-ta{ padding:9px 12px; }
+}
+
+/* ============ MOBILE FIX 3: ตาราง PR → การ์ดบนมือถือ ============ */
+.prt-cards{display:none;}
+@media (max-width:768px){
+  #pr-table{display:none;}                      /* ซ่อนตารางบนมือถือ */
+  .prt-tablewrap{overflow-x:visible;}           /* ไม่ต้องเลื่อนแนวนอนแล้ว */
+  .prt-cards{display:flex;flex-direction:column;gap:9px;padding:2px 0;}
+  .prc-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .prc-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:7px;}
+  .prc-pr{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text2);}
+  .prc-st{margin-left:auto;cursor:pointer;}
+  .prc-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:3px;}
+  .prc-sub{font-size:11px;color:var(--text3);margin-bottom:9px;}
+  .prc-grid{display:flex;flex-wrap:wrap;gap:6px 14px;}
+  .prc-line{display:flex;flex-direction:column;gap:1px;}
+  .prc-k{font-size:9.5px;color:var(--text3);}
+  .prc-v{font-size:12.5px;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace;}
+  .prc-supp{margin-top:8px;font-size:11px;color:var(--text3);border-top:1px dashed var(--border);padding-top:7px;}
+  .prc-note{margin-top:5px;font-size:11.5px;color:var(--text2);background:var(--bg3);border-radius:7px;padding:6px 9px;}
+  .prc-empty{text-align:center;color:var(--text3);padding:24px;font-size:13px;}
+}
+
+/* ============ MOBILE FIX 5: ฉากหลังมืดปิดเมนูข้าง ============ */
+.sb-backdrop{display:none;}
+@media (max-width:768px){
+  .sb-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .sb-backdrop.show{display:block;opacity:1;pointer-events:auto;}
+}
 </style>
 </head>
 <body>
@@ -3603,6 +3664,7 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
   <div class="alert-id" id="alert-id"></div>
 </div>
 
+<div class="sb-backdrop" id="sb-backdrop" onclick="closeSB()"></div>
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
@@ -3942,6 +4004,7 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
           </tr></thead>
           <tbody id="pr-tbody"></tbody>
         </table>
+        <div class="prt-cards" id="pr-cards"></div>
       </div>
       <div class="prt-pager" id="pr-pager"></div>
 
@@ -9728,13 +9791,27 @@ function onSearch(){
   if(ap==='page-tickets'){ resetTicketPage(); renderTicketsPage(); }
   else renderKanban();
 }
-function toggleSB(){document.getElementById('sidebar').classList.toggle('open');}
+function toggleSB(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('open');
+  syncSBBackdrop();
+}
+function closeSB(){
+  const sb=document.getElementById('sidebar');
+  if(sb) sb.classList.remove('open');
+  syncSBBackdrop();
+}
+function syncSBBackdrop(){
+  const sb=document.getElementById('sidebar'), bd=document.getElementById('sb-backdrop');
+  if(!sb||!bd) return;
+  bd.classList.toggle('show', sb.classList.contains('open'));
+}
 
 // MODAL CLOSE ON OUTSIDE CLICK
 document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
 document.addEventListener('click',e=>{
   const sb=document.getElementById('sidebar');
-  if(window.innerWidth<=768&&sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.hamburger'))sb.classList.remove('open');
+  if(window.innerWidth<=768&&sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.hamburger')){sb.classList.remove('open');if(typeof syncSBBackdrop==='function')syncSBBackdrop();}
 });
 </script>
 
@@ -10817,7 +10894,8 @@ function lfPrint(){
   const data=lfFiltered();
   const w=window.open('','_blank'); if(!w){toast(L('เปิดหน้าต่างพิมพ์ไม่ได้','Popup blocked'),'⚠️','info');return;}
   const rows=data.map(it=>{const cat=LF_CAT[it.category]||LF_CAT.other,st=LF_ST[it.status]||LF_ST.wait;return `<tr><td>${esc(it.lf_id)}</td><td>${esc(String(it.found_date||'').substring(0,10))}</td><td>${lfAge(it)||0} วัน</td><td>${cat.i} ${cat.t}</td><td>${esc(it.description||'')}</td><td>${esc(it.location||'')}</td><td>${esc(it.found_by||'')}</td><td>${st.t.replace(/[⏳📞✅🗑️]/g,'')}</td></tr>`;}).join('');
-  w.document.write(`<html><head><title>Lost & Found</title><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px}h1{font-size:18px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:5px;text-align:left}th{background:#f3f4f6}</style></head><body><h1>🔍 รายการของหาย-ของเก็บได้ (${data.length} รายการ)</h1><div style="font-size:11px;color:#666;margin-bottom:10px">Santhiya · SYY Service Hub · ${lfToday()}</div><table><thead><tr><th>รหัส</th><th>วันที่พบ</th><th>เก็บมา</th><th>ประเภท</th><th>รายการ</th><th>พบที่</th><th>ผู้เก็บ</th><th>สถานะ</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  w.document.write(`<html><head><title>Lost & Found</title><meta charset="utf-8"><style>body{font-family:sans-serif;padding:20px}h1{font-size:18px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:5px;text-align:left}th{background:#f3f4f6}}
+</style></head><body><h1>🔍 รายการของหาย-ของเก็บได้ (${data.length} รายการ)</h1><div style="font-size:11px;color:#666;margin-bottom:10px">Santhiya · SYY Service Hub · ${lfToday()}</div><table><thead><tr><th>รหัส</th><th>วันที่พบ</th><th>เก็บมา</th><th>ประเภท</th><th>รายการ</th><th>พบที่</th><th>ผู้เก็บ</th><th>สถานะ</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
   w.document.close(); setTimeout(()=>w.print(),500);
 }
 
@@ -10958,6 +11036,31 @@ function prRenderTable(){
       <td style="font-size:10px;color:var(--text3)">${prEsc(String(r.supplier).substring(0,40))}</td>
       <td style="font-size:10px">${prEsc(r.note)}</td>
     </tr>`;}).join('');
+
+  // ===== การ์ดสำหรับมือถือ (แสดงแทนตารางเมื่อจอ <=768px) =====
+  const cw=document.getElementById('pr-cards');
+  if(cw){
+    if(!page.length){ cw.innerHTML='<div class="prc-empty">— ไม่พบรายการตามเงื่อนไข —</div>'; }
+    else cw.innerHTML=page.map(r=>{
+      const rawT=r.status_raw&&prNormStatus(r.status_raw)!==r.status_raw.toLowerCase()?` title="สถานะเดิมในไฟล์: ${prEsc(r.status_raw)}"`:'';
+      const line=(lbl,val)=>val?`<div class="prc-line"><span class="prc-k">${lbl}</span><span class="prc-v">${prEsc(val)}</span></div>`:'';
+      return `<div class="prc-card">
+        <div class="prc-top">
+          <span class="prc-pr">${prEsc(r.pr_no)}</span>
+          ${prAgeBadge(r)}
+          <span class="prt-badge ${r.status} prc-st"${rawT} onclick="prOpenEdit('${prEsc(r.item_id)}')">${PR_ST_LBL[r.status]||r.status}</span>
+        </div>
+        <div class="prc-name">${prEsc(r.stock_name)}</div>
+        <div class="prc-sub">${prEsc(r.code)} · ${prEsc(r.department)}${r.store?' · '+prEsc(r.store):''}</div>
+        <div class="prc-grid">
+          ${line('จำนวน',r.order_qty)}
+          ${line('ราคาซื้อล่าสุด',r.last_purchase)}
+          ${line('วันที่',String(r.item_date).split(' ')[0])}
+        </div>
+        ${r.supplier?`<div class="prc-supp">🏪 ${prEsc(String(r.supplier).substring(0,50))}</div>`:''}
+        ${r.note?`<div class="prc-note">📝 ${prEsc(r.note)}</div>`:''}
+      </div>`;}).join('');
+  }
   // pager
   const pg=document.getElementById('pr-pager');
   if(totalPages<=1){pg.innerHTML=rows.length?`<span style="font-size:10.5px;color:var(--text3)">${rows.length.toLocaleString()} รายการ</span>`:'';}
