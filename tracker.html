@@ -432,8 +432,10 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadData() {
   showLoading();
   try {
-    const res = await fetch(`${BASE}/TICKETS!A1:AZ?key=${API_KEY}`);
-    const d   = await res.json();
+    // ยิง TICKETS + PROGRESS พร้อมกัน (เดิมโหลดทีละตัว รอกันเป็นทอดๆ ทำให้หน้าติดตามช้า)
+    const pTickets  = fetch(`${BASE}/TICKETS!A1:AZ?key=${API_KEY}`).then(r=>r.json());
+    const pProgress = fetch(`${BASE}/PROGRESS!A1:F?key=${API_KEY}`).then(r=>r.json()).catch(function(){ return null; });
+    const d = await pTickets;
     if (!d.values || d.values.length<2) { allTickets = []; render(); return; }
     const heads=d.values[0].map(h=>String(h||'').trim());
     const H={}; heads.forEach((h,i)=>{ if(h && !(h in H)) H[h]=i; });
@@ -481,9 +483,8 @@ async function loadData() {
     })).filter(t => t.ticket_id);
     // โหลดไทม์ไลน์ความคืบหน้าจากแท็บ PROGRESS แล้วผูกเข้าแต่ละงาน
     try {
-      const pr = await fetch(`${BASE}/PROGRESS!A1:F?key=${API_KEY}`);
-      const pd = await pr.json();
-      if (pd.values && pd.values.length > 1) {
+      const pd = await pProgress;
+      if (pd && pd.values && pd.values.length > 1) {
         const ph = pd.values[0].map(h=>String(h||'').trim().toLowerCase());
         const pi = ph.indexOf('timestamp'), idi = ph.indexOf('ticket_id'),
               pci = ph.indexOf('percent'), ni = ph.indexOf('note'), ai = ph.indexOf('actor'), imi = ph.indexOf('image_url');
