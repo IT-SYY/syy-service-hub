@@ -3615,6 +3615,23 @@ body.dark .lf-st-disposed{background:#334155;color:#CBD5E1;}
   .sb-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .2s;}
   .sb-backdrop.show{display:block;opacity:1;pointer-events:auto;}
 }
+
+/* ===== เช็คลิสต์รายการซ่อมย่อย ===== */
+.ck-bar{grid-column:1/-1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:5px 0 8px;}
+.ck-bar-in{height:100%;background:var(--green);transition:width .25s;}
+.ck-wrap{display:flex;flex-direction:column;gap:5px;}
+.ck-item{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:9px;background:var(--card2,rgba(148,163,184,0.08));border:1px solid var(--border);transition:background .15s;}
+.ck-item:hover{background:var(--green-dim);}
+.ck-box{min-width:21px;height:21px;border-radius:6px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text3);flex:0 0 auto;background:var(--bg2);}
+.ck-done .ck-box{background:var(--green);border-color:var(--green);color:#fff;}
+.ck-txt{font-size:13px;color:var(--text);line-height:1.45;flex:1;}
+.ck-done .ck-txt{text-decoration:line-through;color:var(--text3);}
+.ck-team{color:var(--green);font-size:11px;font-weight:700;}
+.ck-by{font-size:10px;color:var(--text3);flex:0 0 auto;align-self:center;}
+.ck-split{flex:0 0 auto;align-self:center;background:rgba(139,92,246,0.12);color:#7C3AED;border:1px solid rgba(139,92,246,0.35);border-radius:7px;width:30px;height:28px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;}
+.ck-split:hover{background:#7C3AED;color:#fff;}
+.kb-items{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;margin-bottom:6px;margin-left:5px;background:rgba(139,92,246,0.13);color:#7C3AED;border:1px solid rgba(139,92,246,0.35);}
+.kb-items.all-done{background:rgba(16,185,129,0.14);color:#059669;border-color:rgba(16,185,129,0.4);}
 </style>
 </head>
 <body>
@@ -6238,6 +6255,8 @@ async function loadData(silent=false){
         location:     g(r,'location','building'),
         room:         g(r,'room'),
         description:  g(r,'description'),
+        items:        g(r,'items'),
+        item_count:   parseInt(g(r,'item_count'),10)||0,
         priority:     (pri==='high'||pri==='med'||pri==='low')?pri:'low',
         status:       g(r,'status')||'pending',
         assigned_to:  g(r,'assigned_to'),
@@ -7092,6 +7111,12 @@ function mkCard(t){
     etaHtml=`<div class="kb-eta kb-eta-ok">🎯 ${L('กรอบเวลา','ETA')} ${etaLabel(t.eta_min)} ${L('(เริ่มนับเมื่อรับงาน)','(starts on accept)')}</div>`;
   }
   timerHtml+=etaHtml;
+  // ป้ายความคืบหน้ารายการซ่อมย่อย (แสดงเมื่อมีมากกว่า 1 รายการ)
+  const _ia=itemsOf(t);
+  if(_ia.length>1){
+    const _id=_ia.filter(function(x){return x.st==='done';}).length;
+    timerHtml+='<div class="kb-items'+(_id===_ia.length?' all-done':'')+'">📋 '+_id+'/'+_ia.length+' '+L('รายการ','items')+'</div>';
+  }
 
   let btns='';
   if(t.status==='pending'){
@@ -8661,6 +8686,71 @@ async function loadDetailTimeline(ticketId){
     box.innerHTML='<div class="detail-lbl" style="margin-bottom:8px;color:#A78BFA">📊 '+L('ไทม์ไลน์ความคืบหน้า','Progress Timeline')+' ('+items.length+')</div><div class="dtl-tl">'+rows+'</div>';
   }catch(e){ box.innerHTML=''; }
 }
+
+// ===== รายการซ่อมย่อยใน 1 ใบ (เช็คลิสต์) =====
+function itemsOf(t){
+  try{ const a=JSON.parse(t.items||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; }
+}
+function itemsDone(t){ return itemsOf(t).filter(function(x){ return x.st==='done'; }).length; }
+function itemsHtml(t){
+  const arr=itemsOf(t);
+  if(arr.length<2) return '';                       // รายการเดียว → description พอแล้ว
+  const done=arr.filter(function(x){return x.st==='done';}).length;
+  const canEdit = t.status!=='done' && (userRole==='admin'||userRole==='tech'||userRole==='dept');
+  const canSplit = canEdit && arr.length>1;
+  const rows=arr.map(function(it,i){
+    const d = it.st==='done';
+    const tap = canEdit ? ' onclick="toggleItem('+i+')" style="cursor:pointer"' : '';
+    return '<div class="ck-item'+(d?' ck-done':'')+'">'
+      + '<span class="ck-box"'+tap+'>'+(d?'✓':(i+1))+'</span>'
+      + '<span class="ck-txt"'+tap+'>'+esc(it.d)+(it.team?' <b class="ck-team">['+esc(it.team)+']</b>':'')+'</span>'
+      + (d&&it.by?'<span class="ck-by">'+esc(it.by)+'</span>':'')
+      + ((canSplit && !d) ? '<button class="ck-split" onclick="event.stopPropagation();splitItem('+i+')" title="'+L('แยกเป็นใบใหม่ (เช่น ต้องรออะไหล่)','Split to new ticket')+'">⤴</button>' : '')
+      + '</div>';
+  }).join('');
+  const pct = Math.round(done/arr.length*100);
+  return '<div style="grid-column:1/-1"><div class="detail-lbl">'
+    + L('📋 รายการซ่อม','📋 Items')+' <b style="color:'+(done===arr.length?'var(--green)':'var(--amber,#D97706)')+'">'+done+'/'+arr.length+'</b>'
+    + (canEdit?' <span style="font-weight:400;color:var(--text3);font-size:11px">· '+L('แตะเพื่อติ๊กเสร็จ','tap to check')+'</span>':'')
+    + '</div>'
+    + '<div class="ck-bar"><div class="ck-bar-in" style="width:'+pct+'%"></div></div>'
+    + '<div class="ck-wrap">'+rows+'</div></div>';
+}
+// แยกรายการออกเป็น Ticket ใบใหม่ (เช่น รายการที่ต้องรออะไหล่นาน ไม่อยากให้ค้างทั้งห้อง)
+async function splitItem(idx){
+  const t=tickets.find(function(x){return x.ticket_id===currentId;}); if(!t) return;
+  const arr=itemsOf(t); const it=arr[idx]; if(!it) return;
+  if(arr.length<2){ toast(L('มีรายการเดียว แยกไม่ได้','Only one item'),'⚠️','warn'); return; }
+  if(!confirm(L('แยกรายการนี้ออกเป็นใบใหม่?','Split to new ticket?')+'\n\n"'+it.d+'"\n\n'
+      +L('รายการนี้จะถูกลบออกจากใบนี้ และสร้างเป็นงานใหม่แยกต่างหาก (ใบเดิมจะไม่ค้างเพราะรายการนี้)',
+         'It will be removed from this ticket and created as a separate job.'))) return;
+  toast(L('กำลังแยกรายการ...','Splitting...'),'⏳','info');
+  try{
+    const r = await gasPost({ action:'split_item', ticket_id:currentId, item_index:idx, access_token:authToken() });
+    if(r && r.ok){
+      toast(L('แยกเป็นใบใหม่แล้ว: ','Split to: ')+(r.new_ticket_id||''),'✂️','success');
+      closeM('m-detail');
+      loadData(true);
+    } else {
+      toast(L('แยกไม่สำเร็จ: ','Failed: ')+((r&&r.error)||''),'⚠️','warn');
+    }
+  }catch(e){ toast(L('แยกไม่สำเร็จ','Split failed'),'⚠️','warn'); }
+}
+async function toggleItem(idx){
+  const t=tickets.find(function(x){return x.ticket_id===currentId;}); if(!t) return;
+  const arr=itemsOf(t); if(!arr[idx]) return;
+  const to = arr[idx].st==='done' ? 'pending' : 'done';
+  arr[idx].st = to;
+  if(to==='done'){ arr[idx].by=(currentUser&&currentUser.name)||''; arr[idx].at=thaiTime(); }
+  else { delete arr[idx].by; delete arr[idx].at; }
+  t.items = JSON.stringify(arr);
+  openDetail(currentId);            // รีเฟรชทันที ไม่ต้องรอเซิร์ฟเวอร์
+  renderAll();
+  try{
+    const r = await gasPost({ action:'update_items', ticket_id:currentId, items:t.items, access_token:authToken() });
+    if(!r || !r.ok){ toast(L('บันทึกไม่สำเร็จ กดรีเฟรชแล้วลองใหม่','Save failed'),'⚠️','warn'); }
+  }catch(e){ toast(L('บันทึกไม่สำเร็จ','Save failed'),'⚠️','warn'); }
+}
 function openDetail(id){
   currentId=id;
   const t=tickets.find(x=>x.ticket_id===id);if(!t)return;
@@ -8695,7 +8785,8 @@ function openDetail(id){
       ${t.completion_min?`<div><div class="detail-lbl">${L('⏱ เวลาช่าง (ใช้ตัดสิน SLA)','⏱ Technician time (SLA)')}</div><div class="detail-val" style="color:var(--green)">${fmtMins(t.completion_min)} ${L('(รับงาน→เสร็จ)','(accept→done)')}</div></div>`:''}
       ${t.duration_min?`<div><div class="detail-lbl">${L('⏱ เวลารวมทั้งหมด','⏱ Total time')}</div><div class="detail-val" style="color:var(--text2)">${fmtMins(t.duration_min)} ${L('(แจ้ง→เสร็จ · รวมช่วงรอ)','(report→done · incl. wait)')}</div></div>`:''}
       ${slaOf(t)?`<div><div class="detail-lbl">🎯 SLA</div><div class="detail-val" style="color:${slaOf(t)==='on_time'?'var(--green)':'var(--red)'};font-weight:700">${slaOf(t)==='on_time'?L('✓ ตรงเวลา','✓ On time'):L('✗ เกินกำหนด','✗ Overdue')} <span style="font-weight:400;color:var(--text3);font-size:11px">(${L('เป้า','target')} ${fmtMins(SLA_TARGETS[t.priority]||SLA_TARGETS.low)})</span></div></div>`:''}
-      <div style="grid-column:1/-1"><div class="detail-lbl">${L('รายละเอียด','Details')}</div><div class="detail-val">${t.description||'—'}</div></div>
+      <div style="grid-column:1/-1"><div class="detail-lbl">${L('รายละเอียด','Details')}</div><div class="detail-val" style="white-space:pre-line">${t.description||'—'}</div></div>
+      ${itemsHtml(t)}
       ${mkProgressBar(t)}
       <div id="m-detail-timeline" style="grid-column:1/-1"></div>
       ${mkDetailImages(t)}
