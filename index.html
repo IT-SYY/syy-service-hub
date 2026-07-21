@@ -130,6 +130,19 @@
   .page.active{display:block;}
   .req{color:#E24B4A;margin-left:2px;}
   .hidden-input{display:none;}
+
+  /* ===== รายการแจ้งซ่อมหลายรายการใน 1 ใบ ===== */
+  .item-row{border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;}
+  .item-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .item-no{background:var(--green);color:#fff;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:0 0 auto;}
+  .item-lbl{font-size:12px;color:#94A3B8;}
+  .item-del{margin-left:auto;background:none;border:none;color:#DC2626;font-size:22px;cursor:pointer;padding:0 6px;line-height:1;font-family:inherit;}
+  .item-row textarea{min-height:58px !important;margin-bottom:7px;}
+  .item-row select{font-size:13px;padding:9px 11px;}
+  .add-item-btn{width:100%;padding:12px;border:1.5px dashed var(--green);border-radius:10px;background:#F0FDF4;color:var(--green);font-size:14px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;}
+  .add-item-btn:active{transform:scale(0.99);}
+  .sum-item{padding:5px 0;border-bottom:1px dashed #E2E8F0;font-size:13px;}
+  .sum-item:last-child{border-bottom:none;}
 </style>
 </head>
 <body>
@@ -334,8 +347,12 @@
       </div>
     </div>
     <div class="field">
-      <label>รายละเอียดปัญหา <span class="en">Description</span><span class="req">*</span></label>
+      <label><span id="desc-label">รายละเอียดปัญหา</span> <span class="en">Description</span><span class="req">*</span></label>
+      <!-- โหมดปกติ: ช่องเดียวเหมือนเดิม -->
       <textarea id="field-desc" placeholder="อธิบายปัญหาที่พบ / Describe the issue..."></textarea>
+      <!-- โหมดหลายรายการ: จะแสดงเมื่อกด "เพิ่มรายการ" -->
+      <div id="items-wrap" style="display:none"></div>
+      <button type="button" class="add-item-btn" onclick="addItem()">➕ เพิ่มรายการ <span style="font-weight:400;font-size:12px">(ห้องนี้มีหลายจุดที่ต้องซ่อม)</span></button>
     </div>
 
     <!-- CLAIM DOCUMENT UPLOAD (เฉพาะงานส่งซ่อม/เคลมนอก) -->
@@ -1029,13 +1046,15 @@ function validateStep() {
   if (state.step === 3) {
     state.building    = document.getElementById('field-building').value;
     state.room        = document.getElementById('field-room').value;
-    state.description = document.getElementById('field-desc').value.trim();
+    state.items       = collectItems();
+    state.description = itemsToText(state.items);
+    document.getElementById('field-desc').value = state.description;
     state.department  = document.getElementById('field-dept').value;
     // งานเคลม: ใช้สถานที่ใช้งานเป็น building ไม่ต้องเลือกอาคารซ้ำ
     if (state.work_type === 'claim' && !state.building) state.building = state.claim_usage || '-';
     if (state.work_type === 'purchase' && !state.building) state.building = state.purchase_item || 'งานจัดซื้อ';
     if (state.work_type !== 'claim' && state.work_type !== 'purchase' && !state.building) { alert('กรุณาเลือกอาคาร/โซน\nPlease select a building.'); return false; }
-    if (!state.description) { alert('กรุณาอธิบายปัญหา\nPlease describe the issue.'); return false; }
+    if (!state.items || !state.items.length) { alert('กรุณาใส่รายละเอียดอย่างน้อย 1 รายการ\nPlease add at least 1 item.'); return false; }
   }
   return true;
 }
@@ -1056,7 +1075,9 @@ function buildSummary() {
     ['ความเร่งด่วน', priLabel[state.priority]],
     ['อาคาร / Building', state.building],
     ['ห้อง / Room', state.room || '-'],
-    ['รายละเอียด', state.description],
+    ['รายละเอียด', (state.items && state.items.length > 1)
+        ? '<div>' + state.items.map(function(it,i){ return '<div class="sum-item">'+(i+1)+'. '+it.d+(it.team?' <b style="color:#0F9D58">['+it.team+']</b>':'')+'</div>'; }).join('') + '</div>'
+        : state.description],
     ['ผู้แจ้ง / Reporter', state.displayName || '-'],
   ];
   let html = rows.map(([l,v]) =>
@@ -1183,6 +1204,8 @@ async function submitForm() {
     image_url:         imageUrl,
     video_url:         videoUrl,
     photoCount:        state.photos.length,
+    items:             JSON.stringify(state.items || []),
+    item_count:        (state.items || []).length,
   };
 
   // ส่ง Ticket ไป GAS แล้ว "รอเลขจริง" กลับมา (server สร้างเลขรันนิ่งตามสาขา+วัน)
@@ -1403,6 +1426,97 @@ async function downloadTicketImage(){
   });
 }
 function closeImgSave(){ document.getElementById('img-save-overlay').classList.add('hidden'); }
+
+// ===== รายการแจ้งซ่อม: โหมดช่องเดียว (ปกติ) ↔ โหมดหลายรายการ =====
+const ITEM_TEAMS = ['IT Support','Engineering','Landscape & Garden','Environment'];
+function isListMode(){ var w=document.getElementById('items-wrap'); return w && w.style.display !== 'none'; }
+function itemRowHtml(text){
+  var opts = '<option value="">— ทีมเดียวกับงานหลัก —</option>'
+    + ITEM_TEAMS.map(function(t){ return '<option value="'+t+'">'+t+'</option>'; }).join('');
+  return '<div class="item-row">'
+    + '<div class="item-head"><span class="item-no"></span>'
+    + '<span class="item-lbl">รายการที่ <b class="item-no-txt"></b></span>'
+    + '<button type="button" class="item-del" onclick="delItem(this)" title="ลบรายการนี้">×</button></div>'
+    + '<textarea class="item-desc" placeholder="เช่น หลอดไฟห้องน้ำไม่ติด / ก๊อกน้ำหยด"></textarea>'
+    + '<select class="item-team">'+opts+'</select>'
+    + '</div>';
+}
+// เปลี่ยนจากช่องเดียว → รายการ (ย้ายข้อความที่พิมพ์ไว้มาเป็นรายการที่ 1)
+function toListMode(){
+  var ta = document.getElementById('field-desc');
+  var w  = document.getElementById('items-wrap');
+  if(!ta || !w || isListMode()) return;
+  var first = ta.value.trim();
+  w.innerHTML = '';
+  w.insertAdjacentHTML('beforeend', itemRowHtml());
+  w.querySelector('.item-desc').value = first;
+  w.style.display = 'block';
+  ta.style.display = 'none';
+  var lb = document.getElementById('desc-label'); if(lb) lb.textContent = 'รายการแจ้งซ่อม';
+}
+// กลับเป็นช่องเดียวเมื่อเหลือรายการเดียว
+function toSimpleMode(){
+  var ta = document.getElementById('field-desc');
+  var w  = document.getElementById('items-wrap');
+  if(!ta || !w) return;
+  var rows = w.querySelectorAll('.item-row');
+  ta.value = rows.length ? rows[0].querySelector('.item-desc').value : '';
+  w.innerHTML = '';
+  w.style.display = 'none';
+  ta.style.display = '';
+  var lb = document.getElementById('desc-label'); if(lb) lb.textContent = 'รายละเอียดปัญหา';
+}
+function addItem(){
+  if(!isListMode()) toListMode();                       // ครั้งแรก: แปลงช่องเดียวเป็นรายการที่ 1 ก่อน
+  var w = document.getElementById('items-wrap');
+  if(w.querySelectorAll('.item-row').length >= 15){ alert('ใส่ได้สูงสุด 15 รายการต่อ 1 ใบ'); return; }
+  w.insertAdjacentHTML('beforeend', itemRowHtml());
+  renumberItems();
+  var rows = w.querySelectorAll('.item-row');
+  if(rows.length) rows[rows.length-1].querySelector('.item-desc').focus();
+}
+function delItem(btn){
+  var w = document.getElementById('items-wrap');
+  var rows = w.querySelectorAll('.item-row');
+  if(rows.length <= 2){                                  // เหลือ 1 รายการ → กลับเป็นช่องเดียว
+    btn.closest('.item-row').remove();
+    toSimpleMode();
+    return;
+  }
+  btn.closest('.item-row').remove();
+  renumberItems();
+}
+function renumberItems(){
+  var rows = document.querySelectorAll('.item-row');
+  rows.forEach(function(r, i){
+    r.querySelector('.item-no').textContent = i+1;
+    var t = r.querySelector('.item-no-txt'); if(t) t.textContent = i+1;
+  });
+}
+// รวมรายการที่กรอกจริง — โหมดช่องเดียวคืน 1 รายการ
+function collectItems(){
+  var out = [];
+  if(!isListMode()){
+    var d = (document.getElementById('field-desc').value || '').trim();
+    if(d) out.push({ d: d, team: '', st: 'pending' });
+    return out;
+  }
+  document.querySelectorAll('.item-row').forEach(function(r){
+    var d = r.querySelector('.item-desc').value.trim();
+    if(!d) return;
+    out.push({ d: d, team: r.querySelector('.item-team').value || '', st: 'pending' });
+  });
+  return out;
+}
+// ข้อความสรุปลงคอลัมน์ description เดิม (ให้หน้าจอ/งานเก่าแสดงได้เหมือนเดิม)
+function itemsToText(items){
+  if(!items.length) return '';
+  if(items.length === 1) return items[0].d + (items[0].team ? ' ['+items[0].team+']' : '');
+  return items.map(function(it, i){
+    return (i+1)+'. '+it.d + (it.team ? ' ['+it.team+']' : '');
+  }).join('\n');
+}
+
 </script>
 <div id="img-save-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(10,22,40,0.85);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
   <div id="img-save-hint" style="color:#fff;font-size:14px;font-weight:600;margin-bottom:10px;text-align:center;padding:8px 14px;border-radius:10px;transition:background .3s">📱 กดค้างที่ภาพ แล้วเลือก "บันทึกรูปภาพ"<br><span style="font-weight:400;font-size:12px;opacity:0.8">หรือใช้ปุ่มดาวน์โหลดด้านล่าง (สำหรับคอมพิวเตอร์)</span></div>
